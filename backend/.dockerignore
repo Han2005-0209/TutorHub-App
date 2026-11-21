@@ -1,0 +1,10 @@
+**/bin/
+**/obj/
+src/TutorHub.Api/storage/
+storage/
+http/
+tests/
+*.user
+*.suo
+.vs/
+appsettings.Development.json

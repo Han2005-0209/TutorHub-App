@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/assets/img/icon-192.svg" />
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <title>Hồ sơ tài khoản — TutorHub</title>
+  </head>
+  <body class="theme-user">
+    <div id="khung-header"></div>
+
+    <main class="container-narrow" style="padding: 1.75rem 1.25rem 3rem">
+      <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 1.35rem; flex-wrap: wrap; gap: 0.75rem">
+        <div>
+          <h1 style="margin: 0; font-size: 1.55rem; font-weight: 800; letter-spacing: -0.02em">Tài khoản &amp; Bảo mật</h1>
+          <p style="margin: 0.25rem 0 0; color: var(--th-text-muted); font-size: 0.88rem">
+            Quản lý thông tin liên hệ, xác thực email và mật khẩu cá nhân
+          </p>
+        </div>
+        <div id="nut-chuyen-gia-su"></div>
+      </div>
+
+      <div id="hop-thong-bao" style="display: none"></div>
+
+      <div class="workspace-layout">
+        <!-- Sidebar thông tin tổng quan tài khoản -->
+        <aside class="card" style="padding: 1.35rem; text-align: center">
+          <div id="avatar-hien-tai" class="avatar-circle" style="width: 72px; height: 72px; font-size: 1.5rem; margin: 0 auto 0.85rem">TH</div>
+          <div id="ten-hien-tai" style="font-weight: 700; font-size: 1.08rem">Đang tải...</div>
+          <div id="email-hien-tai" style="color: var(--th-text-muted); font-size: 0.76rem; margin-top: 0.2rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis"></div>
+          <div id="badges-tai-khoan" style="display: flex; flex-direction: column; align-items: center; gap: 0.45rem; margin-top: 0.9rem; min-height: 84px">
+            <span class="sk-block" style="width: 110px; height: 24px; border-radius: 9999px"></span>
+            <span class="sk-block" style="width: 145px; height: 24px; border-radius: 9999px"></span>
+          </div>
+        </aside>
+
+        <!-- Nội dung cài đặt bên phải -->
+        <div style="display: flex; flex-direction: column; gap: 1.25rem">
+          <section class="card" style="padding: 1.5rem">
+            <h2 style="margin: 0 0 0.9rem; font-size: 1.08rem; font-weight: 700">Thông tin cá nhân</h2>
+            <form id="form-cap-nhat-ho-so">
+              <div class="form-group">
+                <label class="form-label" for="inp-ho-ten">Họ và tên</label>
+                <input id="inp-ho-ten" name="hoTen" type="text" required class="form-control" />
+              </div>
+              <div class="grid-2" style="gap: 0.85rem; align-items: end">
+                <div class="form-group">
+                  <label class="form-label" for="inp-sdt">Số điện thoại</label>
+                  <input id="inp-sdt" name="soDienThoai" type="tel" class="form-control" placeholder="090xxxxxxx" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="inp-khu-vuc">Khu vực (Quận, Tỉnh/Thành)</label>
+                  <input id="inp-khu-vuc" name="khuVuc" type="text" class="form-control" placeholder="Ninh Kiều, Cần Thơ" />
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary btn-sm">Lưu thay đổi</button>
+            </form>
+          </section>
+
+          <section class="card" style="padding: 1.5rem">
+            <h2 style="margin: 0 0 0.9rem; font-size: 1.08rem; font-weight: 700">Đổi mật khẩu</h2>
+            <form id="form-doi-mat-khau">
+              <div class="grid-2" style="gap: 0.85rem">
+                <div class="form-group">
+                  <label class="form-label" for="inp-mk-cu">Mật khẩu hiện tại</label>
+                  <input id="inp-mk-cu" name="matKhauCu" type="password" required class="form-control" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="inp-mk-moi">Mật khẩu mới (≥ 8 ký tự, có chữ và số)</label>
+                  <input id="inp-mk-moi" name="matKhauMoi" type="password" required class="form-control" />
+                </div>
+              </div>
+              <button type="submit" class="btn btn-secondary btn-sm">Cập nhật mật khẩu</button>
+            </form>
+          </section>
+
+          <section class="card" style="padding: 1.35rem; border-color: var(--th-blush-border)">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap">
+              <div>
+                <h2 style="margin: 0 0 0.25rem; font-size: 1rem; font-weight: 700; color: var(--th-blush-text)">
+                  Ngưng hoạt động tài khoản
+                </h2>
+                <p style="margin: 0; font-size: 0.82rem; color: var(--th-text-muted)">
+                  Vô hiệu hóa tài khoản và đăng xuất khỏi mọi thiết bị (chỉ thực hiện khi không còn lịch học đang mở).
+                </p>
+              </div>
+              <button id="btn-vo-hieu-hoa" type="button" class="btn btn-danger btn-sm">Vô hiệu hóa tài khoản</button>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+
+    <div id="khung-footer"></div>
+
+    <script type="module">
+      import { api, layAccessToken, xoaPhienToken } from '/assets/js/api.js';
+      import { dinhDangTienVnd } from '/assets/js/dinh-dang.js';
+      import { icons } from '/assets/js/icons.js';
+      import {
+        escapeHtml,
+        layChuCaiDau,
+        luuNguoiDungHienTai,
+        renderFooter,
+        renderHeader,
+      } from '/assets/js/giao-dien.js';
+      import { layNhanVaiTro } from '/assets/js/trang-thai.js';
+
+      if (!layAccessToken()) {
+        window.location.href = '/pages/dang-nhap.html';
+      }
+
+      renderHeader('#khung-header');
+      renderFooter('#khung-footer');
+
+      const hopThongBao = document.getElementById('hop-thong-bao');
+      function thongBao(msg, loai = 'success') {
+        hopThongBao.style.display = 'block';
+        hopThongBao.className = `alert alert-${loai}`;
+        hopThongBao.textContent = msg;
+      }
+
+      async function taiHoSo() {
+        try {
+          const res = await api.get('/nguoi-dung/toi');
+          const u = res?.duLieu;
+          if (!u) return;
+
+          luuNguoiDungHienTai(u);
+          renderHeader('#khung-header');
+
+          document.getElementById('avatar-hien-tai').textContent = layChuCaiDau(u.hoTen);
+          document.getElementById('ten-hien-tai').textContent = u.hoTen;
+          const elEmailHienTai = document.getElementById('email-hien-tai');
+          elEmailHienTai.textContent = u.email;
+          elEmailHienTai.title = u.email;
+          document.getElementById('inp-ho-ten').value = u.hoTen || '';
+          document.getElementById('inp-sdt').value = u.soDienThoai || '';
+          document.getElementById('inp-khu-vuc').value = u.khuVuc || '';
+
+          const badgesEl = document.getElementById('badges-tai-khoan');
+          badgesEl.innerHTML = `
+            <span class="badge badge-info">${escapeHtml(layNhanVaiTro(u.vaiTro))}</span>
+            <span class="badge ${u.daXacThucEmail ? 'badge-success' : 'badge-warning'}">
+              ${u.daXacThucEmail ? `${icons.checkCircle(12)} Email đã xác thực` : 'Chưa xác thực email'}
+            </span>
+            ${
+              typeof u.soDuVi === 'number'
+                ? `<span class="badge badge-neutral">${icons.wallet(12)} Ví: ${dinhDangTienVnd(u.soDuVi)}</span>`
+                : ''
+            }
+          `;
+
+          if (u.vaiTro === 'GIA_SU') {
+            document.body.className = 'theme-tutor';
+            document.getElementById('nut-chuyen-gia-su').innerHTML = `
+              <a class="btn btn-primary btn-sm" href="/pages/quan-ly-gia-su.html">
+                Về Cổng Gia sư ${icons.arrowRight(14)}
+              </a>
+            `;
+          } else if (u.vaiTro === 'QUAN_TRI') {
+            document.getElementById('nut-chuyen-gia-su').innerHTML = `
+              <a class="btn btn-primary btn-sm" style="background: #4f46e5" href="/pages/quan-tri.html">
+                Về Trang Quản trị ${icons.arrowRight(14)}
+              </a>
+            `;
+          } else if (u.vaiTro === 'HOC_SINH') {
+            document.body.className = 'theme-user';
+            document.getElementById('nut-chuyen-gia-su').innerHTML = `
+              <a class="btn btn-primary btn-sm" href="/pages/hoc-sinh-tong-quan.html">
+                Về Cổng Học sinh ${icons.arrowRight(14)}
+              </a>
+            `;
+          }
+        } catch (err) {
+          thongBao(err.message, 'danger');
+        }
+      }
+
+      document.getElementById('form-cap-nhat-ho-so')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        try {
+          await api.patch('/nguoi-dung/toi', {
+            hoTen: document.getElementById('inp-ho-ten').value.trim(),
+            soDienThoai: document.getElementById('inp-sdt').value.trim() || null,
+            khuVuc: document.getElementById('inp-khu-vuc').value.trim() || null,
+          });
+          thongBao('Đã cập nhật thông tin hồ sơ cá nhân thành công!', 'success');
+          await taiHoSo();
+        } catch (err) {
+          thongBao(err.message, 'danger');
+        }
+      });
+
+      document.getElementById('form-doi-mat-khau')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        try {
+          await api.post('/nguoi-dung/toi/doi-mat-khau', {
+            matKhauCu: document.getElementById('inp-mk-cu').value,
+            matKhauMoi: document.getElementById('inp-mk-moi').value,
+          });
+          document.getElementById('form-doi-mat-khau').reset();
+          thongBao('Đã đổi mật khẩu thành công!', 'success');
+        } catch (err) {
+          thongBao(err.message, 'danger');
+        }
+      });
+
+      document.getElementById('btn-vo-hieu-hoa')?.addEventListener('click', async () => {
+        if (!confirm('Bạn có chắc chắn muốn vô hiệu hóa tài khoản của mình?')) return;
+        try {
+          await api.delete('/nguoi-dung/toi');
+          xoaPhienToken();
+          luuNguoiDungHienTai(null);
+          window.location.href = '/pages/dang-nhap.html';
+        } catch (err) {
+          thongBao(err.message, 'danger');
+        }
+      });
+
+      taiHoSo();
+    </script>
+  </body>
+</html>

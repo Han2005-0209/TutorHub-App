@@ -1,0 +1,30 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "cleanUrls": false,
+  "trailingSlash": false,
+  "rewrites": [
+    { "source": "/pages/dang-nhap", "destination": "/pages/dang-nhap.html" },
+    { "source": "/pages/dang-ky", "destination": "/pages/dang-ky.html" },
+    { "source": "/pages/hoc-sinh-tong-quan", "destination": "/pages/hoc-sinh-tong-quan.html" },
+    { "source": "/pages/tim-kiem-gia-su", "destination": "/pages/tim-kiem-gia-su.html" },
+    { "source": "/pages/ho-so-gia-su", "destination": "/pages/ho-so-gia-su.html" },
+    { "source": "/pages/muc-yeu-thich", "destination": "/pages/muc-yeu-thich.html" },
+    { "source": "/pages/ho-so-tai-khoan", "destination": "/pages/ho-so-tai-khoan.html" },
+    { "source": "/pages/quan-ly-gia-su", "destination": "/pages/quan-ly-gia-su.html" },
+    { "source": "/pages/quan-tri", "destination": "/pages/quan-tri.html" },
+    { "source": "/pages/phong-hoc", "destination": "/pages/phong-hoc.html" },
+    { "source": "/pages/hoi-thoai", "destination": "/pages/hoi-thoai.html" },
+    { "source": "/pages/tro-thanh-gia-su", "destination": "/pages/tro-thanh-gia-su.html" },
+    { "source": "/pages/dang-ky-gia-su", "destination": "/pages/dang-ky-gia-su.html" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+      ]
+    }
+  ]
+}

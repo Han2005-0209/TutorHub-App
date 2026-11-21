@@ -1,0 +1,2143 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/assets/img/icon-192.svg" />
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <title>Phòng học trực tuyến nội bộ — TutorHub</title>
+    <style>
+      body.classroom-body {
+        margin: 0;
+        background: #0b1120;
+        color: #f8fafc;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        overflow-x: hidden;
+      }
+
+      @media (min-width: 1025px) {
+        body.classroom-body {
+          height: 100vh;
+          overflow: hidden;
+        }
+      }
+
+      /* ── Thanh trên cùng ── */
+      .cls-topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.65rem;
+        flex-wrap: wrap;
+        padding: 0.52rem 1rem;
+        background: #111827;
+        border-bottom: 1px solid #1f2937;
+        flex-shrink: 0;
+      }
+
+      .cls-brand-wrap {
+        display: flex;
+        align-items: center;
+        gap: 0.7rem;
+        min-width: 0;
+      }
+
+      .cls-status-strip {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        flex-wrap: wrap;
+      }
+
+      .cls-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.32rem;
+        padding: 0.24rem 0.6rem;
+        border-radius: 9999px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        background: #1f2937;
+        border: 1px solid #374151;
+        color: #e2e8f0;
+        white-space: nowrap;
+      }
+
+      .cls-pill.ok {
+        background: rgba(16, 185, 129, 0.16);
+        border-color: rgba(16, 185, 129, 0.45);
+        color: #6ee7b7;
+      }
+
+      .cls-pill.warn {
+        background: rgba(245, 158, 11, 0.16);
+        border-color: rgba(245, 158, 11, 0.45);
+        color: #fcd34d;
+      }
+
+      .cls-pill.danger {
+        background: rgba(239, 68, 68, 0.18);
+        border-color: rgba(239, 68, 68, 0.5);
+        color: #fca5a5;
+      }
+
+      .cls-alert-banner {
+        padding: 0.55rem 1.1rem;
+        display: none;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        font-size: 0.83rem;
+        flex-shrink: 0;
+      }
+
+      .cls-workspace {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        background: radial-gradient(circle at top, #172033 0%, #090d16 70%);
+      }
+
+      /* ── Sảnh chờ trước khi vào lớp ── */
+      .cls-lobby-wrap {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+        overflow-y: auto;
+      }
+
+      .cls-lobby {
+        max-width: 590px;
+        width: 100%;
+        padding: 1.45rem;
+        border-radius: 20px;
+        background: #131c2e;
+        border: 1px solid #26334d;
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+      }
+
+      .lobby-preview-box {
+        position: relative;
+        width: 100%;
+        height: 205px;
+        border-radius: 14px;
+        background: #0b1120;
+        border: 1px solid #26334d;
+        overflow: hidden;
+        margin: 0.85rem 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .lobby-preview-box video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transform: scaleX(-1);
+        display: none;
+      }
+
+      .lobby-preview-placeholder {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.48rem;
+        color: #94a3b8;
+        font-size: 0.82rem;
+        text-align: center;
+        padding: 0 1rem;
+      }
+
+      .cls-avatar-circle {
+        width: 68px;
+        height: 68px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #2563eb, #4f46e5);
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.42rem;
+        font-weight: 800;
+        letter-spacing: 0.03em;
+        box-shadow: 0 10px 28px rgba(37, 99, 235, 0.35);
+      }
+
+      .lobby-device-bar {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+        margin-bottom: 0.95rem;
+      }
+
+      .device-toggle-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.45rem 0.95rem;
+        border-radius: 10px;
+        border: 1px solid #334155;
+        background: #1e293b;
+        color: #e2e8f0;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: inherit;
+      }
+
+      .device-toggle-btn.on {
+        background: rgba(37, 99, 235, 0.22);
+        border-color: #3b82f6;
+        color: #bfdbfe;
+      }
+
+      .device-toggle-btn.off {
+        background: rgba(239, 68, 68, 0.14);
+        border-color: rgba(239, 68, 68, 0.45);
+        color: #fca5a5;
+      }
+
+      /* ═══════════════════════════════════════════════════════════════════════
+         SÂN KHẤU PHÒNG HỌC TRỰC TIẾP — 2 CHẾ ĐỘ RÕ RÀNG
+         - Kiểu 1 (mặc định): Video đối tác (Gia sư) là màn hình chính + PiP góc phải dưới
+         - Kiểu 2 (.wb-pinned): Bảng trắng lên MÀN HÌNH CHÍNH (có ghim), Video thu nhỏ sang GÓC PHẢI
+         ═══════════════════════════════════════════════════════════════════════ */
+      .cls-live-stage {
+        display: none;
+        flex: 1;
+        flex-direction: column;
+        min-height: 0;
+      }
+
+      .cls-live-body {
+        flex: 1;
+        display: flex;
+        min-height: 0;
+        overflow: hidden;
+      }
+
+      /* ── Màn hình chính Bảng trắng (ẩn ở Kiểu 1, hiện lớn ở Kiểu 2) ── */
+      .wb-main-stage {
+        display: none;
+        flex: 1;
+        min-width: 0;
+        flex-direction: column;
+        background: #ffffff;
+        color: #0f172a;
+        margin: 0.65rem;
+        border-radius: 16px;
+        border: 2px solid #2563eb;
+        overflow: hidden;
+        box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+      }
+
+      .cls-live-body.wb-pinned .wb-main-stage {
+        display: flex;
+      }
+
+      .wb-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+        padding: 0.48rem 0.8rem;
+        background: linear-gradient(90deg, #eff6ff 0%, #f8fafc 100%);
+        border-bottom: 1px solid #dbeafe;
+      }
+
+      .wb-pin-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.24rem 0.68rem;
+        border-radius: 9999px;
+        background: #2563eb;
+        color: #ffffff;
+        font-size: 0.74rem;
+        font-weight: 800;
+      }
+
+      .wb-header-right {
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+        flex-wrap: wrap;
+        font-size: 0.76rem;
+        color: #1e3a8a;
+      }
+
+      .wb-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.45rem;
+        flex-wrap: wrap;
+        padding: 0.46rem 0.75rem;
+        background: #f8fafc;
+        border-bottom: 1px solid #e2e8f0;
+      }
+
+      .wb-tool-group {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.28rem;
+        flex-wrap: wrap;
+      }
+
+      .wb-btn {
+        height: 29px;
+        padding: 0 0.55rem;
+        border-radius: 7px;
+        border: 1px solid #cbd5e1;
+        background: #ffffff;
+        color: #1e293b;
+        font-size: 0.74rem;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: inherit;
+      }
+
+      .wb-btn.active {
+        background: #2563eb;
+        border-color: #2563eb;
+        color: #ffffff;
+      }
+
+      .wb-btn.danger-outline {
+        background: #fef2f2;
+        border-color: #fecaca;
+        color: #b91c1c;
+      }
+
+      .wb-btn:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+
+      .wb-color {
+        width: 21px;
+        height: 21px;
+        border-radius: 50%;
+        border: 2px solid #cbd5e1;
+        cursor: pointer;
+        padding: 0;
+      }
+
+      .wb-color.active {
+        border-color: #0f172a;
+        transform: scale(1.12);
+      }
+
+      .wb-canvas-wrap {
+        flex: 1;
+        position: relative;
+        overflow: hidden;
+        background: #ffffff;
+        touch-action: none;
+        min-height: 300px;
+      }
+
+      #wb-canvas {
+        width: 100%;
+        height: 100%;
+        display: block;
+        cursor: crosshair;
+      }
+
+      #wb-canvas.locked {
+        cursor: default;
+      }
+
+      .wb-text-float {
+        position: absolute;
+        display: none;
+        z-index: 10;
+        background: #ffffff;
+        border: 2px solid #2563eb;
+        border-radius: 8px;
+        padding: 0.3rem;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.2);
+        gap: 0.3rem;
+        align-items: center;
+      }
+
+      .wb-text-float input {
+        border: none;
+        outline: none;
+        font-size: 0.85rem;
+        font-weight: 600;
+        width: 190px;
+        color: #0f172a;
+      }
+
+      .wb-tip {
+        padding: 0.36rem 0.75rem;
+        font-size: 0.73rem;
+        color: #475569;
+        background: #f1f5f9;
+        border-top: 1px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+      }
+
+      /* ── Vùng Video: Kiểu 1 = Màn hình chính | Kiểu 2 = Khung nhỏ góc phải ── */
+      .cls-video-stage {
+        flex: 1;
+        position: relative;
+        margin: 0.65rem;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        min-height: 0;
+      }
+
+      .remote-video-card {
+        flex: 1;
+        position: relative;
+        border-radius: 16px;
+        background: #0f172a;
+        border: 1px solid #1e293b;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 0;
+      }
+
+      #remote-video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: none;
+        background: #020617;
+      }
+
+      #remote-video.screen-mode {
+        object-fit: contain;
+      }
+
+      .remote-placeholder {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        gap: 0.6rem;
+        padding: 1.4rem;
+        max-width: 420px;
+      }
+
+      .remote-name-tag {
+        position: absolute;
+        left: 0.8rem;
+        top: 0.8rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.42rem;
+        padding: 0.3rem 0.7rem;
+        border-radius: 9999px;
+        background: rgba(15, 23, 42, 0.82);
+        border: 1px solid rgba(148, 163, 184, 0.25);
+        backdrop-filter: blur(8px);
+        font-size: 0.76rem;
+        font-weight: 700;
+        color: #f8fafc;
+        z-index: 4;
+        max-width: calc(100% - 1.6rem);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .conn-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #94a3b8;
+        flex-shrink: 0;
+      }
+
+      .conn-dot.live {
+        background: #10b981;
+        box-shadow: 0 0 8px rgba(16, 185, 129, 0.8);
+      }
+
+      .conn-dot.wait {
+        background: #f59e0b;
+      }
+
+      .local-pip {
+        position: absolute;
+        right: 1rem;
+        bottom: 1rem;
+        width: 215px;
+        height: 132px;
+        border-radius: 14px;
+        background: #1e293b;
+        border: 2px solid #334155;
+        overflow: hidden;
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 6;
+      }
+
+      .local-pip video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transform: scaleX(-1);
+        display: none;
+      }
+
+      .local-pip video.no-mirror {
+        transform: none;
+        object-fit: contain;
+        background: #020617;
+      }
+
+      .local-pip-label {
+        position: absolute;
+        left: 0.45rem;
+        bottom: 0.4rem;
+        padding: 0.14rem 0.48rem;
+        border-radius: 6px;
+        background: rgba(2, 6, 23, 0.8);
+        font-size: 0.67rem;
+        font-weight: 700;
+        color: #f8fafc;
+        max-width: calc(100% - 0.9rem);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .mini-video-hint {
+        display: none;
+      }
+
+      /* ── KIỂU 2 (.wb-pinned): Video thu nhỏ gọn đưa về GÓC PHẢI ── */
+      .cls-live-body.wb-pinned .cls-video-stage {
+        flex: 0 0 264px;
+        width: 264px;
+        margin: 0.65rem 0.65rem 0.65rem 0;
+        gap: 0.65rem;
+        justify-content: flex-start;
+      }
+
+      .cls-live-body.wb-pinned.chat-open .cls-video-stage {
+        flex: 0 0 228px;
+        width: 228px;
+      }
+
+      .cls-live-body.wb-pinned .remote-video-card {
+        flex: 0 0 176px;
+        height: 176px;
+        border-radius: 14px;
+        border: 2px solid #3b82f6;
+        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.4);
+      }
+
+      .cls-live-body.wb-pinned .remote-name-tag {
+        left: 0.45rem;
+        top: 0.45rem;
+        padding: 0.2rem 0.5rem;
+        font-size: 0.68rem;
+      }
+
+      .cls-live-body.wb-pinned .remote-placeholder {
+        padding: 0.75rem;
+        gap: 0.35rem;
+      }
+
+      .cls-live-body.wb-pinned .remote-placeholder .cls-avatar-circle {
+        width: 48px;
+        height: 48px;
+        font-size: 1rem;
+      }
+
+      .cls-live-body.wb-pinned #remote-placeholder-title {
+        font-size: 0.8rem !important;
+      }
+
+      .cls-live-body.wb-pinned #remote-placeholder-sub {
+        display: none;
+      }
+
+      .cls-live-body.wb-pinned .local-pip {
+        position: relative;
+        right: auto;
+        bottom: auto;
+        width: 100%;
+        height: 146px;
+        flex: 0 0 146px;
+        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35);
+      }
+
+      .cls-live-body.wb-pinned .mini-video-hint {
+        display: block;
+        padding: 0.65rem 0.75rem;
+        border-radius: 12px;
+        background: #111827;
+        border: 1px solid #1f2937;
+        font-size: 0.73rem;
+        color: #94a3b8;
+        line-height: 1.5;
+      }
+
+      /* ── Ngăn kéo Trò chuyện lớp học (bật/tắt độc lập bên phải) ── */
+      .cls-chat-drawer {
+        display: none;
+        flex: 0 0 315px;
+        width: 315px;
+        flex-direction: column;
+        background: #ffffff;
+        color: #0f172a;
+        border-left: 2px solid #1f2937;
+        min-height: 0;
+      }
+
+      .cls-live-body.chat-open .cls-chat-drawer {
+        display: flex;
+      }
+
+      .cls-live-body.wb-pinned.chat-open .cls-chat-drawer {
+        flex: 0 0 285px;
+        width: 285px;
+      }
+
+      .chat-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.55rem 0.75rem;
+        background: #f1f5f9;
+        border-bottom: 1px solid #e2e8f0;
+        font-size: 0.82rem;
+        font-weight: 800;
+        color: #0f172a;
+      }
+
+      .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 0.8rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.55rem;
+        background: #f8fafc;
+      }
+
+      .chat-bubble {
+        max-width: 88%;
+        padding: 0.52rem 0.74rem;
+        border-radius: 12px;
+        font-size: 0.82rem;
+        line-height: 1.45;
+        word-break: break-word;
+      }
+
+      .chat-bubble.me {
+        align-self: flex-end;
+        background: #2563eb;
+        color: #ffffff;
+        border-bottom-right-radius: 4px;
+      }
+
+      .chat-bubble.peer {
+        align-self: flex-start;
+        background: #ffffff;
+        color: #0f172a;
+        border: 1px solid #e2e8f0;
+        border-bottom-left-radius: 4px;
+      }
+
+      .chat-meta {
+        font-size: 0.67rem;
+        opacity: 0.78;
+        margin-bottom: 0.18rem;
+        font-weight: 700;
+      }
+
+      .chat-compose {
+        display: flex;
+        gap: 0.45rem;
+        padding: 0.6rem;
+        background: #ffffff;
+        border-top: 1px solid #e2e8f0;
+      }
+
+      .chat-compose input {
+        flex: 1;
+        height: 36px;
+        padding: 0 0.72rem;
+        border-radius: 9px;
+        border: 1px solid #cbd5e1;
+        font-size: 0.83rem;
+        font-family: inherit;
+      }
+
+      /* ── Thanh điều khiển dưới cùng ── */
+      .cls-dock {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.48rem;
+        flex-wrap: wrap;
+        padding: 0.58rem 0.85rem 0.7rem;
+        background: #111827;
+        border-top: 1px solid #1f2937;
+        flex-shrink: 0;
+      }
+
+      .dock-btn {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        height: 36px;
+        padding: 0 0.82rem;
+        border-radius: 10px;
+        border: 1px solid #334155;
+        background: #1e293b;
+        color: #f8fafc;
+        font-size: 0.77rem;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: inherit;
+        white-space: nowrap;
+        transition: background 0.15s, border-color 0.15s;
+      }
+
+      .dock-btn:hover {
+        background: #273549;
+      }
+
+      .dock-btn.active {
+        background: #2563eb;
+        border-color: #3b82f6;
+        color: #ffffff;
+      }
+
+      .dock-btn.muted {
+        background: rgba(239, 68, 68, 0.2);
+        border-color: rgba(239, 68, 68, 0.55);
+        color: #fecaca;
+      }
+
+      .dock-btn.hangup {
+        background: #dc2626;
+        border-color: #ef4444;
+        color: #ffffff;
+      }
+
+      .dock-btn.hangup:hover {
+        background: #b91c1c;
+      }
+
+      .dock-badge {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        min-width: 18px;
+        height: 18px;
+        padding: 0 4px;
+        border-radius: 9999px;
+        background: #ef4444;
+        color: #ffffff;
+        font-size: 0.67rem;
+        font-weight: 800;
+        display: none;
+        align-items: center;
+        justify-content: center;
+      }
+
+      @media (max-width: 1024px) {
+        .cls-live-body {
+          flex-direction: column;
+          overflow-y: auto;
+        }
+        .cls-live-body.wb-pinned .cls-video-stage {
+          flex: none;
+          width: auto;
+          margin: 0 0.65rem 0.65rem;
+          flex-direction: row;
+        }
+        .cls-live-body.wb-pinned .remote-video-card,
+        .cls-live-body.wb-pinned .local-pip {
+          flex: 1;
+          height: 150px;
+        }
+        .cls-live-body.wb-pinned .mini-video-hint {
+          display: none;
+        }
+        .cls-chat-drawer,
+        .cls-live-body.wb-pinned.chat-open .cls-chat-drawer {
+          flex: none;
+          width: auto;
+          height: 360px;
+        }
+      }
+    </style>
+  </head>
+  <body class="classroom-body">
+    <header class="cls-topbar">
+      <div class="cls-brand-wrap">
+        <a id="cls-back-link" href="/index.html" class="btn btn-secondary btn-sm" style="height: 34px">← Quay lại</a>
+        <div style="min-width: 0">
+          <div style="font-size: 0.68rem; font-weight: 700; color: #93c5fd; text-transform: uppercase">
+            Phòng học trực tuyến nội bộ TutorHub · Không cần đăng nhập ngoài
+          </div>
+          <div id="cls-title" style="font-size: 0.94rem; font-weight: 800; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">
+            Đang tải thông tin phòng học...
+          </div>
+        </div>
+      </div>
+
+      <div class="cls-status-strip">
+        <span class="cls-pill" id="pill-ws-status">Chưa vào lớp</span>
+        <span class="cls-pill" id="pill-gs-status">Gia sư: Đang kiểm tra...</span>
+        <span class="cls-pill" id="pill-hs-status">Học viên: Đang kiểm tra...</span>
+        <span class="cls-pill" id="pill-cung-nhau">Học cùng nhau: 0 phút</span>
+      </div>
+    </header>
+
+    <div id="cls-alert-banner" class="cls-alert-banner"></div>
+
+    <main class="cls-workspace" id="cls-workspace">
+      <!-- SẢNH CHỜ KIỂM TRA THIẾT BỊ & ĐIỂM DANH -->
+      <section id="cls-lobby-wrap" class="cls-lobby-wrap">
+        <div id="cls-lobby" class="cls-lobby">
+          <div style="text-align: center">
+            <div style="font-size: 0.74rem; font-weight: 700; color: #93c5fd; text-transform: uppercase">
+              Sảnh chờ phòng học nội bộ · Xác thực tự động bằng tài khoản TutorHub
+            </div>
+            <h1 id="lobby-heading" style="margin: 0.35rem 0 0.45rem; font-size: 1.24rem; color: #ffffff">
+              Đang tải thông tin buổi học...
+            </h1>
+            <div id="lobby-meta" style="font-size: 0.84rem; color: #cbd5e1; line-height: 1.55"></div>
+          </div>
+
+          <div class="lobby-preview-box">
+            <video id="lobby-preview-video" autoplay muted playsinline></video>
+            <div id="lobby-preview-placeholder" class="lobby-preview-placeholder">
+              <div class="cls-avatar-circle" id="lobby-avatar-initials">TH</div>
+              <span id="lobby-device-note">Camera đang tắt — bạn vẫn có thể vào lớp để nghe, xem giảng bài và theo dõi bảng trắng</span>
+            </div>
+          </div>
+
+          <div class="lobby-device-bar">
+            <button type="button" class="device-toggle-btn off" id="lobby-toggle-mic">Micro: Đang tắt</button>
+            <button type="button" class="device-toggle-btn off" id="lobby-toggle-cam">Camera: Đang tắt</button>
+          </div>
+
+          <div id="lobby-nhat-ky" style="padding: 0.8rem 0.95rem; border-radius: 12px; background: #0b1120; border: 1px solid #26334d; font-size: 0.81rem; color: #e2e8f0; margin-bottom: 1rem; line-height: 1.6"></div>
+          <div id="lobby-error" class="alert alert-danger" style="display: none; margin-bottom: 1rem"></div>
+
+          <div style="display: flex; justify-content: center; gap: 0.65rem; flex-wrap: wrap">
+            <button type="button" class="btn btn-primary" id="btn-vao-phong-ngay" disabled>
+              Vào phòng học ngay
+            </button>
+          </div>
+          <p style="margin: 0.82rem 0 0; font-size: 0.74rem; color: #94a3b8; text-align: center">
+            Video, âm thanh, chia sẻ màn hình và bảng trắng giảng bài hoạt động trực tiếp trong TutorHub. Giờ vào lớp được máy chủ tự động ghi nhận.
+          </p>
+        </div>
+      </section>
+
+      <!-- SÂN KHẤU PHÒNG HỌC TRỰC TIẾP (2 CHẾ ĐỘ: VIDEO CHÍNH ↔ GHIM BẢNG TRẮNG CHÍNH) -->
+      <section id="cls-live-stage" class="cls-live-stage">
+        <div id="cls-live-body" class="cls-live-body">
+          <!-- CHẾ ĐỘ 2: BẢNG TRẮNG GHIM LÀM MÀN HÌNH CHÍNH -->
+          <section id="wb-main-stage" class="wb-main-stage" aria-label="Bảng trắng giảng bài đang ghim">
+            <div class="wb-header">
+              <div style="display: flex; align-items: center; gap: 0.55rem; flex-wrap: wrap">
+                <span class="wb-pin-badge" id="wb-pin-badge">Đang ghim · Bảng trắng giảng bài</span>
+                <span id="wb-perm-label" style="font-size: 0.77rem; font-weight: 600; color: #334155"></span>
+              </div>
+              <div class="wb-header-right">
+                <label id="wb-perm-tutor-ctrl" style="display: none; align-items: center; gap: 0.35rem; font-weight: 700; cursor: pointer">
+                  <input type="checkbox" id="chk-cho-hoc-vien-ve" />
+                  Cho phép học viên viết bảng
+                </label>
+                <button type="button" class="wb-btn" id="wb-save" style="background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe">
+                  Lưu ảnh bảng
+                </button>
+                <button type="button" class="wb-btn danger-outline" id="btn-unpin-board" style="display: none">
+                  Bỏ ghim &amp; Tắt bảng trắng
+                </button>
+              </div>
+            </div>
+
+            <!-- Thanh công cụ vẽ: Gia sư luôn thấy; Học viên chỉ thấy khi Gia sư bật quyền viết bảng -->
+            <div class="wb-toolbar" id="wb-toolbar">
+              <div class="wb-tool-group">
+                <button type="button" class="wb-btn active" data-tool="pen">Bút</button>
+                <button type="button" class="wb-btn" data-tool="line">Đường</button>
+                <button type="button" class="wb-btn" data-tool="rect">Khung</button>
+                <button type="button" class="wb-btn" data-tool="circle">Tròn</button>
+                <button type="button" class="wb-btn" data-tool="text">Chữ</button>
+                <button type="button" class="wb-btn" data-tool="eraser">Tẩy</button>
+              </div>
+              <div class="wb-tool-group">
+                <button type="button" class="wb-color active" data-color="#0f172a" style="background: #0f172a" title="Mực đen"></button>
+                <button type="button" class="wb-color" data-color="#2563eb" style="background: #2563eb" title="Mực xanh dương"></button>
+                <button type="button" class="wb-color" data-color="#dc2626" style="background: #dc2626" title="Mực đỏ"></button>
+                <button type="button" class="wb-color" data-color="#16a34a" style="background: #16a34a" title="Mực xanh lá"></button>
+                <button type="button" class="wb-color" data-color="#d97706" style="background: #d97706" title="Mực cam"></button>
+                <select id="wb-size" class="wb-btn" aria-label="Độ dày nét">
+                  <option value="2">Nét mảnh</option>
+                  <option value="4" selected>Nét vừa</option>
+                  <option value="8">Nét đậm</option>
+                </select>
+                <select id="wb-bg" class="wb-btn" aria-label="Nền giấy">
+                  <option value="grid" selected>Ô ly toán</option>
+                  <option value="lines">Kẻ ngang</option>
+                  <option value="plain">Trắng trơn</option>
+                </select>
+              </div>
+              <div class="wb-tool-group">
+                <button type="button" class="wb-btn" id="wb-undo">Hoàn tác</button>
+                <button type="button" class="wb-btn" id="wb-clear">Xóa bảng</button>
+              </div>
+            </div>
+
+            <div class="wb-canvas-wrap" id="wb-canvas-wrap">
+              <canvas id="wb-canvas"></canvas>
+              <div class="wb-text-float" id="wb-text-float">
+                <input type="text" id="wb-text-input" placeholder="Nhập công thức hoặc chữ..." maxlength="200" />
+                <button type="button" class="wb-btn active" id="wb-text-ok">Chèn</button>
+                <button type="button" class="wb-btn" id="wb-text-cancel">Hủy</button>
+              </div>
+            </div>
+
+            <div class="wb-tip">
+              <span id="wb-sync-note">Bảng trắng đang ghim làm màn hình chính và đồng bộ tức thì tới học viên.</span>
+              <span id="wb-trang-thai-luu">0 nét trên bảng</span>
+            </div>
+          </section>
+
+          <!-- VÙNG VIDEO: KIỂU 1 = MÀN HÌNH CHÍNH | KIỂU 2 = KHUNG NHỎ GÓC PHẢI -->
+          <section id="cls-video-stage" class="cls-video-stage" aria-label="Khung hình buổi học">
+            <div id="remote-video-card" class="remote-video-card">
+              <div class="remote-name-tag" id="remote-tag">
+                <span class="conn-dot wait" id="remote-conn-dot"></span>
+                <span id="remote-tag-text">Đang chờ đối tác vào lớp...</span>
+              </div>
+
+              <video id="remote-video" autoplay playsinline></video>
+              <div id="remote-placeholder" class="remote-placeholder">
+                <div class="cls-avatar-circle" id="remote-avatar-initials">DT</div>
+                <div id="remote-placeholder-title" style="font-size: 1.05rem; font-weight: 800; color: #ffffff">
+                  Đang chờ đối tác vào phòng học...
+                </div>
+                <div id="remote-placeholder-sub" style="font-size: 0.82rem; color: #94a3b8">
+                  Ngay khi đối tác bấm vào lớp, video và âm thanh sẽ tự động kết nối.
+                </div>
+              </div>
+            </div>
+
+            <div class="local-pip" id="local-pip">
+              <video id="local-video" autoplay muted playsinline></video>
+              <div id="local-pip-placeholder" style="display: flex; flex-direction: column; align-items: center; gap: 0.28rem; color: #94a3b8; font-size: 0.72rem">
+                <div class="cls-avatar-circle" id="local-avatar-initials" style="width: 44px; height: 44px; font-size: 0.95rem">B</div>
+                <span id="local-pip-note">Camera đang tắt</span>
+              </div>
+              <div class="local-pip-label" id="local-pip-label">Bạn</div>
+            </div>
+
+            <div class="mini-video-hint" id="mini-video-hint">
+              Bảng trắng đang được ghim làm màn hình chính. Khi gia sư tắt bảng trắng, khung hình video sẽ tự động trở lại màn hình lớn.
+            </div>
+          </section>
+
+          <!-- NGĂN KÉO TRÒ CHUYỆN BUỔI HỌC (ĐỘC LẬP) -->
+          <aside id="cls-chat-drawer" class="cls-chat-drawer" aria-label="Trò chuyện trong buổi học">
+            <div class="chat-header">
+              <span>Trò chuyện trong buổi học</span>
+              <button type="button" class="wb-btn" id="btn-close-chat">Đóng</button>
+            </div>
+            <div class="chat-messages" id="chat-messages">
+              <div style="text-align: center; font-size: 0.78rem; color: #64748b; padding: 1.5rem 0.5rem">
+                Gửi nhanh công thức, bài tập hoặc ghi chú trong buổi học tại đây.
+              </div>
+            </div>
+            <form class="chat-compose" id="chat-form">
+              <input type="text" id="chat-input" placeholder="Nhập tin nhắn trong buổi học..." maxlength="1000" autocomplete="off" />
+              <button type="submit" class="btn btn-primary btn-sm" style="height: 36px">Gửi</button>
+            </form>
+          </aside>
+        </div>
+
+        <!-- THANH ĐIỀU KHIỂN DƯỚI CÙNG -->
+        <div class="cls-dock">
+          <button type="button" class="dock-btn muted" id="dock-mic">Micro: Tắt</button>
+          <button type="button" class="dock-btn muted" id="dock-cam">Camera: Tắt</button>
+          <button type="button" class="dock-btn" id="dock-screen">Chia sẻ màn hình</button>
+          <button type="button" class="dock-btn" id="dock-board" style="display: none">Bật bảng trắng (Ghim)</button>
+          <button type="button" class="dock-btn" id="dock-chat">
+            Trò chuyện lớp
+            <span class="dock-badge" id="chat-unread-badge">0</span>
+          </button>
+          <button type="button" class="dock-btn hangup" id="btn-roi-phong">Rời phòng học</button>
+        </div>
+      </section>
+    </main>
+
+    <script type="module">
+      import { api, layAccessToken } from '/assets/js/api.js';
+      import { WS_BASE_URL, WEBRTC_ICE_SERVERS } from '/assets/js/config.js';
+      import { dinhDangNgayGioVn } from '/assets/js/dinh-dang.js';
+      import { dongBoNguoiDungTuApi, escapeHtml, layTrangChinhTheoVaiTro } from '/assets/js/giao-dien.js';
+
+      const accessToken = layAccessToken();
+      if (!accessToken) {
+        window.location.href = '/pages/dang-nhap.html';
+      }
+
+      const params = new URLSearchParams(window.location.search);
+      const donId = params.get('donId') || '';
+      const user = await dongBoNguoiDungTuApi();
+      const laGiaSu = user?.vaiTro === 'GIA_SU';
+      const backLink = document.getElementById('cls-back-link');
+      if (backLink && user?.vaiTro) {
+        backLink.href = layTrangChinhTheoVaiTro(user.vaiTro);
+      }
+
+      // ── Tham chiếu DOM ──
+      const elTitle = document.getElementById('cls-title');
+      const elLobbyWrap = document.getElementById('cls-lobby-wrap');
+      const elLiveStage = document.getElementById('cls-live-stage');
+      const elLiveBody = document.getElementById('cls-live-body');
+      const elLobbyHead = document.getElementById('lobby-heading');
+      const elLobbyMeta = document.getElementById('lobby-meta');
+      const elLobbyNk = document.getElementById('lobby-nhat-ky');
+      const elLobbyErr = document.getElementById('lobby-error');
+      const elAlertBanner = document.getElementById('cls-alert-banner');
+      const pillWs = document.getElementById('pill-ws-status');
+
+      const btnVaoNgay = document.getElementById('btn-vao-phong-ngay');
+      const btnRoiPhong = document.getElementById('btn-roi-phong');
+      const lobbyPreviewVideo = document.getElementById('lobby-preview-video');
+      const lobbyPreviewPh = document.getElementById('lobby-preview-placeholder');
+      const lobbyDeviceNote = document.getElementById('lobby-device-note');
+      const btnLobbyMic = document.getElementById('lobby-toggle-mic');
+      const btnLobbyCam = document.getElementById('lobby-toggle-cam');
+
+      const localVideo = document.getElementById('local-video');
+      const localPipPh = document.getElementById('local-pip-placeholder');
+      const localPipNote = document.getElementById('local-pip-note');
+      const localPipLabel = document.getElementById('local-pip-label');
+
+      const remoteVideo = document.getElementById('remote-video');
+      const remotePh = document.getElementById('remote-placeholder');
+      const remotePhTitle = document.getElementById('remote-placeholder-title');
+      const remotePhSub = document.getElementById('remote-placeholder-sub');
+      const remoteTagText = document.getElementById('remote-tag-text');
+      const remoteConnDot = document.getElementById('remote-conn-dot');
+
+      const btnDockMic = document.getElementById('dock-mic');
+      const btnDockCam = document.getElementById('dock-cam');
+      const btnDockScreen = document.getElementById('dock-screen');
+      const btnDockBoard = document.getElementById('dock-board');
+      const btnUnpinBoard = document.getElementById('btn-unpin-board');
+      const btnDockChat = document.getElementById('dock-chat');
+      const chatUnreadBadge = document.getElementById('chat-unread-badge');
+
+      // Chỉ Gia sư mới có nút tự bật/tắt bảng trắng; Học viên tự động mở/tắt theo Gia sư
+      if (laGiaSu) {
+        btnDockBoard.style.display = 'inline-flex';
+        btnUnpinBoard.style.display = 'inline-flex';
+      }
+
+      // ── Trạng thái phiên phòng học ──
+      let thongTinPhong = null;
+      let ws = null;
+      let timerHeartbeat = null;
+      let daRoiPhong = false;
+      let daVaoLop = false;
+      let reconnectCount = 0;
+
+      // ── Trạng thái 2 chế độ màn hình & Chat ──
+      let bangTrangDangMo = false;
+      let chatDangMo = false;
+      let unreadChat = 0;
+
+      // ── Trạng thái Media & WebRTC ──
+      let localAudioTrack = null;
+      let localVideoTrack = null;
+      let screenVideoTrack = null;
+      let micOn = false;
+      let camOn = false;
+      let screenOn = false;
+
+      let pc = null;
+      let audioSender = null;
+      let videoSender = null;
+      let remoteStream = null;
+      let pendingIce = [];
+      let remotePeer = null;
+
+      function layChuCaiDau(hoTen) {
+        const parts = String(hoTen || 'TH').trim().split(/\s+/).filter(Boolean);
+        if (parts.length === 0) return 'TH';
+        if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+        return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+      }
+
+      document.getElementById('lobby-avatar-initials').textContent = layChuCaiDau(user?.hoTen);
+      document.getElementById('local-avatar-initials').textContent = layChuCaiDau(user?.hoTen);
+      localPipLabel.textContent = `${user?.hoTen || 'Bạn'} (${laGiaSu ? 'Gia sư' : 'Học viên'})`;
+
+      function hienLoiLobby(msg) {
+        if (!elLobbyErr) return;
+        elLobbyErr.style.display = 'block';
+        elLobbyErr.textContent = msg;
+      }
+
+      function anLoiLobby() {
+        if (elLobbyErr) elLobbyErr.style.display = 'none';
+      }
+
+      function capNhatTrangThaiWs(loai, text) {
+        if (!pillWs) return;
+        pillWs.className = `cls-pill ${loai}`;
+        pillWs.textContent = text;
+      }
+
+      function capNhatHuyHieuNhatKy(nk) {
+        if (!nk) return;
+        const pGs = document.getElementById('pill-gs-status');
+        const pHs = document.getElementById('pill-hs-status');
+        const pCung = document.getElementById('pill-cung-nhau');
+
+        if (pGs) {
+          if (nk.giaSuVaoDauTienLuc) {
+            const tre = Number(nk.giaSuTrePhut || 0);
+            const gioVao = new Date(nk.giaSuVaoDauTienLuc).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+            pGs.className = `cls-pill ${tre <= 5 ? 'ok' : 'warn'}`;
+            pGs.textContent =
+              tre <= 5
+                ? `Gia sư: Đã mở (${gioVao} · Đúng giờ)`
+                : `Gia sư: Vào ${gioVao} (Trễ ${tre}p)`;
+          } else if (nk.qua15PhutGiaSuChuaVao) {
+            pGs.className = 'cls-pill danger';
+            pGs.textContent = 'Gia sư: Chưa vào (Quá 15p)';
+          } else {
+            pGs.className = 'cls-pill warn';
+            pGs.textContent = 'Gia sư: Chưa vào lớp';
+          }
+        }
+
+        if (pHs) {
+          if (nk.hocSinhVaoDauTienLuc) {
+            pHs.className = 'cls-pill ok';
+            pHs.textContent = `Học viên: Đã vào (${nk.tongPhutHocSinhCoMat} phút)`;
+          } else {
+            pHs.className = 'cls-pill';
+            pHs.textContent = 'Học viên: Chưa vào lớp';
+          }
+        }
+
+        if (pCung) {
+          pCung.className = `cls-pill ${nk.tongPhutHocCungNhau > 0 ? 'ok' : ''}`;
+          pCung.textContent = `Học cùng nhau: ${nk.tongPhutHocCungNhau}/${nk.thoiLuongDangKyPhut} phút`;
+        }
+
+        if (elLobbyNk) {
+          elLobbyNk.innerHTML = `
+            <div><strong>Trạng thái mở lớp:</strong> ${escapeHtml(nk.moTaTrangThaiMoLop)}</div>
+            <div><strong>Gia sư:</strong> ${nk.giaSuVaoDauTienLuc ? `Vào ${dinhDangNgayGioVn(nk.giaSuVaoDauTienLuc)} · Tổng có mặt ${nk.tongPhutGiaSuCoMat} phút` : 'Chưa điểm danh vào phòng'}</div>
+            <div><strong>Học viên:</strong> ${nk.hocSinhVaoDauTienLuc ? `Vào ${dinhDangNgayGioVn(nk.hocSinhVaoDauTienLuc)} · Tổng có mặt ${nk.tongPhutHocSinhCoMat} phút` : 'Chưa điểm danh vào phòng'}</div>
+            <div><strong>Thời gian học thực tế cùng nhau:</strong> <strong>${nk.tongPhutHocCungNhau} / ${nk.thoiLuongDangKyPhut} phút</strong></div>
+          `;
+        }
+
+        if (elAlertBanner && !daRoiPhong) {
+          if (nk.qua15PhutGiaSuChuaVao && user?.vaiTro === 'HOC_SINH') {
+            elAlertBanner.style.display = 'flex';
+            elAlertBanner.style.background = '#7f1d1d';
+            elAlertBanner.style.color = '#fee2e2';
+            elAlertBanner.innerHTML = `
+              <span><strong>Cảnh báo:</strong> Đã quá 15 phút kể từ giờ bắt đầu nhưng gia sư chưa điểm danh mở lớp. Hệ thống đã lưu nhật ký vào lớp của bạn.</span>
+              <a href="/pages/hoc-sinh-tong-quan.html" class="btn btn-secondary btn-sm" style="height: 30px">Mở khiếu nại hoàn 100% →</a>
+            `;
+          } else {
+            elAlertBanner.style.display = 'none';
+          }
+        }
+      }
+
+      // ── Chuyển đổi 2 chế độ màn hình (Kiểu 1: Video chính ↔ Kiểu 2: Ghim Bảng trắng chính) ──
+      function apDungCheDoBangTrang(dangMo) {
+        bangTrangDangMo = Boolean(dangMo);
+        elLiveBody.classList.toggle('wb-pinned', bangTrangDangMo);
+
+        if (laGiaSu) {
+          btnDockBoard.classList.toggle('active', bangTrangDangMo);
+          btnDockBoard.textContent = bangTrangDangMo ? 'Tắt bảng trắng' : 'Bật bảng trắng (Ghim)';
+        }
+
+        const pinBadge = document.getElementById('wb-pin-badge');
+        if (pinBadge) {
+          pinBadge.textContent = laGiaSu
+            ? 'Đang ghim · Bảng trắng giảng bài'
+            : 'Đang ghim bởi Gia sư · Bảng trắng';
+        }
+
+        const miniHint = document.getElementById('mini-video-hint');
+        if (miniHint) {
+          miniHint.textContent = laGiaSu
+            ? 'Bảng trắng đang ghim làm màn hình chính. Bấm "Tắt bảng trắng" để đưa màn hình video trở lại toàn màn hình.'
+            : 'Gia sư đang ghim bảng trắng làm màn hình chính. Khung hình gia sư được thu gọn về góc phải.';
+        }
+
+        if (bangTrangDangMo) {
+          requestAnimationFrame(() => setTimeout(resizeCanvas, 60));
+        }
+      }
+
+      function batTatBangTrangTuGiaSu(moMoi) {
+        if (!laGiaSu) return;
+        apDungCheDoBangTrang(moMoi);
+        guiWs({ type: 'wb_open', dangMo: moMoi });
+      }
+
+      btnDockBoard?.addEventListener('click', () => batTatBangTrangTuGiaSu(!bangTrangDangMo));
+      btnUnpinBoard?.addEventListener('click', () => batTatBangTrangTuGiaSu(false));
+
+      // ── Bật/tắt ngăn kéo Trò chuyện ──
+      function capNhatBadgeChat() {
+        if (!chatUnreadBadge) return;
+        if (unreadChat > 0) {
+          chatUnreadBadge.style.display = 'inline-flex';
+          chatUnreadBadge.textContent = unreadChat > 99 ? '99+' : String(unreadChat);
+        } else {
+          chatUnreadBadge.style.display = 'none';
+        }
+      }
+
+      function datTrangThaiChat(mo) {
+        chatDangMo = Boolean(mo);
+        elLiveBody.classList.toggle('chat-open', chatDangMo);
+        btnDockChat.classList.toggle('active', chatDangMo);
+        if (chatDangMo) {
+          unreadChat = 0;
+          capNhatBadgeChat();
+        }
+        if (bangTrangDangMo) {
+          requestAnimationFrame(() => setTimeout(resizeCanvas, 60));
+        }
+      }
+
+      btnDockChat?.addEventListener('click', () => datTrangThaiChat(!chatDangMo));
+      document.getElementById('btn-close-chat')?.addEventListener('click', () => datTrangThaiChat(false));
+
+      // ── Gửi gói tin WebSocket ──
+      function guiWs(obj) {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify(obj));
+        }
+      }
+
+      // ── Quản lý Camera / Micro / Chia sẻ màn hình cục bộ ──
+      function capNhatHienThiThietBi() {
+        btnLobbyMic.className = `device-toggle-btn ${micOn ? 'on' : 'off'}`;
+        btnLobbyMic.textContent = micOn ? 'Micro: Đang bật' : 'Micro: Đang tắt';
+        btnLobbyCam.className = `device-toggle-btn ${camOn ? 'on' : 'off'}`;
+        btnLobbyCam.textContent = camOn ? 'Camera: Đang bật' : 'Camera: Đang tắt';
+
+        btnDockMic.className = `dock-btn ${micOn ? 'active' : 'muted'}`;
+        btnDockMic.textContent = micOn ? 'Micro: Bật' : 'Micro: Tắt';
+        btnDockCam.className = `dock-btn ${camOn ? 'active' : 'muted'}`;
+        btnDockCam.textContent = camOn ? 'Camera: Bật' : 'Camera: Tắt';
+        btnDockScreen.className = `dock-btn ${screenOn ? 'active' : ''}`;
+        btnDockScreen.textContent = screenOn ? 'Dừng chia sẻ' : 'Chia sẻ màn hình';
+
+        const videoTrackHienThi = screenOn && screenVideoTrack ? screenVideoTrack : camOn && localVideoTrack ? localVideoTrack : null;
+        if (videoTrackHienThi) {
+          const previewStream = new MediaStream([videoTrackHienThi]);
+          lobbyPreviewVideo.srcObject = previewStream;
+          lobbyPreviewVideo.style.display = 'block';
+          lobbyPreviewPh.style.display = 'none';
+
+          localVideo.srcObject = previewStream;
+          localVideo.classList.toggle('no-mirror', screenOn);
+          localVideo.style.display = 'block';
+          localPipPh.style.display = 'none';
+        } else {
+          lobbyPreviewVideo.srcObject = null;
+          lobbyPreviewVideo.style.display = 'none';
+          lobbyPreviewPh.style.display = 'flex';
+
+          localVideo.srcObject = null;
+          localVideo.style.display = 'none';
+          localPipPh.style.display = 'flex';
+          localPipNote.textContent = micOn ? 'Camera tắt · Micro bật' : 'Camera & Micro đang tắt';
+        }
+
+        if (daVaoLop) {
+          guiWs({ type: 'media_state', cameraOn: camOn, micOn, screenOn });
+        }
+      }
+
+      async function batTatMicro() {
+        if (micOn) {
+          if (localAudioTrack) localAudioTrack.enabled = false;
+          micOn = false;
+          if (audioSender) await audioSender.replaceTrack(null).catch(() => {});
+          capNhatHienThiThietBi();
+          return;
+        }
+        try {
+          if (!localAudioTrack || localAudioTrack.readyState === 'ended') {
+            const s = await navigator.mediaDevices.getUserMedia({ audio: true });
+            localAudioTrack = s.getAudioTracks()[0] || null;
+          }
+          if (localAudioTrack) {
+            localAudioTrack.enabled = true;
+            micOn = true;
+            if (audioSender) await audioSender.replaceTrack(localAudioTrack).catch(() => {});
+          }
+        } catch {
+          lobbyDeviceNote.textContent = 'Không tìm thấy Micro hoặc trình duyệt chưa cấp quyền Micro.';
+          micOn = false;
+        }
+        capNhatHienThiThietBi();
+      }
+
+      async function batTatCamera() {
+        if (camOn) {
+          if (localVideoTrack) {
+            localVideoTrack.stop();
+            localVideoTrack = null;
+          }
+          camOn = false;
+          if (!screenOn && videoSender) await videoSender.replaceTrack(null).catch(() => {});
+          capNhatHienThiThietBi();
+          return;
+        }
+        try {
+          const s = await navigator.mediaDevices.getUserMedia({
+            video: { width: { ideal: 1280 }, height: { ideal: 720 } },
+          });
+          localVideoTrack = s.getVideoTracks()[0] || null;
+          if (localVideoTrack) {
+            camOn = true;
+            if (!screenOn && videoSender) await videoSender.replaceTrack(localVideoTrack).catch(() => {});
+          }
+        } catch {
+          lobbyDeviceNote.textContent = 'Không tìm thấy Camera hoặc trình duyệt chưa cấp quyền Camera.';
+          camOn = false;
+        }
+        capNhatHienThiThietBi();
+      }
+
+      async function batTatChiaSeManHinh() {
+        if (screenOn) {
+          dungChiaSeManHinh();
+          return;
+        }
+        try {
+          const s = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
+          screenVideoTrack = s.getVideoTracks()[0] || null;
+          if (!screenVideoTrack) return;
+          screenOn = true;
+          screenVideoTrack.onended = () => dungChiaSeManHinh();
+          if (videoSender) await videoSender.replaceTrack(screenVideoTrack).catch(() => {});
+          capNhatHienThiThietBi();
+        } catch {
+          // Người dùng hủy hộp thoại chia sẻ màn hình
+        }
+      }
+
+      async function dungChiaSeManHinh() {
+        if (screenVideoTrack) {
+          screenVideoTrack.onended = null;
+          screenVideoTrack.stop();
+          screenVideoTrack = null;
+        }
+        screenOn = false;
+        if (videoSender) {
+          await videoSender.replaceTrack(camOn && localVideoTrack ? localVideoTrack : null).catch(() => {});
+        }
+        capNhatHienThiThietBi();
+      }
+
+      btnLobbyMic?.addEventListener('click', batTatMicro);
+      btnLobbyCam?.addEventListener('click', batTatCamera);
+      btnDockMic?.addEventListener('click', batTatMicro);
+      btnDockCam?.addEventListener('click', batTatCamera);
+      btnDockScreen?.addEventListener('click', batTatChiaSeManHinh);
+
+      // ── Hiển thị trạng thái đối tác (Remote Peer) ──
+      function capNhatHienThiDoiTac() {
+        if (!remotePeer) {
+          const tenCho = laGiaSu ? thongTinPhong?.tenHocSinh || 'Học viên' : thongTinPhong?.tenGiaSu || 'Gia sư';
+          const vaiCho = laGiaSu ? 'Học viên' : 'Gia sư';
+          document.getElementById('remote-avatar-initials').textContent = layChuCaiDau(tenCho);
+          remoteConnDot.className = 'conn-dot wait';
+          remoteTagText.textContent = `Đang chờ ${vaiCho} ${tenCho} vào lớp...`;
+          remotePhTitle.textContent = `Đang chờ ${vaiCho} ${tenCho} vào lớp...`;
+          remotePhSub.textContent = 'Ngay khi đối tác vào phòng học, video và âm thanh sẽ tự động kết nối.';
+          remoteVideo.style.display = 'none';
+          remotePh.style.display = 'flex';
+          return;
+        }
+
+        const vaiNhan = remotePeer.vaiTro === 'GIA_SU' ? 'Gia sư' : 'Học viên';
+        const micLbl = remotePeer.micOn ? 'Micro bật' : 'Micro tắt';
+        const scrLbl = remotePeer.screenOn ? ' · Đang chia sẻ màn hình' : '';
+        document.getElementById('remote-avatar-initials').textContent = layChuCaiDau(remotePeer.hoTen);
+        remoteConnDot.className = 'conn-dot live';
+        remoteTagText.textContent = `${vaiNhan}: ${remotePeer.hoTen} (${micLbl}${scrLbl})`;
+
+        const coHinh =
+          (remotePeer.cameraOn || remotePeer.screenOn) &&
+          remoteStream &&
+          remoteStream.getVideoTracks().some((t) => t.readyState === 'live');
+        remoteVideo.classList.toggle('screen-mode', Boolean(remotePeer.screenOn));
+        if (coHinh) {
+          remoteVideo.style.display = 'block';
+          remotePh.style.display = 'none';
+        } else {
+          remoteVideo.style.display = 'none';
+          remotePh.style.display = 'flex';
+          remotePhTitle.textContent = `${vaiNhan} ${remotePeer.hoTen} đang ở trong lớp`;
+          remotePhSub.textContent = remotePeer.micOn
+            ? 'Camera đang tắt · Đang bật Micro.'
+            : 'Camera và Micro đang tắt.';
+        }
+      }
+
+      // ── Bộ máy WebRTC P2P nội bộ (1-1 Gia sư ↔ Học viên) ──
+      function dongWebRtc() {
+        if (pc) {
+          try {
+            pc.ontrack = null;
+            pc.onicecandidate = null;
+            pc.onconnectionstatechange = null;
+            pc.close();
+          } catch {
+            // Bỏ qua lỗi đóng kết nối
+          }
+        }
+        pc = null;
+        audioSender = null;
+        videoSender = null;
+        pendingIce = [];
+        remoteStream = null;
+        remoteVideo.srcObject = null;
+      }
+
+      function khoiTaoPeerConnection() {
+        dongWebRtc();
+        pc = new RTCPeerConnection({ iceServers: WEBRTC_ICE_SERVERS });
+        remoteStream = new MediaStream();
+        remoteVideo.srcObject = remoteStream;
+
+        const aTrans = pc.addTransceiver('audio', { direction: 'sendrecv' });
+        const vTrans = pc.addTransceiver('video', { direction: 'sendrecv' });
+        audioSender = aTrans.sender;
+        videoSender = vTrans.sender;
+
+        if (micOn && localAudioTrack) {
+          audioSender.replaceTrack(localAudioTrack).catch(() => {});
+        }
+        const vidTrack = screenOn && screenVideoTrack ? screenVideoTrack : camOn && localVideoTrack ? localVideoTrack : null;
+        if (vidTrack) {
+          videoSender.replaceTrack(vidTrack).catch(() => {});
+        }
+
+        pc.ontrack = (ev) => {
+          if (ev.track && remoteStream) {
+            remoteStream.addTrack(ev.track);
+            remoteVideo.srcObject = remoteStream;
+            remoteVideo.play().catch(() => {});
+            ev.track.onunmute = () => capNhatHienThiDoiTac();
+            ev.track.onended = () => capNhatHienThiDoiTac();
+            capNhatHienThiDoiTac();
+          }
+        };
+
+        pc.onicecandidate = (ev) => {
+          if (ev.candidate) {
+            guiWs({ type: 'webrtc_ice', payload: ev.candidate });
+          }
+        };
+
+        pc.onconnectionstatechange = () => {
+          if (pc && pc.connectionState === 'connected') {
+            capNhatHienThiDoiTac();
+          }
+        };
+      }
+
+      async function taoVaGuiOffer() {
+        if (!remotePeer) return;
+        khoiTaoPeerConnection();
+        try {
+          const offer = await pc.createOffer();
+          await pc.setLocalDescription(offer);
+          guiWs({ type: 'webrtc_offer', payload: pc.localDescription });
+        } catch {
+          // Bỏ qua lỗi tạo offer tạm thời
+        }
+      }
+
+      async function xuLyNhanOffer(offerPayload) {
+        khoiTaoPeerConnection();
+        try {
+          await pc.setRemoteDescription(new RTCSessionDescription(offerPayload));
+          while (pendingIce.length > 0) {
+            await pc.addIceCandidate(new RTCIceCandidate(pendingIce.shift())).catch(() => {});
+          }
+          const answer = await pc.createAnswer();
+          await pc.setLocalDescription(answer);
+          guiWs({ type: 'webrtc_answer', payload: pc.localDescription });
+        } catch {
+          // Bỏ qua lỗi nhận offer
+        }
+      }
+
+      async function xuLyNhanAnswer(answerPayload) {
+        if (!pc) return;
+        try {
+          await pc.setRemoteDescription(new RTCSessionDescription(answerPayload));
+          while (pendingIce.length > 0) {
+            await pc.addIceCandidate(new RTCIceCandidate(pendingIce.shift())).catch(() => {});
+          }
+        } catch {
+          // Bỏ qua lỗi nhận answer
+        }
+      }
+
+      async function xuLyNhanIce(icePayload) {
+        if (!icePayload) return;
+        if (pc && pc.remoteDescription) {
+          await pc.addIceCandidate(new RTCIceCandidate(icePayload)).catch(() => {});
+        } else {
+          pendingIce.push(icePayload);
+        }
+      }
+
+      // ── Kết nối WebSocket phòng học nội bộ ──
+      function ketNoiPhongHocRealtime() {
+        if (!donId || !accessToken) return;
+        capNhatTrangThaiWs('warn', 'Đang kết nối phòng học...');
+
+        const wsUrl = `${WS_BASE_URL}/ws/phong-hoc/${encodeURIComponent(donId)}?access_token=${encodeURIComponent(accessToken)}`;
+        ws = new WebSocket(wsUrl);
+
+        ws.onopen = () => {
+          reconnectCount = 0;
+          capNhatTrangThaiWs('ok', 'Kết nối trực tiếp');
+          elLobbyWrap.style.display = 'none';
+          elLiveStage.style.display = 'flex';
+          daVaoLop = true;
+          capNhatHienThiThietBi();
+
+          if (timerHeartbeat) clearInterval(timerHeartbeat);
+          timerHeartbeat = setInterval(() => guiWs({ type: 'heartbeat' }), 30000);
+        };
+
+        ws.onmessage = async (event) => {
+          let msg;
+          try {
+            msg = JSON.parse(event.data);
+          } catch {
+            return;
+          }
+
+          switch (msg.type) {
+            case 'room_ready': {
+              if (msg.nhatKy) capNhatHuyHieuNhatKy(msg.nhatKy);
+              if (msg.whiteboard) apDungAnhChupBangTrang(msg.whiteboard);
+              if (Array.isArray(msg.chatHistory)) renderLichSuChat(msg.chatHistory);
+
+              remotePeer = Array.isArray(msg.peers) && msg.peers.length > 0 ? msg.peers[0] : null;
+              capNhatHienThiDoiTac();
+              if (remotePeer && laGiaSu) {
+                await taoVaGuiOffer();
+              }
+              break;
+            }
+
+            case 'peer_joined': {
+              if (msg.nhatKy) capNhatHuyHieuNhatKy(msg.nhatKy);
+              remotePeer = msg.peer || null;
+              capNhatHienThiDoiTac();
+              if (remotePeer && laGiaSu) {
+                await taoVaGuiOffer();
+              }
+              break;
+            }
+
+            case 'peer_left': {
+              if (msg.nhatKy) capNhatHuyHieuNhatKy(msg.nhatKy);
+              remotePeer = null;
+              dongWebRtc();
+              capNhatHienThiDoiTac();
+              break;
+            }
+
+            case 'attendance_update': {
+              if (msg.nhatKy) capNhatHuyHieuNhatKy(msg.nhatKy);
+              break;
+            }
+
+            case 'media_state': {
+              if (remotePeer && remotePeer.nguoiDungId === msg.fromUserId) {
+                remotePeer.cameraOn = Boolean(msg.cameraOn);
+                remotePeer.micOn = Boolean(msg.micOn);
+                remotePeer.screenOn = Boolean(msg.screenOn);
+                capNhatHienThiDoiTac();
+              }
+              break;
+            }
+
+            case 'webrtc_offer':
+              await xuLyNhanOffer(msg.payload);
+              break;
+            case 'webrtc_answer':
+              await xuLyNhanAnswer(msg.payload);
+              break;
+            case 'webrtc_ice':
+              await xuLyNhanIce(msg.payload);
+              break;
+
+            case 'wb_open':
+              apDungCheDoBangTrang(Boolean(msg.dangMo));
+              break;
+
+            case 'wb_add':
+              if (msg.stroke) {
+                strokes.push(msg.stroke);
+                veLaiToanBo();
+                capNhatSoNetBang();
+              }
+              break;
+            case 'wb_undo':
+              strokes.pop();
+              veLaiToanBo();
+              capNhatSoNetBang();
+              break;
+            case 'wb_clear':
+              strokes = [];
+              veLaiToanBo();
+              capNhatSoNetBang();
+              break;
+            case 'wb_bg':
+              if (msg.bgMode) {
+                bgMode = msg.bgMode;
+                const sel = document.getElementById('wb-bg');
+                if (sel) sel.value = bgMode;
+                veLaiToanBo();
+              }
+              break;
+            case 'wb_perm':
+              choPhepHocVienVe = Boolean(msg.choPhepHocVienVe);
+              capNhatGiaoDienQuyenVe();
+              break;
+
+            case 'chat_msg':
+              if (msg.message) {
+                themTinNhanChat(msg.message);
+                if (!chatDangMo && msg.message.fromUserId !== user?.id) {
+                  unreadChat += 1;
+                  capNhatBadgeChat();
+                }
+              }
+              break;
+
+            case 'error':
+              if (msg.thongBao && elWbStatus) {
+                elWbStatus.textContent = msg.thongBao;
+              }
+              break;
+          }
+        };
+
+        ws.onclose = (ev) => {
+          if (timerHeartbeat) clearInterval(timerHeartbeat);
+          if (daRoiPhong) return;
+
+          if (ev.code === 1008) {
+            daRoiPhong = true;
+            capNhatTrangThaiWs('warn', 'Đã mở ở tab khác');
+            if (elAlertBanner) {
+              elAlertBanner.style.display = 'flex';
+              elAlertBanner.style.background = '#78350f';
+              elAlertBanner.style.color = '#fef3c7';
+              elAlertBanner.innerHTML = `
+                <span><strong>Thông báo:</strong> Phòng học này vừa được mở trên một tab hoặc thiết bị khác nên phiên tại tab này đã dừng.</span>
+                <button type="button" class="btn btn-secondary btn-sm" id="btn-ket-noi-tab-nay" style="height: 30px">Dùng lại tại tab này</button>
+              `;
+              document.getElementById('btn-ket-noi-tab-nay')?.addEventListener('click', () => {
+                daRoiPhong = false;
+                elAlertBanner.style.display = 'none';
+                ketNoiPhongHocRealtime();
+              });
+            }
+            return;
+          }
+
+          if (!daVaoLop) {
+            capNhatTrangThaiWs('danger', 'Không thể vào lớp');
+            hienLoiLobby('Không thể kết nối phòng học lúc này. Vui lòng kiểm tra lại khung giờ buổi học.');
+            btnVaoNgay.disabled = false;
+            btnVaoNgay.textContent = 'Vào phòng học ngay';
+            return;
+          }
+
+          if (reconnectCount < 5) {
+            reconnectCount += 1;
+            capNhatTrangThaiWs('warn', `Đang kết nối lại (${reconnectCount}/5)...`);
+            setTimeout(ketNoiPhongHocRealtime, Math.min(8000, reconnectCount * 1500));
+          } else {
+            capNhatTrangThaiWs('danger', 'Mất kết nối máy chủ');
+          }
+        };
+      }
+
+      async function taiThongTinPhong() {
+        if (!donId) {
+          hienLoiLobby('Thiếu mã đơn đặt lịch để mở phòng học trực tuyến.');
+          return;
+        }
+        try {
+          const res = await api.get(`/don-dat-lich/${donId}/phong-hoc`);
+          thongTinPhong = res?.duLieu;
+          if (!thongTinPhong) return;
+
+          elTitle.textContent = `${thongTinPhong.tenMonHoc} · ${thongTinPhong.maDon} · ${dinhDangNgayGioVn(thongTinPhong.batDauLuc)}`;
+          elLobbyHead.textContent = `Buổi học ${thongTinPhong.tenMonHoc} (${thongTinPhong.thoiLuongPhut} phút)`;
+          elLobbyMeta.innerHTML = `
+            Mã đơn: <strong style="font-family: monospace">${escapeHtml(thongTinPhong.maDon)}</strong> ·
+            Gia sư: <strong>${escapeHtml(thongTinPhong.tenGiaSu)}</strong> ·
+            Học viên: <strong>${escapeHtml(thongTinPhong.tenHocSinh)}</strong><br/>
+            Lịch đăng ký: <strong>${dinhDangNgayGioVn(thongTinPhong.batDauLuc)}</strong> đến <strong>${dinhDangNgayGioVn(thongTinPhong.ketThucLuc)}</strong>
+          `;
+
+          capNhatHuyHieuNhatKy(thongTinPhong.nhatKy);
+
+          if (thongTinPhong.choPhepVaoPhong && user?.vaiTro !== 'QUAN_TRI') {
+            btnVaoNgay.disabled = false;
+            anLoiLobby();
+          } else if (thongTinPhong.lyDoChuaVaoDuoc) {
+            hienLoiLobby(thongTinPhong.lyDoChuaVaoDuoc);
+          } else if (user?.vaiTro === 'QUAN_TRI') {
+            hienLoiLobby('Tài khoản Quản trị viên chỉ xem nhật ký điểm danh, không tham gia trực tiếp lớp học.');
+          }
+        } catch (err) {
+          hienLoiLobby(err.message || 'Không thể tải thông tin phòng học.');
+        }
+      }
+
+      btnVaoNgay?.addEventListener('click', () => {
+        if (!thongTinPhong) return;
+        anLoiLobby();
+        btnVaoNgay.disabled = true;
+        btnVaoNgay.textContent = 'Đang kết nối phòng học...';
+        ketNoiPhongHocRealtime();
+      });
+
+      function roiPhongVaDonDep() {
+        daRoiPhong = true;
+        if (timerHeartbeat) clearInterval(timerHeartbeat);
+        dongWebRtc();
+        if (localAudioTrack) localAudioTrack.stop();
+        if (localVideoTrack) localVideoTrack.stop();
+        if (screenVideoTrack) screenVideoTrack.stop();
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.close(1000, 'Người dùng rời phòng học');
+        }
+      }
+
+      btnRoiPhong?.addEventListener('click', () => {
+        roiPhongVaDonDep();
+        window.location.href = backLink?.href || '/index.html';
+      });
+
+      window.addEventListener('beforeunload', () => {
+        if (!daRoiPhong && ws && ws.readyState === WebSocket.OPEN) {
+          ws.close(1000, 'Đóng trình duyệt');
+        }
+      });
+
+      // =========================================================================
+      // BẢNG TRẮNG GHIM MÀN HÌNH CHÍNH (ĐỒNG BỘ TỨC THÌ TỪ GIA SƯ → HỌC VIÊN)
+      // =========================================================================
+      const canvas = document.getElementById('wb-canvas');
+      const wrap = document.getElementById('wb-canvas-wrap');
+      const ctx = canvas.getContext('2d');
+      const elWbToolbar = document.getElementById('wb-toolbar');
+      const elWbStatus = document.getElementById('wb-trang-thai-luu');
+      const elWbPermLabel = document.getElementById('wb-perm-label');
+      const elWbTutorCtrl = document.getElementById('wb-perm-tutor-ctrl');
+      const chkChoHvVe = document.getElementById('chk-cho-hoc-vien-ve');
+      const elTextFloat = document.getElementById('wb-text-float');
+      const elTextInput = document.getElementById('wb-text-input');
+
+      if (laGiaSu && elWbTutorCtrl) {
+        elWbTutorCtrl.style.display = 'inline-flex';
+      }
+
+      let tool = 'pen';
+      let color = '#0f172a';
+      let strokeSize = 4;
+      let bgMode = 'grid';
+      let choPhepHocVienVe = false;
+      let strokes = [];
+      let drawing = false;
+      let curStroke = null;
+      let pendingTextPt = null;
+
+      function duocPhepVe() {
+        return laGiaSu || choPhepHocVienVe;
+      }
+
+      function capNhatSoNetBang() {
+        if (elWbStatus) {
+          elWbStatus.textContent = `${strokes.length} nét trên bảng`;
+        }
+      }
+
+      function capNhatGiaoDienQuyenVe() {
+        if (chkChoHvVe) chkChoHvVe.checked = choPhepHocVienVe;
+        const allowed = duocPhepVe();
+        canvas.classList.toggle('locked', !allowed);
+
+        // Học viên chỉ thấy thanh công cụ vẽ khi được Gia sư cấp quyền viết; mặc định ẩn cho bảng rộng sạch tối đa
+        if (elWbToolbar) {
+          elWbToolbar.style.display = allowed ? 'flex' : 'none';
+        }
+
+        if (laGiaSu) {
+          elWbPermLabel.textContent = choPhepHocVienVe
+            ? 'Học viên cũng có thể viết lên bảng'
+            : 'Chỉ gia sư viết bảng (học viên xem trực tiếp)';
+        } else {
+          elWbPermLabel.textContent = choPhepHocVienVe
+            ? 'Gia sư đã mở quyền — bạn có thể viết hoặc làm bài trên bảng'
+            : 'Bạn đang xem trực tiếp bảng giảng của gia sư';
+        }
+
+        if (bangTrangDangMo) {
+          requestAnimationFrame(() => setTimeout(resizeCanvas, 40));
+        }
+      }
+
+      function apDungAnhChupBangTrang(wb) {
+        bgMode = wb.nenGiay || 'grid';
+        choPhepHocVienVe = Boolean(wb.choPhepHocVienVe);
+        strokes = Array.isArray(wb.strokes) ? wb.strokes : [];
+        const selBg = document.getElementById('wb-bg');
+        if (selBg) selBg.value = bgMode;
+        capNhatGiaoDienQuyenVe();
+        apDungCheDoBangTrang(Boolean(wb.dangMo));
+        veLaiToanBo();
+        capNhatSoNetBang();
+      }
+
+      chkChoHvVe?.addEventListener('change', () => {
+        if (!laGiaSu) return;
+        choPhepHocVienVe = chkChoHvVe.checked;
+        capNhatGiaoDienQuyenVe();
+        guiWs({ type: 'wb_perm', choPhepHocVienVe });
+      });
+
+      function resizeCanvas() {
+        if (!wrap || !canvas) return;
+        const rect = wrap.getBoundingClientRect();
+        if (rect.width < 10 || rect.height < 10) return;
+        canvas.width = Math.floor(rect.width);
+        canvas.height = Math.floor(rect.height);
+        veLaiToanBo();
+      }
+
+      window.addEventListener('resize', () => {
+        if (bangTrangDangMo) resizeCanvas();
+      });
+
+      function veNenGiay() {
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        if (bgMode === 'grid') {
+          ctx.strokeStyle = '#e2e8f0';
+          ctx.lineWidth = 1;
+          for (let x = 28; x < canvas.width; x += 28) {
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, canvas.height);
+            ctx.stroke();
+          }
+          for (let y = 28; y < canvas.height; y += 28) {
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(canvas.width, y);
+            ctx.stroke();
+          }
+        } else if (bgMode === 'lines') {
+          ctx.strokeStyle = '#dbeafe';
+          ctx.lineWidth = 1;
+          for (let y = 32; y < canvas.height; y += 32) {
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(canvas.width, y);
+            ctx.stroke();
+          }
+        }
+      }
+
+      function veMotNet(s) {
+        const w = canvas.width || 1;
+        const h = canvas.height || 1;
+        const px = (nx) => nx * w;
+        const py = (ny) => ny * h;
+
+        ctx.save();
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.strokeStyle = s.tool === 'eraser' ? '#ffffff' : s.color;
+        ctx.fillStyle = s.color;
+        ctx.lineWidth = s.tool === 'eraser' ? (s.size || 4) * 4 : s.size || 4;
+
+        if (s.tool === 'pen' || s.tool === 'eraser') {
+          const pts = s.points || [];
+          if (pts.length === 1) {
+            ctx.beginPath();
+            ctx.arc(px(pts[0].x), py(pts[0].y), ctx.lineWidth / 2, 0, Math.PI * 2);
+            ctx.fill();
+          } else if (pts.length > 1) {
+            ctx.beginPath();
+            ctx.moveTo(px(pts[0].x), py(pts[0].y));
+            for (let i = 1; i < pts.length; i++) {
+              ctx.lineTo(px(pts[i].x), py(pts[i].y));
+            }
+            ctx.stroke();
+          }
+        } else if (s.tool === 'line') {
+          ctx.beginPath();
+          ctx.moveTo(px(s.x0), py(s.y0));
+          ctx.lineTo(px(s.x1), py(s.y1));
+          ctx.stroke();
+        } else if (s.tool === 'rect') {
+          ctx.strokeRect(px(s.x0), py(s.y0), px(s.x1 - s.x0), py(s.y1 - s.y0));
+        } else if (s.tool === 'circle') {
+          const rx = Math.abs(px(s.x1) - px(s.x0)) / 2;
+          const ry = Math.abs(py(s.y1) - py(s.y0)) / 2;
+          const cx = (px(s.x0) + px(s.x1)) / 2;
+          const cy = (py(s.y0) + py(s.y1)) / 2;
+          ctx.beginPath();
+          ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+          ctx.stroke();
+        } else if (s.tool === 'text') {
+          ctx.font = `700 ${Math.max(15, (s.size || 4) * 4)}px system-ui, sans-serif`;
+          ctx.fillText(s.text || '', px(s.x0), py(s.y0));
+        }
+        ctx.restore();
+      }
+
+      function veLaiToanBo() {
+        veNenGiay();
+        strokes.forEach(veMotNet);
+        if (curStroke) veMotNet(curStroke);
+      }
+
+      function layToaDoChuanHoa(ev) {
+        const r = canvas.getBoundingClientRect();
+        const x = Math.max(0, Math.min(1, (ev.clientX - r.left) / Math.max(1, r.width)));
+        const y = Math.max(0, Math.min(1, (ev.clientY - r.top) / Math.max(1, r.height)));
+        return { x: Number(x.toFixed(4)), y: Number(y.toFixed(4)), rawX: ev.clientX - r.left, rawY: ev.clientY - r.top };
+      }
+
+      function anHopNhapChu() {
+        elTextFloat.style.display = 'none';
+        elTextInput.value = '';
+        pendingTextPt = null;
+      }
+
+      function xacNhanChenChu() {
+        const txt = elTextInput.value.trim();
+        if (txt && pendingTextPt && duocPhepVe()) {
+          const stroke = { tool: 'text', color, size: strokeSize, x0: pendingTextPt.x, y0: pendingTextPt.y, text: txt };
+          strokes.push(stroke);
+          veLaiToanBo();
+          capNhatSoNetBang();
+          guiWs({ type: 'wb_add', stroke });
+        }
+        anHopNhapChu();
+      }
+
+      document.getElementById('wb-text-ok')?.addEventListener('click', xacNhanChenChu);
+      document.getElementById('wb-text-cancel')?.addEventListener('click', anHopNhapChu);
+      elTextInput?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          xacNhanChenChu();
+        } else if (e.key === 'Escape') {
+          anHopNhapChu();
+        }
+      });
+
+      canvas.addEventListener('pointerdown', (ev) => {
+        if (!duocPhepVe()) return;
+        const pt = layToaDoChuanHoa(ev);
+        if (tool === 'text') {
+          pendingTextPt = { x: pt.x, y: pt.y };
+          elTextFloat.style.display = 'inline-flex';
+          elTextFloat.style.left = `${Math.min(Math.max(8, pt.rawX), Math.max(8, canvas.width - 280))}px`;
+          elTextFloat.style.top = `${Math.min(Math.max(8, pt.rawY), Math.max(8, canvas.height - 52))}px`;
+          elTextInput.value = '';
+          elTextInput.focus();
+          return;
+        }
+        anHopNhapChu();
+        drawing = true;
+        canvas.setPointerCapture(ev.pointerId);
+        if (tool === 'pen' || tool === 'eraser') {
+          curStroke = { tool, color, size: strokeSize, points: [{ x: pt.x, y: pt.y }] };
+        } else {
+          curStroke = { tool, color, size: strokeSize, x0: pt.x, y0: pt.y, x1: pt.x, y1: pt.y };
+        }
+        veLaiToanBo();
+      });
+
+      canvas.addEventListener('pointermove', (ev) => {
+        if (!drawing || !curStroke) return;
+        const pt = layToaDoChuanHoa(ev);
+        if (curStroke.tool === 'pen' || curStroke.tool === 'eraser') {
+          curStroke.points.push({ x: pt.x, y: pt.y });
+        } else {
+          curStroke.x1 = pt.x;
+          curStroke.y1 = pt.y;
+        }
+        veLaiToanBo();
+      });
+
+      const ketThucVe = () => {
+        if (!drawing || !curStroke) return;
+        drawing = false;
+        const finished = curStroke;
+        curStroke = null;
+        strokes.push(finished);
+        veLaiToanBo();
+        capNhatSoNetBang();
+        guiWs({ type: 'wb_add', stroke: finished });
+      };
+      canvas.addEventListener('pointerup', ketThucVe);
+      canvas.addEventListener('pointercancel', ketThucVe);
+
+      document.querySelectorAll('.wb-btn[data-tool]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.wb-btn[data-tool]').forEach((b) => b.classList.remove('active'));
+          btn.classList.add('active');
+          tool = btn.dataset.tool || 'pen';
+        });
+      });
+
+      document.querySelectorAll('.wb-color').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.wb-color').forEach((b) => b.classList.remove('active'));
+          btn.classList.add('active');
+          color = btn.dataset.color || '#0f172a';
+        });
+      });
+
+      document.getElementById('wb-size')?.addEventListener('change', (e) => {
+        strokeSize = Number(e.target.value || 4);
+      });
+      document.getElementById('wb-bg')?.addEventListener('change', (e) => {
+        if (!duocPhepVe()) return;
+        bgMode = e.target.value || 'grid';
+        veLaiToanBo();
+        guiWs({ type: 'wb_bg', bgMode });
+      });
+      document.getElementById('wb-undo')?.addEventListener('click', () => {
+        if (!duocPhepVe() || strokes.length === 0) return;
+        strokes.pop();
+        veLaiToanBo();
+        capNhatSoNetBang();
+        guiWs({ type: 'wb_undo' });
+      });
+      document.getElementById('wb-clear')?.addEventListener('click', () => {
+        if (!duocPhepVe()) return;
+        if (strokes.length === 0 || confirm('Xóa toàn bộ nội dung trên bảng trắng giảng bài?')) {
+          strokes = [];
+          veLaiToanBo();
+          capNhatSoNetBang();
+          guiWs({ type: 'wb_clear' });
+        }
+      });
+      document.getElementById('wb-save')?.addEventListener('click', () => {
+        const a = document.createElement('a');
+        a.download = `bang-giang-${thongTinPhong?.maDon || 'buoi-hoc'}.png`;
+        a.href = canvas.toDataURL('image/png');
+        a.click();
+      });
+
+      // =========================================================================
+      // TRÒ CHUYỆN TRONG BUỔI HỌC (ĐỒNG BỘ TRỰC TIẾP)
+      // =========================================================================
+      const elChatList = document.getElementById('chat-messages');
+      const elChatForm = document.getElementById('chat-form');
+      const elChatInput = document.getElementById('chat-input');
+      let coTinNhanChat = false;
+
+      function taoHtmlTinNhan(m) {
+        const isMe = m.fromUserId === user?.id;
+        const vaiLbl = m.vaiTro === 'GIA_SU' ? 'Gia sư' : 'Học viên';
+        const gio = new Date(m.guiLucUtc).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+        return `
+          <div class="chat-bubble ${isMe ? 'me' : 'peer'}">
+            <div class="chat-meta">${escapeHtml(m.hoTen)} · ${vaiLbl} · ${gio}</div>
+            <div>${escapeHtml(m.noiDung)}</div>
+          </div>
+        `;
+      }
+
+      function renderLichSuChat(list) {
+        if (!list || list.length === 0) return;
+        coTinNhanChat = true;
+        elChatList.innerHTML = list.map(taoHtmlTinNhan).join('');
+        elChatList.scrollTop = elChatList.scrollHeight;
+      }
+
+      function themTinNhanChat(m) {
+        if (!coTinNhanChat) {
+          elChatList.innerHTML = '';
+          coTinNhanChat = true;
+        }
+        elChatList.insertAdjacentHTML('beforeend', taoHtmlTinNhan(m));
+        elChatList.scrollTop = elChatList.scrollHeight;
+      }
+
+      elChatForm?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const nd = elChatInput.value.trim();
+        if (!nd || !daVaoLop) return;
+        guiWs({ type: 'chat_msg', noiDung: nd });
+        elChatInput.value = '';
+      });
+
+      capNhatGiaoDienQuyenVe();
+      await taiThongTinPhong();
+    </script>
+  </body>
+</html>

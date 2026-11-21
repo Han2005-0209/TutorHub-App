@@ -1,0 +1,8 @@
+﻿**/bin/
+**/obj/
+backend/src/TutorHub.Api/storage/
+**/appsettings.Development.json
+.vs/
+*.user
+*.suo
+node_modules/

@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/assets/img/icon-192.svg" />
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <title>Đăng ký tài khoản — TutorHub</title>
+  </head>
+  <body class="theme-user">
+    <div id="khung-header"></div>
+
+    <main class="container" style="padding: 2.75rem 1.25rem; max-width: 520px">
+      <div class="card" style="border-radius: var(--th-radius-xl); padding: 2rem">
+        <div style="margin-bottom: 1.35rem">
+          <h1 style="margin: 0; font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em">Tạo tài khoản TutorHub</h1>
+          <p style="margin: 0.35rem 0 0; color: var(--th-text-muted); font-size: 0.87rem">
+            Kết nối học tập 1-1 trực tuyến toàn quốc hoặc trực tiếp tại nhà với học phí minh bạch.
+          </p>
+        </div>
+
+        <div id="hop-thong-bao" style="display: none"></div>
+
+        <form id="form-dang-ky">
+          <div class="form-group">
+            <div class="form-label">Bạn tham gia với vai trò nào?</div>
+            <div class="grid-2" style="gap: 0.7rem">
+              <label class="card" style="padding: 0.85rem; cursor: pointer; display: flex; align-items: flex-start; gap: 0.55rem">
+                <input id="radio-hs" type="radio" name="vaiTro" value="HOC_SINH" checked style="margin-top: 0.25rem" />
+                <div>
+                  <div style="font-weight: 700; font-size: 0.9rem">Học sinh / Phụ huynh</div>
+                  <div style="font-size: 0.76rem; color: var(--th-text-muted)">Tìm gia sư online &amp; tại nhà</div>
+                </div>
+              </label>
+              <label class="card" style="padding: 0.85rem; cursor: pointer; display: flex; align-items: flex-start; gap: 0.55rem">
+                <input id="radio-gs" type="radio" name="vaiTro" value="GIA_SU" style="margin-top: 0.25rem" />
+                <div>
+                  <div style="font-weight: 700; font-size: 0.9rem">Gia sư</div>
+                  <div style="font-size: 0.76rem; color: var(--th-text-muted)">Mở hồ sơ &amp; nhận lớp</div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div id="banner-onboarding-gs" class="alert alert-info" style="display: none; margin-bottom: 1rem; border-radius: 14px; background: #f5f9ff; border: 1px solid #cde0fe; color: #1e3a8a">
+            <div style="font-weight: 700; font-size: 0.92rem; margin-bottom: 0.25rem; color: #1d4ed8">✦ Trở thành Gia sư chuyên nghiệp trên TutorHub!</div>
+            <div style="font-size: 0.82rem; line-height: 1.5; color: #475569">
+              Bạn có thể sử dụng biểu mẫu thiết lập hồ sơ 5 bước để tự động cài đặt môn học, định giá học phí và tải minh chứng bằng cấp trong 3 phút.
+            </div>
+            <a href="/pages/tro-thanh-gia-su.html" class="btn btn-sm" style="margin-top: 0.6rem; display: inline-flex; background: #3b82f6; color: #ffffff; border-radius: 9999px; font-weight: 600; text-decoration: none">Khám phá Trở thành Gia sư →</a>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="ho-ten">Họ và tên</label>
+            <input id="ho-ten" name="hoTen" type="text" required class="form-control" placeholder="Nguyễn Văn A" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="email">Địa chỉ email</label>
+            <input id="email" name="email" type="email" required class="form-control" placeholder="ban@example.com" />
+          </div>
+
+          <div class="grid-2" style="gap: 0.75rem; align-items: end">
+            <div class="form-group">
+              <label class="form-label" for="so-dien-thoai">Số điện thoại</label>
+              <input id="so-dien-thoai" name="soDienThoai" type="tel" class="form-control" placeholder="0901234567" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="khu-vuc">Khu vực (Quận, Tỉnh/TP)</label>
+              <input id="khu-vuc" name="khuVuc" type="text" class="form-control" placeholder="Ninh Kiều, Cần Thơ" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="mat-khau">Mật khẩu (tối thiểu 8 ký tự, gồm chữ cái và chữ số)</label>
+            <input id="mat-khau" name="matKhau" type="password" required class="form-control" placeholder="Nhập mật khẩu an toàn" />
+          </div>
+
+          <button id="btn-submit" type="submit" class="btn btn-primary btn-lg" style="width: 100%; margin-top: 0.4rem">
+            Đăng ký tài khoản
+          </button>
+        </form>
+
+        <p style="margin: 1.25rem 0 0; text-align: center; font-size: 0.85rem; color: var(--th-text-muted)">
+          Đã có tài khoản?
+          <a href="/pages/dang-nhap.html" style="color: var(--th-blush-text); font-weight: 600; text-decoration: none">Đăng nhập</a>
+        </p>
+      </div>
+    </main>
+
+    <div id="khung-footer"></div>
+
+    <script type="module">
+      import { api } from '/assets/js/api.js';
+      import {
+        escapeHtml,
+        layTrangChinhTheoVaiTro,
+        luuPhienDangNhapDayDu,
+        renderFooter,
+        renderHeader,
+      } from '/assets/js/giao-dien.js';
+
+      renderHeader('#khung-header');
+      renderFooter('#khung-footer');
+
+      const bannerGs = document.getElementById('banner-onboarding-gs');
+      function capNhatBannerGs() {
+        const laGs = document.getElementById('radio-gs')?.checked;
+        if (bannerGs) bannerGs.style.display = laGs ? 'block' : 'none';
+      }
+
+      document.querySelectorAll('input[name="vaiTro"]').forEach((r) => {
+        r.addEventListener('change', capNhatBannerGs);
+      });
+
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('vaiTro') === 'GIA_SU') {
+        const rGs = document.getElementById('radio-gs');
+        if (rGs) rGs.checked = true;
+      }
+      capNhatBannerGs();
+
+      const form = document.getElementById('form-dang-ky');
+      const hopThongBao = document.getElementById('hop-thong-bao');
+      const btnSubmit = document.getElementById('btn-submit');
+
+      form?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        hopThongBao.style.display = 'none';
+        btnSubmit.disabled = true;
+        btnSubmit.textContent = 'Đang tạo tài khoản...';
+
+        const vaiTro = document.querySelector('input[name="vaiTro"]:checked')?.value || 'HOC_SINH';
+
+        try {
+          const res = await api.post('/xac-thuc/dang-ky', {
+            hoTen: document.getElementById('ho-ten').value.trim(),
+            email: document.getElementById('email').value.trim(),
+            soDienThoai: document.getElementById('so-dien-thoai').value.trim() || null,
+            khuVuc: document.getElementById('khu-vuc').value.trim() || null,
+            matKhau: document.getElementById('mat-khau').value,
+            vaiTro,
+          });
+
+          luuPhienDangNhapDayDu(res?.duLieu);
+          window.location.href = layTrangChinhTheoVaiTro(vaiTro);
+        } catch (err) {
+          hopThongBao.style.display = 'block';
+          hopThongBao.className = 'alert alert-danger';
+          hopThongBao.innerHTML = escapeHtml(err.message || 'Đăng ký thất bại.');
+        } finally {
+          btnSubmit.disabled = false;
+          btnSubmit.textContent = 'Đăng ký tài khoản';
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,85 @@
+services:
+  # 1. Backend .NET 10 Web API + WebSockets (Phòng học trực tuyến nội bộ)
+  - type: web
+    name: tutorhub-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /api/health
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ASPNETCORE_URLS
+        value: http://+:8080
+      - key: ConnectionStrings__DefaultConnection
+        sync: false
+      - key: Jwt__SecretKey
+        generateValue: true
+      - key: Storage__UrlSigningKey
+        generateValue: true
+      - key: Database__AutoMigrateOnStartup
+        value: "true"
+      - key: Database__AutoSeedOnStartup
+        value: "true"
+      - key: Cors__AllowedOrigins__0
+        value: https://*.onrender.com
+      - key: Cors__AllowedOrigins__1
+        value: https://*.vercel.app
+      - key: Payment__Mode
+        value: gia_lap
+      - key: Swagger__Enabled
+        value: "true"
+
+  # 2. Frontend Site tĩnh HTML/CSS/JS thuần (tự nối sang URL công khai của tutorhub-api)
+  - type: web
+    name: tutorhub-web
+    runtime: static
+    buildCommand: node -e 'const fs = require("fs"); const h = (process.env.API_PUBLIC_HOST || "").trim(); const val = h ? "https://" + h + "/api" : ""; fs.writeFileSync("frontend/assets/js/runtime-config.js", "export const RUNTIME_API_BASE_URL = " + JSON.stringify(val) + ";\n");'
+    staticPublishPath: ./frontend
+    envVars:
+      - key: API_PUBLIC_HOST
+        fromService:
+          type: web
+          name: tutorhub-api
+          envVarKey: RENDER_EXTERNAL_HOSTNAME
+    routes:
+      - type: rewrite
+        source: /pages/dang-nhap
+        destination: /pages/dang-nhap.html
+      - type: rewrite
+        source: /pages/dang-ky
+        destination: /pages/dang-ky.html
+      - type: rewrite
+        source: /pages/hoc-sinh-tong-quan
+        destination: /pages/hoc-sinh-tong-quan.html
+      - type: rewrite
+        source: /pages/tim-kiem-gia-su
+        destination: /pages/tim-kiem-gia-su.html
+      - type: rewrite
+        source: /pages/ho-so-gia-su
+        destination: /pages/ho-so-gia-su.html
+      - type: rewrite
+        source: /pages/muc-yeu-thich
+        destination: /pages/muc-yeu-thich.html
+      - type: rewrite
+        source: /pages/ho-so-tai-khoan
+        destination: /pages/ho-so-tai-khoan.html
+      - type: rewrite
+        source: /pages/quan-ly-gia-su
+        destination: /pages/quan-ly-gia-su.html
+      - type: rewrite
+        source: /pages/quan-tri
+        destination: /pages/quan-tri.html
+      - type: rewrite
+        source: /pages/phong-hoc
+        destination: /pages/phong-hoc.html
+      - type: rewrite
+        source: /pages/hoi-thoai
+        destination: /pages/hoi-thoai.html
+      - type: rewrite
+        source: /pages/tro-thanh-gia-su
+        destination: /pages/tro-thanh-gia-su.html
+      - type: rewrite
+        source: /pages/dang-ky-gia-su
+        destination: /pages/dang-ky-gia-su.html

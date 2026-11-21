@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/assets/img/icon-192.svg" />
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <title>Đăng nhập — TutorHub</title>
+  </head>
+  <body class="theme-user">
+    <div id="khung-header"></div>
+
+    <main id="noi-dung-chinh" class="container" style="padding: 2.5rem 1.25rem 3.5rem; max-width: 920px">
+      <div class="grid-2" style="gap: 1.5rem; align-items: start">
+        <!-- Cột trái: Form đăng nhập chính -->
+        <div class="card" style="border-radius: var(--th-radius-xl); padding: 2rem">
+          <div style="margin-bottom: 1.4rem">
+            <h1 style="margin: 0; font-size: 1.55rem; font-weight: 800; letter-spacing: -0.02em">Đăng nhập TutorHub</h1>
+            <p style="margin: 0.35rem 0 0; color: var(--th-text-muted); font-size: 0.87rem">
+              Hệ thống tự động đưa bạn vào đúng không gian làm việc theo vai trò: Cổng Học sinh, Cổng Gia sư hoặc Quản trị viên.
+            </p>
+          </div>
+
+          <div id="hop-thong-bao" style="display: none"></div>
+
+          <form id="form-dang-nhap">
+            <div class="form-group">
+              <label class="form-label" for="email">Địa chỉ email</label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                required
+                autocomplete="email"
+                class="form-control"
+                placeholder="ban@example.com"
+              />
+            </div>
+
+            <div class="form-group">
+              <div style="display: flex; justify-content: space-between; align-items: baseline">
+                <label class="form-label" for="mat-khau">Mật khẩu</label>
+                <button
+                  id="btn-mo-quen-mk"
+                  type="button"
+                  style="background: none; border: none; color: var(--th-blush-text); cursor: pointer; font-weight: 600; font-size: 0.78rem; padding: 0; font-family: inherit"
+                >
+                  Quên mật khẩu?
+                </button>
+              </div>
+              <input
+                id="mat-khau"
+                name="matKhau"
+                type="password"
+                required
+                autocomplete="current-password"
+                class="form-control"
+                placeholder="Nhập mật khẩu của bạn"
+              />
+            </div>
+
+            <button id="btn-submit" type="submit" class="btn btn-primary btn-lg" style="width: 100%; margin-top: 0.4rem">
+              Đăng nhập
+            </button>
+          </form>
+
+          <p style="margin: 1.25rem 0 0; text-align: center; font-size: 0.85rem; color: var(--th-text-muted)">
+            Chưa có tài khoản?
+            <a href="/pages/dang-ky.html" style="color: var(--th-blush-text); font-weight: 600; text-decoration: none">Đăng ký ngay</a>
+          </p>
+
+          <!-- Khung Quên / Đặt lại mật khẩu -->
+          <div id="khung-quen-mk" style="display: none; margin-top: 1.25rem; padding-top: 1.1rem; border-top: 1px solid #f1f5f9">
+            <h2 style="margin: 0 0 0.65rem; font-size: 0.96rem; font-weight: 700">Khôi phục mật khẩu</h2>
+            <div class="form-group">
+              <label class="form-label" for="inp-email-quen">Nhập email tài khoản của bạn</label>
+              <div style="display: flex; gap: 0.5rem">
+                <input id="inp-email-quen" type="email" class="form-control" placeholder="email@example.com" />
+                <button id="btn-gui-quen-mk" type="button" class="btn btn-secondary btn-sm">Lấy mã</button>
+              </div>
+            </div>
+            <div id="khung-dat-lai-mk" style="display: none">
+              <div class="form-group">
+                <label class="form-label" for="inp-token-mk">Mã xác nhận khôi phục</label>
+                <input id="inp-token-mk" type="text" class="form-control" />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="inp-mk-moi">Mật khẩu mới (≥ 8 ký tự, gồm chữ và số)</label>
+                <input id="inp-mk-moi" type="password" class="form-control" placeholder="Nhập mật khẩu mới" />
+              </div>
+              <button id="btn-xac-nhan-dat-lai" type="button" class="btn btn-primary btn-sm">Đặt lại mật khẩu</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cột phải: Chọn nhanh tài khoản theo 3 Cổng vai trò riêng biệt -->
+        <aside class="card" style="border-radius: var(--th-radius-xl); padding: 1.65rem; background: #ffffff">
+          <div style="margin-bottom: 1rem">
+            <span class="badge" style="background: var(--th-blush-soft); color: var(--th-blush-text); border: 1px solid var(--th-blush-border)">Trải nghiệm theo vai trò</span>
+            <h2 style="margin: 0.5rem 0 0; font-size: 1.12rem; font-weight: 800">3 cổng giao diện tách biệt</h2>
+            <p style="margin: 0.25rem 0 0; font-size: 0.82rem; color: var(--th-text-muted)">
+              Chọn một tài khoản mẫu bên dưới để điền sẵn thông tin và khám phá giao diện chuyên biệt cho từng vai trò:
+            </p>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 0.65rem">
+            <button
+              type="button"
+              class="demo-role-card tone-rose btn-demo-acc"
+              data-email="hocsinh1.demo@example.tutorhub.test"
+              data-pass="Password123!"
+            >
+              <div style="display: flex; align-items: center; justify-content: space-between; width: 100%">
+                <strong style="font-size: 0.9rem; color: var(--th-blush-text)">Cổng Học sinh · Lê Minh Khoa</strong>
+                <span class="badge" style="background: var(--th-blush-soft); color: var(--th-blush-text); border: 1px solid var(--th-blush-border)">Học sinh</span>
+              </div>
+              <span style="font-size: 0.78rem; color: var(--th-text-muted)">
+                Vào không gian học tập (Hồng nhạt dịu mắt): buổi học sắp tới, số dư ví, gia sư đã lưu &amp; tìm gia sư.
+              </span>
+            </button>
+
+            <button
+              type="button"
+              class="demo-role-card tone-blue btn-demo-acc"
+              data-email="giasu1.demo@example.tutorhub.test"
+              data-pass="Password123!"
+            >
+              <div style="display: flex; align-items: center; justify-content: space-between; width: 100%">
+                <strong style="font-size: 0.9rem; color: var(--th-tutor-text)">Cổng Gia sư · ThS. Nguyễn Hoàng Minh</strong>
+                <span class="badge badge-info">Gia sư</span>
+              </div>
+              <span style="font-size: 0.78rem; color: var(--th-text-muted)">
+                Vào không gian giảng dạy riêng (Xanh dương thân thiện): thu nhập, hồ sơ, bằng cấp, thời gian biểu nhận lớp.
+              </span>
+            </button>
+
+            <button
+              type="button"
+              class="demo-role-card tone-amber btn-demo-acc"
+              data-email="giasu3.demo@example.tutorhub.test"
+              data-pass="Password123!"
+            >
+              <div style="display: flex; align-items: center; justify-content: space-between; width: 100%">
+                <strong style="font-size: 0.9rem; color: var(--th-amber)">Gia sư chờ duyệt · KS. Võ Thanh Tùng</strong>
+                <span class="badge badge-warning">Chờ duyệt</span>
+              </div>
+              <span style="font-size: 0.78rem; color: var(--th-text-muted)">
+                Kiểm tra tiến độ hoàn thiện hồ sơ 7 bước và trạng thái chờ quản trị viên phê duyệt.
+              </span>
+            </button>
+
+            <button
+              type="button"
+              class="demo-role-card tone-indigo btn-demo-acc"
+              data-email="admin.demo@example.tutorhub.test"
+              data-pass="Password123!"
+            >
+              <div style="display: flex; align-items: center; justify-content: space-between; width: 100%">
+                <strong style="font-size: 0.9rem; color: #4338ca">Cổng Quản trị viên · Trung tâm vận hành</strong>
+                <span class="badge" style="background: #eef2ff; color: #4338ca">Quản trị</span>
+              </div>
+              <span style="font-size: 0.78rem; color: var(--th-text-muted)">
+                Vào bảng quản trị nền tối: duyệt hồ sơ &amp; giấy tờ gia sư, quản lý người dùng, môn học &amp; kiểm duyệt nội dung.
+              </span>
+            </button>
+          </div>
+        </aside>
+      </div>
+    </main>
+
+    <div id="khung-footer"></div>
+
+    <script type="module">
+      import { api } from '/assets/js/api.js';
+      import {
+        escapeHtml,
+        layTrangChinhTheoVaiTro,
+        luuPhienDangNhapDayDu,
+        renderFooter,
+        renderHeader,
+      } from '/assets/js/giao-dien.js';
+
+      renderHeader('#khung-header');
+      renderFooter('#khung-footer');
+
+      const form = document.getElementById('form-dang-nhap');
+      const inpEmail = document.getElementById('email');
+      const inpPass = document.getElementById('mat-khau');
+      const btnSubmit = document.getElementById('btn-submit');
+      const hopThongBao = document.getElementById('hop-thong-bao');
+
+      function hienThongBao(noiDung, loai = 'danger') {
+        hopThongBao.style.display = 'block';
+        hopThongBao.className = `alert alert-${loai}`;
+        hopThongBao.innerHTML = escapeHtml(noiDung);
+      }
+
+      document.querySelectorAll('.btn-demo-acc').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          inpEmail.value = btn.dataset.email || '';
+          inpPass.value = btn.dataset.pass || '';
+          inpEmail.focus();
+        });
+      });
+
+      form?.addEventListener('submit', async (suKien) => {
+        suKien.preventDefault();
+        hopThongBao.style.display = 'none';
+        btnSubmit.disabled = true;
+        btnSubmit.textContent = 'Đang xác thực...';
+
+        try {
+          const phanHoi = await api.post('/xac-thuc/dang-nhap', {
+            email: inpEmail.value.trim(),
+            matKhau: inpPass.value,
+          });
+
+          const duLieu = phanHoi?.duLieu;
+          luuPhienDangNhapDayDu(duLieu);
+          window.location.href = layTrangChinhTheoVaiTro(duLieu?.nguoiDung?.vaiTro);
+        } catch (loi) {
+          hienThongBao(loi.message || 'Đăng nhập thất bại.', 'danger');
+        } finally {
+          btnSubmit.disabled = false;
+          btnSubmit.textContent = 'Đăng nhập';
+        }
+      });
+
+      const btnMoQuen = document.getElementById('btn-mo-quen-mk');
+      const khungQuen = document.getElementById('khung-quen-mk');
+      const khungDatLai = document.getElementById('khung-dat-lai-mk');
+      btnMoQuen?.addEventListener('click', () => {
+        khungQuen.style.display = khungQuen.style.display === 'none' ? 'block' : 'none';
+      });
+
+      document.getElementById('btn-gui-quen-mk')?.addEventListener('click', async () => {
+        const emailQuen = document.getElementById('inp-email-quen')?.value?.trim();
+        if (!emailQuen) return;
+        try {
+          const res = await api.post('/xac-thuc/quen-mat-khau', { email: emailQuen });
+          khungDatLai.style.display = 'block';
+          if (res?.duLieu?.tokenDemo) {
+            document.getElementById('inp-token-mk').value = res.duLieu.tokenDemo;
+            hienThongBao('Đã tạo mã xác nhận khôi phục mật khẩu (đã điền sẵn bên dưới).', 'info');
+          } else {
+            hienThongBao(res?.duLieu?.thongBao || 'Đã gửi hướng dẫn khôi phục mật khẩu.', 'info');
+          }
+        } catch (err) {
+          hienThongBao(err.message, 'danger');
+        }
+      });
+
+      document.getElementById('btn-xac-nhan-dat-lai')?.addEventListener('click', async () => {
+        const token = document.getElementById('inp-token-mk')?.value?.trim();
+        const matKhauMoi = document.getElementById('inp-mk-moi')?.value;
+        try {
+          await api.post('/xac-thuc/dat-lai-mat-khau', { token, matKhauMoi });
+          hienThongBao('Đặt lại mật khẩu thành công! Bạn có thể đăng nhập bằng mật khẩu mới.', 'success');
+          khungQuen.style.display = 'none';
+        } catch (err) {
+          hienThongBao(err.message, 'danger');
+        }
+      });
+    </script>
+  </body>
+</html>

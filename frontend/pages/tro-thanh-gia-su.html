@@ -1,0 +1,645 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Trở thành Gia sư — TutorHub</title>
+    <link rel="icon" type="image/svg+xml" href="/assets/img/icon-192.svg" />
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <style>
+      :root {
+        --landing-blue: #3b82f6;
+        --landing-blue-hover: #2563eb;
+        --landing-blue-soft: #eff6ff;
+        --landing-blue-border: #cde0fe;
+        --landing-sky: #bfdbfe;
+      }
+
+      body {
+        background-color: #f8fbff;
+        color: #1e293b;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        overflow-x: hidden;
+      }
+
+      /* Hero Section with Soft Sky Blue Aura Backdrop */
+      .landing-hero {
+        position: relative;
+        padding: 3.5rem 1.5rem 5rem;
+        overflow: hidden;
+      }
+
+      .landing-sun-shape {
+        position: absolute;
+        top: -120px;
+        right: -80px;
+        width: 620px;
+        height: 620px;
+        border-radius: 50%;
+        background: radial-gradient(circle, #dbeafe 0%, #bfdbfe 52%, transparent 72%);
+        filter: blur(34px);
+        opacity: 0.65;
+        z-index: 0;
+        pointer-events: none;
+      }
+
+      .landing-hero-inner {
+        position: relative;
+        z-index: 1;
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: minmax(0, 1.25fr) minmax(360px, 1fr);
+        gap: 3.5rem;
+        align-items: center;
+      }
+
+      /* Left Column: Inspiring Pitch */
+      .landing-pitch {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+      }
+
+      .landing-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.38rem 0.9rem;
+        border-radius: 9999px;
+        background: var(--landing-blue-soft);
+        border: 1px solid var(--landing-blue-border);
+        color: var(--landing-blue-hover);
+        font-size: 0.84rem;
+        font-weight: 700;
+        width: fit-content;
+      }
+
+      .landing-title {
+        font-size: 3.25rem;
+        font-weight: 900;
+        line-height: 1.15;
+        letter-spacing: -0.035em;
+        color: #0f172a;
+        margin: 0;
+      }
+
+      .landing-title span.accent-blue {
+        color: var(--landing-blue-hover);
+      }
+
+      .landing-lead {
+        font-size: 1.1rem;
+        color: #334155;
+        line-height: 1.6;
+        margin: 0;
+      }
+
+      .landing-sublead {
+        font-size: 0.95rem;
+        color: #64748b;
+        line-height: 1.5;
+        margin: 0;
+      }
+
+      /* 3 Value Propositions */
+      .landing-values {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin-top: 0.5rem;
+      }
+
+      .landing-value-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.85rem;
+        font-size: 0.98rem;
+        line-height: 1.45;
+        color: #1e293b;
+      }
+
+      .landing-value-icon {
+        font-size: 1.4rem;
+        flex-shrink: 0;
+        line-height: 1;
+        margin-top: 2px;
+      }
+
+      .landing-target-audience {
+        font-size: 0.88rem;
+        color: #64748b;
+        font-weight: 600;
+        margin-top: 0.5rem;
+        padding-top: 1rem;
+        border-top: 1px dashed #cbd5e1;
+      }
+
+      /* Right Column: Floating Signup Card */
+      .landing-card {
+        background: #ffffff url('/assets/img/patterns/card-decor-sky.svg') right top / 300px auto no-repeat;
+        border: 1px solid #dbeafe;
+        border-radius: 28px;
+        padding: 2.5rem;
+        box-shadow: 0 20px 45px -12px rgba(37, 99, 235, 0.1), 0 0 0 1px rgba(15, 23, 42, 0.03);
+        position: relative;
+      }
+
+      .landing-card-title {
+        font-size: 1.65rem;
+        font-weight: 800;
+        text-align: center;
+        color: #0f172a;
+        margin: 0 0 1.5rem;
+        letter-spacing: -0.02em;
+      }
+
+      .landing-input-group {
+        margin-bottom: 1.25rem;
+      }
+
+      .landing-input {
+        width: 100%;
+        height: 52px;
+        padding: 0 1.25rem;
+        border-radius: 14px;
+        border: 1.5px solid #e2e8f0;
+        font-size: 1rem;
+        outline: none;
+        transition: all 0.2s ease;
+        background: #f8fafc;
+      }
+
+      .landing-input:focus {
+        border-color: var(--landing-blue);
+        background: #ffffff;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
+      }
+
+      .landing-btn-submit {
+        width: 100%;
+        height: 52px;
+        border-radius: 9999px;
+        background: var(--landing-blue);
+        color: #ffffff;
+        font-size: 1.05rem;
+        font-weight: 700;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        transition: all 0.2s ease;
+        box-shadow: 0 6px 18px rgba(59, 130, 246, 0.26);
+      }
+
+      .landing-btn-submit:hover {
+        background: var(--landing-blue-hover);
+        transform: translateY(-1px);
+        box-shadow: 0 8px 22px rgba(59, 130, 246, 0.34);
+      }
+
+      .landing-divider {
+        display: flex;
+        align-items: center;
+        margin: 1.5rem 0;
+        color: #94a3b8;
+        font-size: 0.85rem;
+        font-weight: 600;
+      }
+
+      .landing-divider::before,
+      .landing-divider::after {
+        content: '';
+        flex: 1;
+        border-bottom: 1px solid #e2e8f0;
+      }
+
+      .landing-divider span {
+        padding: 0 0.85rem;
+      }
+
+      .landing-btn-social {
+        width: 100%;
+        height: 48px;
+        border-radius: 14px;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        color: #0f172a;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
+        transition: all 0.15s ease;
+      }
+
+      .landing-btn-social:hover {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+      }
+
+      .landing-card-footer {
+        text-align: center;
+        margin-top: 1.5rem;
+        font-size: 0.92rem;
+        color: #64748b;
+      }
+
+      .landing-card-footer a {
+        color: #0f172a;
+        font-weight: 700;
+        text-decoration: underline;
+        margin-left: 0.25rem;
+      }
+
+      /* 3 Steps Section */
+      .landing-steps-section {
+        padding: 4.5rem 1.5rem;
+        background: #ffffff;
+        border-top: 1px solid #f1f5f9;
+        border-bottom: 1px solid #f1f5f9;
+      }
+
+      .landing-section-header {
+        text-align: center;
+        max-width: 650px;
+        margin: 0 auto 3rem;
+      }
+
+      .landing-section-title {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #0f172a;
+        letter-spacing: -0.025em;
+        margin: 0 0 0.5rem;
+      }
+
+      .landing-section-sub {
+        font-size: 1rem;
+        color: #64748b;
+        margin: 0;
+      }
+
+      .landing-steps-grid {
+        max-width: 1100px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 2rem;
+      }
+
+      .landing-step-card {
+        padding: 2rem;
+        border-radius: 24px;
+        background: #ffffff;
+        border: 1px solid #e2eaf6;
+        text-align: center;
+        transition: all 0.2s ease;
+      }
+
+      .landing-step-card:hover {
+        transform: translateY(-3px);
+        border-color: var(--landing-blue-border);
+        box-shadow: 0 12px 28px -8px rgba(59, 130, 246, 0.1);
+      }
+
+      .landing-step-num {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: var(--landing-blue-soft);
+        border: 1px solid var(--landing-blue-border);
+        color: var(--landing-blue-hover);
+        font-size: 1.35rem;
+        font-weight: 900;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.25rem;
+      }
+
+      .landing-step-name {
+        font-size: 1.15rem;
+        font-weight: 800;
+        color: #0f172a;
+        margin: 0 0 0.5rem;
+      }
+
+      .landing-step-desc {
+        font-size: 0.9rem;
+        color: #64748b;
+        line-height: 1.5;
+        margin: 0;
+      }
+
+      /* FAQ Section */
+      .landing-faq-section {
+        padding: 4.5rem 1.5rem;
+        max-width: 850px;
+        margin: 0 auto;
+      }
+
+      .faq-item {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 18px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 4px 12px -4px rgba(15, 23, 42, 0.03);
+      }
+
+      .faq-question {
+        font-weight: 800;
+        font-size: 1.05rem;
+        color: #0f172a;
+        margin: 0 0 0.4rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .faq-answer {
+        font-size: 0.92rem;
+        color: #475569;
+        line-height: 1.55;
+        margin: 0;
+      }
+
+      /* Responsive */
+      @media (max-width: 900px) {
+        .landing-hero-inner {
+          grid-template-columns: 1fr;
+          gap: 2.5rem;
+        }
+
+        .landing-title {
+          font-size: 2.4rem;
+        }
+
+        .landing-steps-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body class="theme-tutor">
+    <!-- Header Dùng chung -->
+    <div id="khung-header"></div>
+
+    <main>
+      <!-- Hero Section với ánh sáng xanh dương pastel thân thiện -->
+      <section class="landing-hero" aria-labelledby="tieu-de-landing-gs">
+        <div class="landing-sun-shape" aria-hidden="true"></div>
+
+        <div class="landing-hero-inner">
+          <!-- Cột Trái: Thông điệp truyền cảm hứng -->
+          <div class="landing-pitch">
+            <span class="landing-badge">✨ Cộng đồng gia sư TutorHub</span>
+
+            <h1 id="tieu-de-landing-gs" class="landing-title">
+              Trở thành gia sư<br />
+              <span class="accent-blue">Chia sẻ đam mê</span> của bạn
+            </h1>
+
+            <p class="landing-lead">
+              Chào mừng bạn đến với cộng đồng gia sư TutorHub, nơi hàng nghìn học viên mỗi ngày tìm kiếm người đồng hành phù hợp nhất cho các buổi học kèm của mình.
+            </p>
+
+            <p class="landing-sublead">
+              Toán học, Ngoại ngữ, Khoa học tự nhiên, Tin học, Luyện thi đại học... với hơn 100 môn học phong phú để giảng dạy.
+            </p>
+
+            <div class="landing-values">
+              <div class="landing-value-item">
+                <span class="landing-value-icon">🙌</span>
+                <div>
+                  <strong>Hãy dạy kèm trực tuyến hoặc trực tiếp:</strong> Dạy học sinh toàn quốc qua phòng học video tích hợp hoặc dạy trực tiếp tại nhà trong bán kính gần bạn.
+                </div>
+              </div>
+
+              <div class="landing-value-item">
+                <span class="landing-value-icon">💸</span>
+                <div>
+                  <strong>Tự do đặt mức học phí theo mong muốn:</strong> 100% học phí của bạn được bảo vệ qua hệ thống ký quỹ Escrow minh bạch, thanh toán an toàn.
+                </div>
+              </div>
+
+              <div class="landing-value-item">
+                <span class="landing-value-icon">💎</span>
+                <div>
+                  <strong>Chủ động sắp xếp thời gian biểu:</strong> Tự do mở khung giờ rảnh theo tuần và nhận lớp phù hợp với lịch cá nhân.
+                </div>
+              </div>
+            </div>
+
+            <div class="landing-target-audience">
+              Dành cho sinh viên, giáo viên, chuyên gia và bất kỳ ai đam mê chia sẻ tri thức...
+            </div>
+          </div>
+
+          <!-- Cột Phải: Thẻ trắng nổi bật "Tạo hồ sơ của bạn" -->
+          <div class="landing-card" id="khung-the-tao-ho-so">
+            <h2 class="landing-card-title">Tạo hồ sơ của bạn</h2>
+
+            <!-- Nếu là khách chưa đăng nhập -->
+            <form id="form-bat-dau-gia-su">
+              <div class="landing-input-group">
+                <input
+                  id="inp-email-landing"
+                  type="email"
+                  class="landing-input"
+                  placeholder="Nhập địa chỉ Email của bạn..."
+                  required
+                  autocomplete="email"
+                  aria-label="Địa chỉ email"
+                />
+              </div>
+
+              <button type="submit" class="landing-btn-submit" id="btn-submit-landing">
+                <span>Đăng ký qua email</span>
+                <span>→</span>
+              </button>
+            </form>
+
+            <div class="landing-divider">
+              <span>Hoặc</span>
+            </div>
+
+            <button type="button" class="landing-btn-social" id="btn-social-google">
+              <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  fill="#4285F4"
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+                />
+                <path
+                  fill="#EA4335"
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+                />
+              </svg>
+              <span>Đăng ký bằng Google</span>
+            </button>
+
+            <button type="button" class="landing-btn-social" id="btn-social-apple">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="#0f172a" aria-hidden="true">
+                <path
+                  d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.63-.78 1.06-1.87.94-2.97-.93.04-2.09.63-2.73 1.39-.58.67-.99 1.76-.87 2.83 1.05.08 2.05-.51 2.66-1.25z"
+                />
+              </svg>
+              <span>Đăng ký bằng Apple</span>
+            </button>
+
+            <div class="landing-card-footer">
+              Bạn đã có tài khoản chưa?
+              <a href="/pages/dang-nhap.html">Đăng nhập</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3 Bước đơn giản để bắt đầu giảng dạy -->
+      <section class="landing-steps-section" aria-labelledby="tieu-de-steps">
+        <div class="landing-section-header">
+          <h2 id="tieu-de-steps" class="landing-section-title">Bắt đầu giảng dạy trong 3 bước</h2>
+          <p class="landing-section-sub">
+            Quy trình tạo tin đăng hoàn toàn miễn phí, nhanh chóng và hỗ trợ tối đa cho gia sư mới.
+          </p>
+        </div>
+
+        <div class="landing-steps-grid">
+          <div class="landing-step-card">
+            <div class="landing-step-num">1</div>
+            <h3 class="landing-step-name">Tạo tin đăng gia sư</h3>
+            <p class="landing-step-desc">
+              Chọn môn học thế mạnh, mô tả phương pháp giảng dạy, lựa chọn dạy trực tuyến hoặc tại nhà và tự do đặt học phí.
+            </p>
+          </div>
+
+          <div class="landing-step-card">
+            <div class="landing-step-num">2</div>
+            <h3 class="landing-step-name">Nhận yêu cầu đặt lịch</h3>
+            <p class="landing-step-desc">
+              Học sinh và phụ huynh tìm thấy hồ sơ của bạn, xem khung giờ rảnh và gửi yêu cầu học kèm 1-1.
+            </p>
+          </div>
+
+          <div class="landing-step-card">
+            <div class="landing-step-num">3</div>
+            <h3 class="landing-step-name">Giảng dạy &amp; Nhận học phí</h3>
+            <p class="landing-step-desc">
+              Tiến hành buổi dạy qua video tích hợp hoặc tại nhà. Học phí được giải ngân tự động và an toàn về ví của bạn.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Câu hỏi thường gặp (FAQ) -->
+      <section class="landing-faq-section" aria-labelledby="tieu-de-faq">
+        <div class="landing-section-header">
+          <h2 id="tieu-de-faq" class="landing-section-title">Câu hỏi thường gặp</h2>
+          <p class="landing-section-sub">Những thắc mắc phổ biến của gia sư khi tham gia TutorHub</p>
+        </div>
+
+        <div class="faq-item">
+          <h3 class="faq-question"><span>❓</span> Làm gia sư trên TutorHub có mất phí tạo tài khoản không?</h3>
+          <p class="faq-answer">
+            Hoàn toàn không. Việc đăng ký tài khoản, đăng tin giới thiệu môn học và tiếp cận học sinh trên TutorHub là <strong>miễn phí 100%</strong>.
+          </p>
+        </div>
+
+        <div class="faq-item">
+          <h3 class="faq-question"><span>❓</span> Tôi là sinh viên chưa có bằng tốt nghiệp thì có dạy được không?</h3>
+          <p class="faq-answer">
+            Có! TutorHub luôn chào đón các bạn sinh viên nhiệt huyết và có kiến thức vững vàng. Bạn có thể tải thẻ sinh viên hoặc bảng điểm để được cấp huy hiệu xác minh.
+          </p>
+        </div>
+
+        <div class="faq-item">
+          <h3 class="faq-question"><span>❓</span> Học phí được chi trả và bảo đảm như thế nào?</h3>
+          <p class="faq-answer">
+            Học sinh thanh toán tiền trước khi buổi học bắt đầu và hệ thống tạm giữ an toàn qua ký quỹ Escrow. Sau khi buổi học hoàn thành, học phí sẽ được giải ngân trực tiếp vào ví của bạn.
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer Dùng chung -->
+    <div id="khung-footer"></div>
+
+    <script type="module">
+      import { renderHeader, renderFooter, layNguoiDungHienTai } from '/assets/js/giao-dien.js';
+
+      renderHeader('#khung-header');
+      renderFooter('#khung-footer');
+
+      const user = layNguoiDungHienTai();
+      const cardContainer = document.getElementById('khung-the-tao-ho-so');
+
+      // Nếu người dùng đã đăng nhập sẵn
+      if (user) {
+        if (user.vaiTro === 'GIA_SU') {
+          cardContainer.innerHTML = `
+            <h2 class="landing-card-title">Xin chào, ${user.hoTen}!</h2>
+            <p style="font-size: 0.95rem; color: #475569; text-align: center; line-height: 1.5; margin-bottom: 1.5rem">
+              Bạn đang đăng nhập với tài khoản Gia sư. Bạn có thể vào Cổng quản lý để xem lịch dạy hoặc tạo thêm tin đăng môn học mới.
+            </p>
+            <a href="/pages/quan-ly-gia-su.html" class="landing-btn-submit" style="text-decoration: none; margin-bottom: 0.85rem">
+              <span>Vào Cổng Quản lý Gia sư</span>
+              <span>→</span>
+            </a>
+            <a href="/pages/dang-ky-gia-su.html" class="landing-btn-social" style="text-decoration: none">
+              <span>Tạo thêm tin đăng môn học mới</span>
+            </a>
+          `;
+        } else {
+          cardContainer.innerHTML = `
+            <h2 class="landing-card-title">Tạo hồ sơ Gia sư</h2>
+            <p style="font-size: 0.92rem; color: #475569; text-align: center; line-height: 1.5; margin-bottom: 1.5rem">
+              Tài khoản hiện tại của bạn là <strong>${user.hoTen} (${user.email})</strong>. Hãy tiếp tục để thiết lập hồ sơ gia sư!
+            </p>
+            <a href="/pages/dang-ky-gia-su.html?email=${encodeURIComponent(user.email)}" class="landing-btn-submit" style="text-decoration: none">
+              <span>Bắt đầu thiết lập hồ sơ</span>
+              <span>→</span>
+            </a>
+          `;
+        }
+      } else {
+        // Khách chưa đăng nhập: Bắt đầu bằng Email
+        const form = document.getElementById('form-bat-dau-gia-su');
+        const inpEmail = document.getElementById('inp-email-landing');
+
+        form?.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const email = inpEmail?.value?.trim();
+          if (email) {
+            window.location.href = `/pages/dang-ky-gia-su.html?email=${encodeURIComponent(email)}`;
+          } else {
+            window.location.href = '/pages/dang-ky-gia-su.html';
+          }
+        });
+
+        document.getElementById('btn-social-google')?.addEventListener('click', () => {
+          window.location.href = '/pages/dang-ky-gia-su.html';
+        });
+
+        document.getElementById('btn-social-apple')?.addEventListener('click', () => {
+          window.location.href = '/pages/dang-ky-gia-su.html';
+        });
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,16 @@
+{
+  "cleanUrls": false,
+  "directoryListing": false,
+  "rewrites": [
+    { "source": "/", "destination": "/index.html" },
+    { "source": "/pages/dang-nhap", "destination": "/pages/dang-nhap.html" },
+    { "source": "/pages/dang-ky", "destination": "/pages/dang-ky.html" },
+    { "source": "/pages/hoc-sinh-tong-quan", "destination": "/pages/hoc-sinh-tong-quan.html" },
+    { "source": "/pages/tim-kiem-gia-su", "destination": "/pages/tim-kiem-gia-su.html" },
+    { "source": "/pages/ho-so-gia-su", "destination": "/pages/ho-so-gia-su.html" },
+    { "source": "/pages/muc-yeu-thich", "destination": "/pages/muc-yeu-thich.html" },
+    { "source": "/pages/ho-so-tai-khoan", "destination": "/pages/ho-so-tai-khoan.html" },
+    { "source": "/pages/quan-ly-gia-su", "destination": "/pages/quan-ly-gia-su.html" },
+    { "source": "/pages/quan-tri", "destination": "/pages/quan-tri.html" }
+  ]
+}

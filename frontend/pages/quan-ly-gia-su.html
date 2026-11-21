@@ -1,0 +1,3642 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/assets/img/icon-192.svg" />
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <title>Cổng Gia sư — Không gian giảng dạy | TutorHub</title>
+    <style>
+      /* Thời gian biểu giảng dạy hàng tuần (Weekly Teaching Schedule) */
+      .schedule-preset-bar {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 0.9rem 1.15rem;
+        margin-bottom: 1.35rem;
+      }
+      .btn-preset-schedule {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.42rem 0.85rem;
+        border-radius: 9999px;
+        font-size: 0.81rem;
+        font-weight: 600;
+        border: 1px solid #cbd5e1;
+        background: #ffffff;
+        color: #334155;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+      .btn-preset-schedule:hover {
+        background: #f1f5f9;
+        border-color: #94a3b8;
+        color: #0f172a;
+        transform: translateY(-1px);
+      }
+      .weekly-schedule-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+      .schedule-day-row {
+        display: flex;
+        align-items: center;
+        gap: 1.1rem;
+        padding: 0.95rem 1.15rem;
+        border-radius: 14px;
+        border: 1.5px solid #e2e8f0;
+        background: #ffffff;
+        transition: all 0.2s ease;
+      }
+      .schedule-day-row.active {
+        border-color: #cbd5e1;
+        background: #ffffff;
+        box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03);
+      }
+      .schedule-day-row.inactive {
+        background: #f8fafc;
+        border-color: #f1f5f9;
+        opacity: 0.85;
+      }
+      .day-info-col {
+        width: 140px;
+        flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+      }
+      .day-name {
+        font-weight: 700;
+        font-size: 0.95rem;
+        color: #0f172a;
+      }
+      .day-status-label {
+        font-size: 0.76rem;
+        font-weight: 600;
+        margin-top: 0.15rem;
+      }
+      .schedule-day-row.active .day-status-label {
+        color: #2563eb;
+      }
+      .schedule-day-row.inactive .day-status-label {
+        color: #94a3b8;
+      }
+      /* Toggle Switch */
+      .switch-toggle-wrap {
+        position: relative;
+        display: inline-block;
+        width: 44px;
+        height: 24px;
+        flex-shrink: 0;
+      }
+      .switch-toggle-wrap input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+      .switch-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background-color: #cbd5e1;
+        transition: .3s cubic-bezier(0.16, 1, 0.3, 1);
+        border-radius: 24px;
+      }
+      .switch-slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: .3s cubic-bezier(0.16, 1, 0.3, 1);
+        border-radius: 50%;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+      }
+      .switch-toggle-wrap input:checked + .switch-slider {
+        background-color: #3b82f6;
+      }
+      .switch-toggle-wrap input:checked + .switch-slider:before {
+        transform: translateX(20px);
+      }
+      .day-slots-col {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .slot-pill-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        background: #ffffff;
+        border: 1px solid #d7e4f8;
+        border-radius: 10px;
+        padding: 0.3rem 0.55rem;
+        transition: all 0.2s ease;
+      }
+      .slot-pill-item:focus-within {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.14);
+      }
+      .slot-pill-item input[type="time"] {
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        padding: 0.22rem 0.38rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #1e293b;
+        background: #f8fbff;
+      }
+      .slot-hinh-thuc {
+        border: 1px solid transparent;
+        border-radius: 6px;
+        font-size: 0.76rem;
+        font-weight: 700;
+        padding: 0.22rem 0.45rem;
+        cursor: pointer;
+        outline: none;
+        transition: all 0.15s ease;
+      }
+      .slot-hinh-thuc.ht-CA_HAI {
+        background: #f5f9ff;
+        color: #2563eb;
+        border-color: #cde0fe;
+      }
+      .slot-hinh-thuc.ht-TRUC_TUYEN {
+        background: #eff6ff;
+        color: #1d4ed8;
+        border-color: #bfdbfe;
+      }
+      .slot-hinh-thuc.ht-TRUC_TIEP {
+        background: #f0f9ff;
+        color: #0369a1;
+        border-color: #bae6fd;
+      }
+      /* Modal Cảnh báo Xung đột */
+      .modal-backdrop-custom {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(4px);
+        z-index: 1050;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+      }
+      .modal-box-custom {
+        background: #ffffff;
+        border-radius: 18px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        max-width: 580px;
+        width: 100%;
+        max-height: 90vh;
+        overflow-y: auto;
+        padding: 1.5rem;
+        border: 1px solid #e2e8f0;
+        animation: modalScaleUp 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      @keyframes modalScaleUp {
+        from { transform: scale(0.95); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+      }
+      .btn-del-slot {
+        border: none;
+        background: transparent;
+        color: #94a3b8;
+        cursor: pointer;
+        padding: 2px 5px;
+        font-size: 15px;
+        line-height: 1;
+        border-radius: 4px;
+        transition: all 0.15s ease;
+      }
+      .btn-del-slot:hover {
+        color: #ef4444;
+        background: #fee2e2;
+      }
+      .btn-add-slot-day {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.35rem 0.65rem;
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: #0284c7;
+        background: #f0f9ff;
+        border: 1px dashed #7dd3fc;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+      .btn-add-slot-day:hover {
+        background: #e0f2fe;
+        border-color: #38bdf8;
+      }
+      .btn-copy-day {
+        border: none;
+        background: transparent;
+        color: #64748b;
+        cursor: pointer;
+        padding: 0.35rem 0.6rem;
+        border-radius: 8px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        transition: all 0.15s ease;
+      }
+      .btn-copy-day:hover {
+        background: #f1f5f9;
+        color: #0f172a;
+      }
+      .sub-tab-btn {
+        padding: 0.5rem 1rem;
+        border-radius: 9999px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        border: 1.5px solid transparent;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+      .sub-tab-btn.active-danger {
+        background: #fee2e2;
+        color: #b91c1c;
+        border-color: #fca5a5;
+      }
+      .sub-tab-btn.active-success {
+        background: #d1fae5;
+        color: #065f46;
+        border-color: #6ee7b7;
+      }
+      .sub-tab-btn.inactive {
+        background: #f1f5f9;
+        color: #64748b;
+        border-color: #e2e8f0;
+      }
+      @media (max-width: 640px) {
+        .schedule-day-row {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 0.65rem;
+        }
+        .day-info-col {
+          width: 100%;
+          flex-direction: row;
+          justify-content: space-between;
+          align-items: center;
+        }
+      }
+    </style>
+  </head>
+  <body class="portal-body">
+    <div class="app-shell portal-gia-su" id="khung-app-gia-su">
+      <div class="app-sidebar-backdrop" id="backdrop-sidebar-gs"></div>
+      <!-- Sidebar chuyên biệt cho Gia sư (Xanh dương thân thiện + Popover tài khoản góc dưới) -->
+      <aside class="app-sidebar" aria-label="Điều hướng Cổng Gia sư">
+        <div>
+          <div class="studio-brand-box" style="margin-bottom: 0.75rem">
+            <a class="thuong-hieu" href="/index.html" title="Về trang chủ TutorHub" style="color: #2563eb; text-decoration: none">
+              <img src="/assets/img/icon-192.svg" alt="TutorHub" width="28" height="28" />
+              <span>TutorHub</span>
+            </a>
+            <span class="portal-chip gia-su">Cổng Gia sư</span>
+          </div>
+
+          <nav class="studio-nav" aria-label="Danh mục làm việc của gia sư">
+            <button type="button" class="studio-nav-btn active" data-tab="tab-tong-quan" id="nav-tong-quan" title="Tổng quan dạy học">
+              <span class="studio-nav-btn-left">Tổng quan dạy học</span>
+            </button>
+            <button type="button" class="studio-nav-btn" data-tab="tab-ho-so" id="nav-ho-so" title="Hồ sơ &amp; Hình thức dạy">
+              <span class="studio-nav-btn-left">Hồ sơ &amp; Hình thức dạy</span>
+            </button>
+            <button type="button" class="studio-nav-btn" data-tab="tab-giay-to" id="nav-giay-to" title="Giấy tờ &amp; Bằng cấp">
+              <span class="studio-nav-btn-left">Giấy tờ &amp; Bằng cấp</span>
+            </button>
+            <button type="button" class="studio-nav-btn" data-tab="tab-mon-hoc" id="nav-mon-hoc" title="Môn dạy &amp; Học phí">
+              <span class="studio-nav-btn-left">Môn dạy &amp; Học phí</span>
+            </button>
+            <button type="button" class="studio-nav-btn" data-tab="tab-lich-ranh" id="nav-lich-ranh" title="Thời gian biểu &amp; Lịch dạy">
+              <span class="studio-nav-btn-left">Thời gian biểu &amp; Lịch dạy</span>
+            </button>
+            <button type="button" class="studio-nav-btn" data-tab="tab-tin-nhan" id="nav-tin-nhan-gs" title="Tin nhắn học viên">
+              <span class="studio-nav-btn-left">Tin nhắn học viên</span>
+            </button>
+            <button type="button" class="studio-nav-btn" data-tab="tab-vi-giao-dich" id="nav-vi-gs" title="Ví &amp; Giao dịch">
+              <span class="studio-nav-btn-left">Ví &amp; Giao dịch</span>
+            </button>
+          </nav>
+
+          <section id="khung-checklist" class="card" style="margin-top: 0.85rem; padding: 0.75rem 0.9rem; border-radius: 14px">
+            <span class="sk-line" style="height: 14px; width: 65%"></span>
+          </section>
+        </div>
+
+        <!-- Góc dưới Sidebar: Pill tài khoản Gia sư & Menu Popover gọn gàng -->
+        <div class="sidebar-user-pill-wrap">
+          <div class="sidebar-user-popover" id="gs-user-popover" role="menu" aria-label="Menu tài khoản gia sư">
+            <div class="sidebar-popover-header">
+              <div class="sidebar-popover-name" id="pop-gs-ten">Gia sư TutorHub</div>
+              <div class="sidebar-popover-email" id="pop-gs-email" style="margin-top: 0.2rem; margin-bottom: 0">Đang tải tài khoản...</div>
+            </div>
+            <div class="sidebar-popover-list">
+              <button type="button" class="sidebar-popover-item" id="gs-pop-cai-dat">
+                <span>Cài đặt tài khoản</span>
+              </button>
+              <a class="sidebar-popover-item" id="gs-sb-home-link" href="/index.html">
+                <span>Trang chủ TutorHub</span>
+              </a>
+              <div class="sidebar-popover-divider"></div>
+              <button type="button" class="sidebar-popover-item danger" id="gs-sb-logout">
+                <span>Đăng xuất</span>
+              </button>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            class="sidebar-user-pill"
+            id="btn-gs-user-pill"
+            title="Tùy chọn tài khoản gia sư"
+            aria-haspopup="true"
+            aria-expanded="false"
+          >
+            <div class="sidebar-user-pill-left">
+              <div id="gs-sb-avatar" class="sidebar-user-avatar">GS</div>
+              <div class="sidebar-user-info">
+                <div id="gs-sb-ten" class="sidebar-user-name">Đang tải...</div>
+                <div id="gs-sb-vi" class="sidebar-user-role">Ví: —</div>
+              </div>
+            </div>
+            <span class="sidebar-user-chevron" id="ico-gs-chevron"></span>
+          </button>
+        </div>
+      </aside>
+
+      <!-- Cột phải: Thanh đầu trang + Nội dung từng phân khu -->
+      <div class="app-content-col">
+        <header class="app-topbar">
+          <div style="min-width: 0; display: flex; align-items: center; gap: 0.75rem">
+            <button type="button" class="btn-sidebar-toggle" id="btn-toggle-sidebar-gs" title="Thu gọn / Mở rộng bảng điều khiển" aria-label="Thu gọn hoặc mở rộng bảng điều khiển"></button>
+            <div style="min-width: 0">
+              <div style="font-size: 0.72rem; font-weight: 700; color: #2563eb; letter-spacing: 0.03em; text-transform: uppercase">
+                Cổng Gia sư · Không gian giảng dạy
+              </div>
+              <h1 id="gs-tieu-de-tab" style="margin: 0; font-size: 1.15rem; font-weight: 800; color: var(--th-text)">
+                Tổng quan dạy học
+              </h1>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.6rem; flex-shrink: 0">
+            <div id="khung-trang-thai-duyet" style="display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0"></div>
+            <!-- Chuông Thông báo Gia sư (đọc từ API /api/thong-bao/toi, nổi bật thông báo khiếu nại) -->
+            <div style="position: relative">
+              <button
+                type="button"
+                class="btn-topbar-bell"
+                id="btn-gs-thong-bao"
+                title="Thông báo giảng dạy &amp; khiếu nại"
+                aria-label="Thông báo gia sư"
+                aria-expanded="false"
+              >
+                <span id="ico-gs-bell"></span>
+                <span class="topbar-bell-badge" id="gs-badge-thong-bao" style="display: none">0</span>
+              </button>
+              <div class="topbar-bell-dropdown" id="dropdown-gs-thong-bao" role="menu" style="width: 360px">
+                <div class="bell-dropdown-header">
+                  <span>Thông báo của bạn</span>
+                  <button
+                    type="button"
+                    id="btn-gs-doc-tat-ca-tb"
+                    style="background: none; border: none; padding: 0; font-size: 0.74rem; color: #2563eb; font-weight: 600; cursor: pointer; font-family: inherit"
+                  >
+                    Đánh dấu đã đọc
+                  </button>
+                </div>
+                <div class="bell-dropdown-list" id="gs-ds-thong-bao">
+                  <div style="padding: 1rem; text-align: center; font-size: 0.8rem; color: #94a3b8">Đang tải thông báo...</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <main id="noi-dung-chinh" class="app-canvas">
+          <div id="hop-thong-bao" style="display: none"></div>
+
+          <!-- TAB 0: Tổng quan dạy học (Mặc định) -->
+          <section id="tab-tong-quan" class="tab-panel" style="display: flex; flex-direction: column; gap: 1.25rem">
+            <!-- Khối trọng tâm hỗ trợ Gia sư tập trung vào tác vụ chính -->
+            <div class="card" style="padding: 1.35rem 1.6rem; background-image: url('/assets/img/patterns/card-decor-sky.svg'); background-repeat: no-repeat; background-position: right top; background-size: 320px auto; display: flex; align-items: center; justify-content: space-between; gap: 1.25rem; flex-wrap: wrap">
+              <div style="min-width: 0; flex: 1">
+                <div style="font-size: 0.74rem; font-weight: 700; color: #2563eb; text-transform: uppercase; letter-spacing: 0.04em">
+                  Bàn làm việc giảng dạy
+                </div>
+                <h2 id="gs-loi-chao-banner" style="margin: 0.25rem 0 0; font-size: 1.25rem; font-weight: 800; color: #1e293b">
+                  Chào mừng trở lại, Gia sư!
+                </h2>
+                <p style="margin: 0.28rem 0 0; font-size: 0.85rem; color: #64748b">
+                  Theo dõi lịch nhận lớp, cập nhật khung giờ rảnh và quản lý thu nhập tại một nơi duy nhất.
+                </p>
+                <div id="gs-banner-mode-chips" style="margin-top: 0.6rem; display: flex; flex-wrap: wrap; gap: 0.45rem; align-items: center"></div>
+              </div>
+              <div style="display: flex; gap: 0.55rem; flex-wrap: wrap">
+                <button type="button" class="btn btn-tutor-blue btn-sm" id="btn-hero-lich">Mở lịch dạy tuần</button>
+                <button type="button" class="btn btn-outline-primary btn-sm" id="btn-hero-mon">Chỉnh môn &amp; học phí</button>
+              </div>
+            </div>
+
+            <div class="kpi-grid-4">
+              <div class="kpi-card kpi-wallet-interactive" id="kpi-card-vi-gs" role="button" tabindex="0" title="Bấm để mở Ví &amp; Tra soát giao dịch">
+                <div class="kpi-top">
+                  <span class="kpi-label">Số dư ví khả dụng</span>
+                  <span class="kpi-icon blue" id="gs-ico-1"></span>
+                </div>
+                <div class="kpi-value" id="gs-kpi-vi"><span class="sk-line" style="height: 24px; width: 115px"></span></div>
+                <div class="wallet-mini-breakdown">
+                  <div title="Thu nhập dự kiến theo tỷ lệ phí nền tảng hiện hành từ các lớp đang tạm giữ">
+                    <span style="color: var(--th-text-muted)">Sắp nhận:</span>
+                    <strong id="gs-kpi-vi-cho" style="color: #b45309; display: block">—</strong>
+                  </div>
+                  <div>
+                    <span style="color: var(--th-text-muted)">Đang rút:</span>
+                    <strong id="gs-kpi-vi-dang-rut" style="color: #2563eb; display: block">—</strong>
+                  </div>
+                  <div>
+                    <span style="color: var(--th-text-muted)">Đã rút:</span>
+                    <strong id="gs-kpi-vi-rut" style="color: #334155; display: block">—</strong>
+                  </div>
+                </div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-top">
+                  <span class="kpi-label">Buổi dạy hoàn thành</span>
+                  <span class="kpi-icon indigo" id="gs-ico-2"></span>
+                </div>
+                <div class="kpi-value" id="gs-kpi-buoi"><span class="sk-line" style="height: 24px; width: 90px"></span></div>
+                <div class="kpi-sub" id="gs-kpi-buoi-sub">Lịch sắp tới &amp; lịch đã dạy</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-top">
+                  <span class="kpi-label">Đánh giá từ học sinh</span>
+                  <span class="kpi-icon amber" id="gs-ico-3"></span>
+                </div>
+                <div class="kpi-value" id="gs-kpi-diem"><span class="sk-line" style="height: 24px; width: 84px"></span></div>
+                <div class="kpi-sub" id="gs-kpi-luot-sub">Dựa trên các đánh giá công khai</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-top">
+                  <span class="kpi-label">Lớp chờ xác nhận</span>
+                  <span class="kpi-icon blue" id="gs-ico-4"></span>
+                </div>
+                <div class="kpi-value" id="gs-kpi-cau-hinh"><span class="sk-line" style="height: 24px; width: 110px"></span></div>
+                <div class="kpi-sub" id="gs-kpi-giay-to-sub">Giờ dạy tuần này</div>
+              </div>
+            </div>
+
+            <div class="dashboard-split">
+              <div class="card" style="padding: 1.35rem">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.9rem; gap: 0.6rem; flex-wrap: wrap">
+                  <div>
+                    <h2 style="margin: 0; font-size: 1.06rem; font-weight: 700">Lịch dạy &amp; Lớp học gần đây</h2>
+                    <p style="margin: 0.18rem 0 0; font-size: 0.8rem; color: var(--th-text-muted)">
+                      Hiển thị rõ hình thức buổi học, trạng thái tiền và thu nhập thực nhận của bạn
+                    </p>
+                  </div>
+                </div>
+                <div id="gs-ds-lich-day">
+                  <div class="sk-lesson-row" aria-hidden="true"></div>
+                  <div class="sk-lesson-row" aria-hidden="true"></div>
+                </div>
+              </div>
+
+              <aside style="display: flex; flex-direction: column; gap: 1rem">
+                <div class="card" style="padding: 1.3rem">
+                  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.7rem">
+                    <h2 style="margin: 0; font-size: 1.02rem; font-weight: 700">Việc cần làm</h2>
+                    <span class="badge badge-info" id="gs-viec-badge" style="font-size: 0.7rem">0</span>
+                  </div>
+                  <div id="gs-viec-can-lam" style="display: flex; flex-direction: column; gap: 0.55rem; font-size: 0.84rem">
+                    <span class="sk-block" style="height: 44px; width: 100%; border-radius: 9px"></span>
+                    <span class="sk-block" style="height: 44px; width: 100%; border-radius: 9px"></span>
+                  </div>
+                </div>
+              </aside>
+            </div>
+          </section>
+
+          <!-- TAB 1: Hồ sơ & Hình thức dạy -->
+          <section id="tab-ho-so" class="tab-panel card" style="display: none; padding: 1.5rem">
+            <h2 style="margin: 0 0 0.3rem; font-size: 1.15rem; font-weight: 700">Hồ sơ chuyên môn &amp; Hình thức dạy</h2>
+            <p style="margin: 0 0 1.25rem; font-size: 0.84rem; color: var(--th-text-muted)">
+              Thông tin này hiển thị công khai cho học sinh và phụ huynh khi tìm kiếm gia sư.
+            </p>
+
+            <form id="form-ho-so-gia-su">
+              <div class="grid-2" style="gap: 0.9rem">
+                <div class="form-group">
+                  <label class="form-label" for="gs-ho-ten">Họ và tên</label>
+                  <input id="gs-ho-ten" name="hoTen" type="text" required class="form-control" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="gs-sdt">Số điện thoại liên hệ</label>
+                  <input id="gs-sdt" name="soDienThoai" type="tel" class="form-control" placeholder="090xxxxxxx" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="gs-khu-vuc">Khu vực cư trú / giảng dạy *</label>
+                  <input id="gs-khu-vuc" name="khuVuc" type="text" class="form-control" placeholder="VD: Ninh Kiều, Cần Thơ" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="gs-hoc-van">Trình độ học vấn *</label>
+                  <input id="gs-hoc-van" name="hocVan" type="text" class="form-control" placeholder="VD: Thạc sĩ Toán học — ĐH Cần Thơ" />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="gs-tieu-de">Tiêu đề hồ sơ (tối thiểu 10 ký tự) *</label>
+                <input id="gs-tieu-de" name="tieuDe" type="text" class="form-control" placeholder="VD: Thạc sĩ Toán học chuyên luyện thi đại học..." />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="gs-gioi-thieu">Giới thiệu bản thân &amp; phương pháp giảng dạy (tối thiểu 50 ký tự) *</label>
+                <textarea id="gs-gioi-thieu" name="gioiThieu" class="form-control" rows="4" placeholder="Mô tả kinh nghiệm giảng dạy, thế mạnh môn học và cách đồng hành cùng học sinh..."></textarea>
+              </div>
+
+              <!-- Chọn hình thức dạy trực quan -->
+              <div class="form-group">
+                <div class="form-label">Hình thức giảng dạy tiếp nhận (chọn ít nhất 1) *</div>
+                <div class="grid-2" style="gap: 0.75rem">
+                  <label class="card" style="padding: 0.9rem; cursor: pointer; display: flex; gap: 0.65rem; align-items: flex-start; border-radius: 14px">
+                    <input id="chk-truc-tuyen" name="dayTrucTuyen" type="checkbox" checked style="margin-top: 0.25rem; accent-color: #3b82f6" />
+                    <div>
+                      <div style="font-weight: 700; font-size: 0.88rem; color: #2563eb">Học trực tuyến (Online)</div>
+                      <div style="font-size: 0.78rem; color: var(--th-text-muted); margin-top: 0.18rem">
+                        Nhận học sinh toàn quốc qua phòng học video tích hợp.
+                      </div>
+                    </div>
+                  </label>
+                  <label class="card" style="padding: 0.9rem; cursor: pointer; display: flex; gap: 0.65rem; align-items: flex-start; border-radius: 14px">
+                    <input id="chk-truc-tiep" name="dayTrucTiep" type="checkbox" style="margin-top: 0.25rem; accent-color: #3b82f6" />
+                    <div>
+                      <div style="font-weight: 700; font-size: 0.88rem; color: #0369a1">Học trực tiếp tại nhà</div>
+                      <div style="font-size: 0.78rem; color: var(--th-text-muted); margin-top: 0.18rem">
+                        Di chuyển đến nhà học sinh trong bán kính đã đăng ký.
+                      </div>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              <div class="grid-2" style="gap: 0.85rem">
+                <div class="form-group">
+                  <label class="form-label" for="gs-kinh-nghiem">Số năm kinh nghiệm</label>
+                  <input id="gs-kinh-nghiem" name="soNamKinhNghiem" type="number" min="0" max="60" class="form-control" value="0" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="gs-ban-kinh">Bán kính tại nhà (km)</label>
+                  <input id="gs-ban-kinh" name="banKinhPhucVuKm" type="number" min="1" max="100" class="form-control" value="10" />
+                  <small id="ghi-chu-ban-kinh" style="display: block; margin-top: 0.25rem; color: var(--th-text-muted); font-size: 0.74rem">
+                    Áp dụng khi bật dạy trực tiếp tại nhà.
+                  </small>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="card" style="padding: 0.95rem 1.05rem; cursor: pointer; display: flex; gap: 0.7rem; align-items: flex-start; border-radius: 14px; background: #f8fbff; border-color: #dbeafe">
+                  <input id="chk-mo-hoc-thu" name="moHocThu" type="checkbox" style="margin-top: 0.22rem; width: 17px; height: 17px; accent-color: #3b82f6" />
+                  <div>
+                    <div style="font-weight: 700; font-size: 0.89rem; color: #1e3a8a">Mở ưu đãi buổi học thử Online miễn phí (60 phút · Khuyên dùng)</div>
+                    <div style="font-size: 0.78rem; color: var(--th-text-muted); margin-top: 0.2rem; line-height: 1.5">
+                      Áp dụng tự động 1 lần cho học sinh mới đặt lịch lần đầu học <strong>Online: Miễn phí (0 ₫, 60 phút)</strong>. Chỉ áp dụng khi bạn bật hình thức dạy trực tuyến.
+                    </div>
+                  </div>
+                </label>
+              </div>
+
+              <div style="margin: 1rem 0 1.25rem; padding: 0.85rem 1rem; border-radius: 12px; background: #f8fafc; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; font-size: 0.82rem; color: #475569">
+                <span>Thông tin tài khoản ngân hàng nhận tiền được quản lý bảo mật (yêu cầu xác nhận mật khẩu) tại mục <strong>Cài đặt tài khoản</strong>.</span>
+                <button type="button" class="btn btn-secondary btn-sm" id="btn-nhay-ngan-hang-tu-ho-so">Mở Cài đặt ngân hàng →</button>
+              </div>
+
+              <button type="submit" class="btn btn-emerald">Lưu thay đổi hồ sơ</button>
+            </form>
+          </section>
+
+          <!-- TAB 2: Giấy tờ & Bằng cấp -->
+          <section id="tab-giay-to" class="tab-panel card" style="display: none; padding: 1.5rem">
+            <h2 style="margin: 0 0 0.3rem; font-size: 1.15rem; font-weight: 700">Giấy tờ xác minh &amp; Bằng cấp</h2>
+            <p style="margin: 0 0 1.1rem; color: var(--th-text-muted); font-size: 0.84rem">
+              Huy hiệu <strong>Đã xác minh bằng cấp</strong> được cấp tự động khi có ít nhất 1 bằng cấp chuyên môn hoặc
+              chứng chỉ giảng dạy được kiểm duyệt. Tệp gốc luôn được bảo mật riêng tư.
+            </p>
+
+            <form id="form-tai-giay-to" style="display: flex; gap: 0.75rem; align-items: end; flex-wrap: wrap; margin-bottom: 1.25rem; padding: 1rem; background: #f8fafc; border: 1px solid #f1f5f9; border-radius: var(--th-radius-md)">
+              <div>
+                <label class="form-label" for="sel-loai-giay-to">Loại giấy tờ</label>
+                <select id="sel-loai-giay-to" name="loaiGiayTo" class="form-control">
+                  <option value="BANG_CAP">Bằng cấp đại học / thạc sĩ</option>
+                  <option value="CHUNG_CHI">Chứng chỉ IELTS / TESOL / Sư phạm</option>
+                  <option value="CAN_CUOC">Căn cước công dân</option>
+                  <option value="KHAC">Giấy tờ bổ sung khác</option>
+                </select>
+              </div>
+              <div style="flex: 1; min-width: 200px">
+                <label class="form-label" for="inp-tep-giay-to">Tệp giấy tờ (PDF, JPG, PNG, WebP · ≤ 5MB)</label>
+                <input id="inp-tep-giay-to" name="tepGiayTo" type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" required class="form-control" />
+              </div>
+              <button type="submit" class="btn btn-emerald">Tải lên bảo mật</button>
+            </form>
+
+            <div id="ds-giay-to-bang"></div>
+          </section>
+
+          <!-- TAB 3: Môn dạy & Học phí -->
+          <section id="tab-mon-hoc" class="tab-panel card" style="display: none; padding: 1.5rem">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem">
+              <div>
+                <h2 style="margin: 0; font-size: 1.15rem; font-weight: 700">Môn giảng dạy &amp; Học phí</h2>
+                <p style="margin: 0.2rem 0 0; font-size: 0.83rem; color: var(--th-text-muted)">
+                  Thiết lập mức học phí theo giờ cho từng môn học nhận giảng dạy
+                </p>
+              </div>
+              <button id="btn-them-dong-mon" type="button" class="btn btn-outline-primary btn-sm">+ Thêm môn dạy</button>
+            </div>
+            <div style="position: relative; margin-bottom: 1rem">
+              <input
+                id="inp-tim-nhanh-mon-gs"
+                type="text"
+                class="form-control"
+                autocomplete="off"
+                placeholder="Gõ vài ký tự để tìm & thêm nhanh môn dạy (VD: IELTS, Python, Piano, Toán...)"
+              />
+              <div
+                id="ds-goi-y-mon-gs"
+                style="display: none; position: absolute; left: 0; right: 0; top: calc(100% + 4px); background: #ffffff; border: 1px solid #cbd5e1; border-radius: 12px; box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12); max-height: 260px; overflow-y: auto; z-index: 60"
+              ></div>
+            </div>
+            <div id="ds-mon-day-form" style="display: flex; flex-direction: column; gap: 0.65rem; margin-bottom: 1.15rem"></div>
+            <button id="btn-luu-mon-day" type="button" class="btn btn-emerald">Lưu danh sách môn dạy</button>
+          </section>
+
+          <!-- TAB 4: Thời gian biểu & Lịch nhận lớp -->
+          <section id="tab-lich-ranh" class="tab-panel card" style="display: none; padding: 1.5rem">
+            <!-- Header -->
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem">
+              <div>
+                <h2 style="margin: 0; font-size: 1.2rem; font-weight: 700; color: #0f172a">Thời gian biểu cố định trong tuần</h2>
+                <p style="margin: 0.3rem 0 0; font-size: 0.88rem; color: #64748b">
+                  Chọn các ngày và khung giờ bạn sẵn sàng nhận học viên. Hệ thống sẽ tự động hiển thị các ca trống này để học sinh đặt lịch.
+                </p>
+              </div>
+              <button id="btn-luu-lich-lap" type="button" class="btn btn-tutor-blue" style="padding: 0.6rem 1.4rem; font-weight: 700">
+                Lưu thời gian biểu
+              </button>
+            </div>
+
+            <!-- Cài đặt Gia sư: Điều phối di chuyển thông minh (Xanh dương pastel dịu nhẹ, gọn gàng) -->
+            <div id="khung-cai-dat-lich-gs" style="background: #f5f9ff; border: 1px solid #d5e5fd; border-radius: 14px; padding: 0.95rem 1.15rem; margin-bottom: 1.25rem">
+              <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem">
+                <div style="display: flex; align-items: center; gap: 0.65rem">
+                  <span style="width: 34px; height: 34px; border-radius: 10px; background: #ffffff; border: 1px solid #cde0fe; display: inline-flex; align-items: center; justify-content: center; font-size: 1.05rem; flex-shrink: 0">🚗</span>
+                  <div>
+                    <div style="font-weight: 700; font-size: 0.92rem; color: #1e293b">
+                      Tự động đệm thời gian di chuyển giữa các ca tại nhà
+                    </div>
+                    <div style="font-size: 0.79rem; color: #64748b; margin-top: 0.12rem">
+                      Hệ thống tự cộng thời gian di chuyển + 15 phút đệm an toàn và hiển thị sẵn lộ trình Google Maps cho từng đơn.
+                    </div>
+                  </div>
+                </div>
+                <span class="badge badge-info" style="font-weight: 700; font-size: 0.74rem; padding: 0.3rem 0.7rem; border: 1px solid #bfdbfe">
+                  ✓ Tự động bật
+                </span>
+              </div>
+            </div>
+
+            <!-- Gợi ý chọn nhanh 1-Click (Quick Presets) -->
+            <div class="schedule-preset-bar">
+              <div style="font-size: 0.82rem; font-weight: 700; color: #475569; margin-bottom: 0.55rem; text-transform: uppercase; letter-spacing: 0.5px">
+                ⚡ Gợi ý thiết lập nhanh (1 Click)
+              </div>
+              <div style="display: flex; flex-wrap: wrap; gap: 0.5rem">
+                <button type="button" class="btn-preset-schedule" data-preset="toi_trong_tuan">
+                  🌙 Buổi tối trong tuần (T2 – T6: 18:30 – 21:00)
+                </button>
+                <button type="button" class="btn-preset-schedule" data-preset="cuoi_tuan">
+                  ☀️ Dạy cuối tuần (T7 &amp; CN: 08:30 – 11:30 &amp; 18:30 – 21:00)
+                </button>
+                <button type="button" class="btn-preset-schedule" data-preset="tat_ca_buoi_toi">
+                  ⭐ Mọi buổi tối (T2 – CN: 19:00 – 21:30)
+                </button>
+                <button type="button" class="btn-preset-schedule" data-preset="xoa_het" style="color: #ef4444; border-color: #fecaca">
+                  ✕ Xóa tất cả
+                </button>
+              </div>
+            </div>
+
+            <!-- Lưới thời khóa biểu 7 ngày -->
+            <div id="weekly-schedule-grid" class="weekly-schedule-grid" style="margin-bottom: 1.5rem">
+              <!-- Render động 7 ngày: Thứ Hai đến Chủ Nhật -->
+            </div>
+
+            <hr style="border: none; border-top: 1px solid #f1f5f9; margin: 2rem 0 1.5rem" />
+
+            <!-- Phần 2: Ngày nghỉ & ca ngoại lệ -->
+            <div style="margin-bottom: 1rem">
+              <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: #0f172a">Ngày nghỉ &amp; ca ngoại lệ</h3>
+              <p style="margin: 0.25rem 0 0; font-size: 0.86rem; color: #64748b">
+                Tạm ngưng nhận lớp khi có việc bận (thi cử, du lịch, việc gia đình). Ngoại lệ này sẽ ghi đè lên thời gian biểu tuần trong khoảng ngày được chọn.
+              </p>
+            </div>
+
+            <!-- Form báo bận ngoại lệ tinh gọn (Một khối duy nhất) -->
+            <div style="background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 16px; padding: 1.25rem; margin-bottom: 1.25rem">
+              <form id="form-lich-ngoai-le" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 0.85rem; align-items: end">
+                <div>
+                  <label class="form-label" for="ln-tu-ngay">Từ ngày *</label>
+                  <input id="ln-tu-ngay" name="ngayCuThe" type="date" required class="form-control" />
+                </div>
+                <div>
+                  <label class="form-label" for="ln-den-ngay">Đến ngày *</label>
+                  <input id="ln-den-ngay" name="ngayKetThuc" type="date" required class="form-control" />
+                </div>
+                <div id="col-ca-ngay" style="display: flex; flex-direction: column; justify-content: flex-end; padding-bottom: 0.5rem">
+                  <label style="display: flex; align-items: center; gap: 0.45rem; font-size: 0.86rem; font-weight: 600; color: #334155; cursor: pointer; margin: 0">
+                    <input type="checkbox" id="chk-ca-ngay" checked style="width: 17px; height: 17px; accent-color: #3b82f6" />
+                    <span>Bận cả ngày</span>
+                  </label>
+                </div>
+                <div id="col-gio-bd" style="display: none">
+                  <label class="form-label" for="ln-bd">Giờ bắt đầu</label>
+                  <input id="ln-bd" name="gioBatDau" type="time" class="form-control" value="08:00" />
+                </div>
+                <div id="col-gio-kt" style="display: none">
+                  <label class="form-label" for="ln-kt">Giờ kết thúc</label>
+                  <input id="ln-kt" name="gioKetThuc" type="time" class="form-control" value="11:30" />
+                </div>
+                <div>
+                  <label class="form-label" for="sel-ly-do-nghi">Lý do (tùy chọn)</label>
+                  <select id="sel-ly-do-nghi" name="lyDo" class="form-control">
+                    <option value="Thi cử">Thi cử</option>
+                    <option value="Du lịch">Du lịch</option>
+                    <option value="Việc gia đình">Việc gia đình</option>
+                    <option value="Khác">Khác</option>
+                  </select>
+                </div>
+                <div>
+                  <button type="submit" id="btn-submit-override" class="btn btn-secondary" style="width: 100%; font-weight: 600">
+                    Xác nhận báo bận
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <div id="ds-lich-ngay-cu-the"></div>
+          </section>
+
+          <!-- TAB 5: Tin nhắn học viên (Mở trực tiếp ngay bên phải) -->
+          <section id="tab-tin-nhan" class="tab-panel" style="display: none">
+            <div class="portal-inbox-grid">
+              <div class="portal-conv-sidebar">
+                <div class="portal-conv-head">
+                  <span>Hội thoại học viên</span>
+                  <button type="button" id="btn-lam-moi-chat-gs" class="btn btn-ghost btn-sm" style="height: 28px; padding: 0 0.5rem; font-size: 0.75rem">Làm mới</button>
+                </div>
+                <div id="gs-ds-hoi-thoai" class="portal-conv-list">
+                  <div style="padding: 1rem; font-size: 0.82rem; color: var(--th-text-muted)">Đang tải danh sách hội thoại...</div>
+                </div>
+              </div>
+
+              <div class="portal-chat-pane">
+                <div id="gs-chat-head" class="portal-chat-head">
+                  <div style="font-weight: 800; font-size: 0.94rem; color: #1e293b">Chọn một cuộc trò chuyện bên trái</div>
+                </div>
+                <div id="gs-chat-messages" class="portal-chat-messages">
+                  <div style="margin: auto; text-align: center; color: var(--th-text-muted); font-size: 0.85rem; max-width: 280px">
+                    Chọn một học viên ở danh sách bên trái để xem câu hỏi và trao đổi lộ trình học.
+                  </div>
+                </div>
+                <form id="form-chat-portal-gs" class="portal-chat-composer" style="display: none">
+                  <input id="inp-chat-portal-gs" type="text" class="form-control" maxlength="2000" autocomplete="off" placeholder="Nhập tin nhắn phản hồi học viên..." required />
+                  <button type="submit" id="btn-gui-chat-portal-gs" class="btn btn-primary" style="height: 40px; padding: 0 1.15rem">Gửi</button>
+                </form>
+              </div>
+            </div>
+          </section>
+
+          <!-- TAB 5.5: Ví & Tra soát Giao dịch (Dữ liệu thật từ máy chủ) -->
+          <section id="tab-vi-giao-dich" class="tab-panel" style="display: none">
+            <div style="display: flex; flex-direction: column; gap: 1.25rem">
+              <!-- Header 4 số dư + nút Rút tiền -->
+              <div class="card" style="padding: 1.35rem 1.5rem">
+                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem">
+                  <div>
+                    <h2 style="margin: 0; font-size: 1.12rem; font-weight: 800; color: #0f172a">Ví gia sư &amp; Sổ cái tra soát giao dịch</h2>
+                    <p style="margin: 0.2rem 0 0; font-size: 0.82rem; color: var(--th-text-muted)">
+                      Mọi bút toán thu nhập giải ngân và chi trả rút tiền đều được ghi nhận bất biến theo thứ tự tuần tự (chỉ-đọc).
+                    </p>
+                  </div>
+                  <button type="button" class="btn btn-primary" id="btn-mo-modal-rut-tien" style="height: 40px; padding: 0 1.25rem; font-weight: 700">
+                    Rút tiền về ngân hàng
+                  </button>
+                </div>
+
+                <div class="kpi-grid-4">
+                  <div class="kpi-card" style="background: #f8fbff; border-color: #dbeafe">
+                    <div class="kpi-top">
+                      <span class="kpi-label" style="color: #1e40af; font-weight: 700">Số dư khả dụng</span>
+                      <span class="badge badge-info">Có thể rút</span>
+                    </div>
+                    <div class="kpi-value" id="vi-so-du-kha-dung" style="color: #1d4ed8">0 ₫</div>
+                    <div class="kpi-sub">Thu nhập ròng đã giải ngân vào ví</div>
+                  </div>
+                  <div class="kpi-card" style="background: #fffdf5; border-color: #fef08a" id="vi-card-sap-nhan" title="Số tiền dự kiến theo tỷ lệ phí nền tảng hiện hành từ các lớp đang tạm giữ (không gồm đơn khiếu nại)">
+                    <div class="kpi-top">
+                      <span class="kpi-label" style="color: #92400e; font-weight: 700">Sắp nhận (dự kiến)</span>
+                      <span class="badge badge-warning">Đang tạm giữ</span>
+                    </div>
+                    <div class="kpi-value" id="vi-so-du-dang-cho" style="color: #b45309">0 ₫</div>
+                    <div class="kpi-sub" id="vi-sap-nhan-sub">Dự kiến theo phí nền tảng hiện hành</div>
+                  </div>
+                  <div class="kpi-card" style="background: #eff6ff; border-color: #bfdbfe">
+                    <div class="kpi-top">
+                      <span class="kpi-label" style="color: #1d4ed8; font-weight: 700">Đang xử lý rút</span>
+                      <span class="badge badge-info">Đã khóa</span>
+                    </div>
+                    <div class="kpi-value" id="vi-so-du-dang-rut" style="color: #1e40af">0 ₫</div>
+                    <div class="kpi-sub">Đang chờ quản trị xác nhận chuyển khoản</div>
+                  </div>
+                  <div class="kpi-card" style="background: #f8fafc; border-color: #e2e8f0">
+                    <div class="kpi-top">
+                      <span class="kpi-label" style="color: #334155; font-weight: 700">Tổng đã rút</span>
+                      <span class="badge badge-neutral">Đã chi trả</span>
+                    </div>
+                    <div class="kpi-value" id="vi-tong-da-rut" style="color: #0f172a">0 ₫</div>
+                    <div class="kpi-sub" id="vi-ngan-hang-rut-sub">Về tài khoản ngân hàng liên kết</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Bộ lọc tra soát giao dịch & Xuất CSV -->
+              <div class="card" style="padding: 1.25rem 1.4rem">
+                <form id="form-loc-giao-dich-gs" style="display: flex; flex-wrap: wrap; gap: 0.7rem; align-items: end">
+                  <div style="flex: 1.6; min-width: 210px">
+                    <label class="form-label" for="gd-tu-khoa">Tìm mã buổi học / học viên / môn / ngân hàng</label>
+                    <input id="gd-tu-khoa" type="text" class="form-control" style="height: 38px" placeholder="VD: BK-202611..., Toán, Vietcombank..." />
+                  </div>
+                  <div style="flex: 1; min-width: 170px">
+                    <label class="form-label" for="gd-loai">Loại giao dịch</label>
+                    <select id="gd-loai" class="form-control" style="height: 38px">
+                      <option value="">Tất cả</option>
+                      <option value="THU_NHAP">Thu nhập buổi dạy</option>
+                      <option value="RUT_TIEN">Rút tiền</option>
+                    </select>
+                  </div>
+                  <div style="min-width: 135px">
+                    <label class="form-label" for="gd-tu-ngay">Từ ngày</label>
+                    <input id="gd-tu-ngay" type="date" class="form-control" style="height: 38px" />
+                  </div>
+                  <div style="min-width: 135px">
+                    <label class="form-label" for="gd-den-ngay">Đến ngày</label>
+                    <input id="gd-den-ngay" type="date" class="form-control" style="height: 38px" />
+                  </div>
+                  <div style="display: flex; gap: 0.45rem">
+                    <button type="submit" class="btn btn-primary btn-sm" style="height: 38px">Lọc</button>
+                    <button type="button" id="btn-dat-lai-loc-gd" class="btn btn-secondary btn-sm" style="height: 38px">Đặt lại</button>
+                    <button type="button" id="btn-xuat-csv-gd" class="btn btn-outline-primary btn-sm" style="height: 38px; font-weight: 700">
+                      Xuất CSV
+                    </button>
+                  </div>
+                </form>
+
+                <div style="margin-top: 1.1rem; overflow-x: auto">
+                  <table class="th-table" aria-label="Bảng sổ cái giao dịch ví gia sư">
+                    <thead>
+                      <tr>
+                        <th>STT</th>
+                        <th>Thời gian</th>
+                        <th>Loại</th>
+                        <th style="text-align: right">Số tiền</th>
+                        <th style="text-align: right">Số dư sổ sách sau GD</th>
+                        <th>Tham chiếu</th>
+                      </tr>
+                    </thead>
+                    <tbody id="tbody-so-cai-gd">
+                      <tr>
+                        <td colspan="6" style="padding: 1.5rem; text-align: center; color: var(--th-text-muted)">Đang tải sổ cái giao dịch...</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <div id="khung-phan-trang-gd" style="margin-top: 0.9rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; font-size: 0.82rem; color: var(--th-text-muted)"></div>
+              </div>
+
+              <!-- Lịch sử yêu cầu rút tiền -->
+              <div class="card" style="padding: 1.25rem 1.4rem">
+                <h3 style="margin: 0 0 0.75rem; font-size: 1rem; font-weight: 800; color: #0f172a">Lịch sử yêu cầu rút tiền</h3>
+                <div style="overflow-x: auto">
+                  <table class="th-table" aria-label="Lịch sử yêu cầu rút tiền">
+                    <thead>
+                      <tr>
+                        <th>Thời gian gửi</th>
+                        <th>Ngân hàng thụ hưởng</th>
+                        <th style="text-align: right">Số tiền rút</th>
+                        <th>Trạng thái</th>
+                        <th>Ghi chú xử lý</th>
+                      </tr>
+                    </thead>
+                    <tbody id="tbody-lich-su-rut-tien"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- TAB 6: Tài khoản & Bảo mật (A.6, B.3, C.4) -->
+          <section id="tab-tai-khoan" class="tab-panel" style="display: none">
+            <div class="grid-2" style="gap: 1.25rem; align-items: start">
+              <!-- Cột trái: Form Đổi mật khẩu nâng cao (B.3) -->
+              <div class="card" style="padding: 1.5rem">
+                <h2 style="margin: 0 0 0.3rem; font-size: 1.08rem; font-weight: 700">Đổi mật khẩu đăng nhập</h2>
+                <p style="margin: 0 0 1rem; font-size: 0.82rem; color: var(--th-text-muted)">
+                  Mật khẩu mới cần tối thiểu 8 ký tự, bao gồm cả chữ cái và chữ số.
+                </p>
+
+                <div id="tb-doi-mk-gs" style="display: none; margin-bottom: 0.85rem"></div>
+
+                <form id="form-doi-mk-gs" novalidate>
+                  <div class="form-group">
+                    <label class="form-label" for="gs-mk-cu">Mật khẩu hiện tại *</label>
+                    <div class="pwd-input-wrap">
+                      <input id="gs-mk-cu" type="password" required class="form-control" autocomplete="current-password" placeholder="Nhập mật khẩu đang dùng" />
+                      <button type="button" class="btn-toggle-pwd" data-target="gs-mk-cu" aria-label="Hiện hoặc ẩn mật khẩu hiện tại" title="Hiện / Ẩn mật khẩu"></button>
+                    </div>
+                    <div id="err-mk-cu" class="pwd-field-error"></div>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label" for="gs-mk-moi">Mật khẩu mới *</label>
+                    <div class="pwd-input-wrap">
+                      <input id="gs-mk-moi" type="password" required class="form-control" autocomplete="new-password" placeholder="Tối thiểu 8 ký tự, có chữ và số" />
+                      <button type="button" class="btn-toggle-pwd" data-target="gs-mk-moi" aria-label="Hiện hoặc ẩn mật khẩu mới" title="Hiện / Ẩn mật khẩu"></button>
+                    </div>
+                    <div class="pwd-strength-wrap">
+                      <div class="pwd-strength-bars" id="gs-mk-strength-bars">
+                        <span class="pwd-strength-bar"></span>
+                        <span class="pwd-strength-bar"></span>
+                        <span class="pwd-strength-bar"></span>
+                        <span class="pwd-strength-bar"></span>
+                      </div>
+                      <div id="gs-mk-strength-text" style="margin-top: 0.22rem; font-size: 0.73rem; font-weight: 600; color: #64748b">
+                        Độ mạnh: Chưa nhập
+                      </div>
+                    </div>
+                    <div id="err-mk-moi" class="pwd-field-error"></div>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label" for="gs-mk-nhap-lai">Nhập lại mật khẩu mới *</label>
+                    <div class="pwd-input-wrap">
+                      <input id="gs-mk-nhap-lai" type="password" required class="form-control" autocomplete="new-password" placeholder="Nhập lại khớp mật khẩu mới" />
+                      <button type="button" class="btn-toggle-pwd" data-target="gs-mk-nhap-lai" aria-label="Hiện hoặc ẩn ô nhập lại mật khẩu" title="Hiện / Ẩn mật khẩu"></button>
+                    </div>
+                    <div id="err-mk-nhap-lai" class="pwd-field-error"></div>
+                  </div>
+
+                  <button type="submit" id="btn-submit-doi-mk-gs" class="btn btn-primary btn-sm" disabled>
+                    Cập nhật mật khẩu
+                  </button>
+                </form>
+              </div>
+
+              <!-- Cột phải: Thẻ Thông tin ngân hàng nhận tiền (A.6 & C.4) -->
+              <div class="card" style="padding: 1.5rem">
+                <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 0.75rem; margin-bottom: 0.85rem">
+                  <div>
+                    <h2 style="margin: 0 0 0.25rem; font-size: 1.08rem; font-weight: 700">Thông tin ngân hàng nhận tiền</h2>
+                    <p style="margin: 0; font-size: 0.81rem; color: var(--th-text-muted)">
+                      Tài khoản thụ hưởng để nhận giải ngân khi bạn tạo lệnh rút tiền từ Ví gia sư.
+                    </p>
+                  </div>
+                  <span class="badge badge-info">Bảo mật</span>
+                </div>
+
+                <div id="tb-ngan-hang-tk" style="display: none; margin-bottom: 0.8rem"></div>
+
+                <!-- Chế độ chỉ xem (Số tài khoản được che, chỉ hiện 4 số cuối) -->
+                <div id="khung-xem-ngan-hang" style="padding: 1rem 1.1rem; border-radius: 14px; background: #f8fbff; border: 1px solid #dbeafe">
+                  <div class="tx-detail-row">
+                    <span class="tx-detail-lbl">Ngân hàng</span>
+                    <span class="tx-detail-val" id="tk-nh-ten-xem">—</span>
+                  </div>
+                  <div class="tx-detail-row">
+                    <span class="tx-detail-lbl">Số tài khoản</span>
+                    <span class="tx-detail-val" id="tk-nh-stk-xem" style="font-family: monospace; font-size: 0.92rem">••••••••</span>
+                  </div>
+                  <div class="tx-detail-row" style="border-bottom: none; padding-bottom: 0">
+                    <span class="tx-detail-lbl">Chủ tài khoản</span>
+                    <span class="tx-detail-val" id="tk-nh-chu-xem">—</span>
+                  </div>
+                  <div style="margin-top: 1rem; display: flex; justify-content: flex-end">
+                    <button type="button" class="btn btn-secondary btn-sm" id="btn-mo-sua-ngan-hang">
+                      Chỉnh sửa ngân hàng
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Chế độ chỉnh sửa (Yêu cầu xác nhận lại mật khẩu) -->
+                <form id="form-sua-ngan-hang-tk" style="display: none; margin-top: 0.5rem" novalidate>
+                  <div class="form-group">
+                    <label class="form-label" for="tk-nh-ten-inp">Tên ngân hàng *</label>
+                    <input id="tk-nh-ten-inp" type="text" required class="form-control" placeholder="VD: Vietcombank, ACB, Techcombank..." />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="tk-nh-stk-inp">Số tài khoản mới *</label>
+                    <input id="tk-nh-stk-inp" type="text" required class="form-control" placeholder="Nhập đầy đủ số tài khoản" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="tk-nh-chu-inp">Tên chủ tài khoản (in hoa không dấu) *</label>
+                    <input id="tk-nh-chu-inp" type="text" required class="form-control" style="text-transform: uppercase" placeholder="NGUYEN HOANG MINH" />
+                  </div>
+                  <div class="form-group" style="padding: 0.75rem 0.85rem; border-radius: 12px; background: #fffbeb; border: 1px solid #fde68a">
+                    <label class="form-label" for="tk-nh-mat-khau-xn" style="color: #92400e">Xác nhận mật khẩu đăng nhập hiện tại *</label>
+                    <input id="tk-nh-mat-khau-xn" type="password" required class="form-control" autocomplete="current-password" placeholder="Nhập mật khẩu để xác nhận thay đổi ngân hàng" />
+                  </div>
+                  <div style="display: flex; justify-content: flex-end; gap: 0.5rem">
+                    <button type="button" class="btn btn-secondary btn-sm" id="btn-huy-sua-ngan-hang">Hủy</button>
+                    <button type="submit" class="btn btn-primary btn-sm" id="btn-luu-ngan-hang-tk">Xác nhận &amp; Lưu ngân hàng</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </section>
+
+          <!-- Drawer Chi tiết Giao dịch (C.2: Sổ cái chỉ-đọc, không có nút sửa/xóa) -->
+          <div id="drawer-chi-tiet-gd" class="tx-drawer-backdrop" role="dialog" aria-modal="true" aria-labelledby="tieu-de-drawer-gd">
+            <div class="tx-drawer-panel">
+              <div class="tx-drawer-head">
+                <div>
+                  <div style="font-size: 0.72rem; font-weight: 700; color: #2563eb; text-transform: uppercase">Phiếu tra soát sổ cái (Chỉ-đọc)</div>
+                  <h3 id="tieu-de-drawer-gd" style="margin: 0.15rem 0 0; font-size: 1.05rem; font-weight: 800; color: #0f172a">Chi tiết giao dịch</h3>
+                </div>
+                <button type="button" id="btn-dong-drawer-gd" class="btn btn-ghost btn-sm" style="font-size: 1.25rem" aria-label="Đóng">×</button>
+              </div>
+              <div id="noi-dung-drawer-gd" class="tx-drawer-body"></div>
+            </div>
+          </div>
+
+          <!-- Modal Tạo Yêu cầu Rút tiền (Định dạng ngàn + Rút tối đa + Xác nhận mật khẩu) -->
+          <div id="modal-rut-tien-gs" class="modal-backdrop-custom" style="display: none" role="dialog" aria-modal="true" aria-labelledby="tieu-de-modal-rut-tien">
+            <div class="modal-box-custom" style="max-width: 460px">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.85rem">
+                <h3 id="tieu-de-modal-rut-tien" style="margin: 0; font-size: 1.08rem; font-weight: 800">Tạo yêu cầu rút tiền</h3>
+                <button type="button" id="btn-dong-modal-rut-tien" class="btn btn-ghost btn-sm" style="font-size: 1.2rem" aria-label="Đóng">×</button>
+              </div>
+              <div id="tb-modal-rut-tien" style="display: none; margin-bottom: 0.8rem"></div>
+              <form id="form-rut-tien-gs" novalidate>
+                <div style="padding: 0.75rem 0.9rem; border-radius: 12px; background: #f8fbff; border: 1px solid #dbeafe; font-size: 0.82rem; margin-bottom: 0.9rem">
+                  <div>Số dư khả dụng: <strong id="rut-so-du-hien-tai" style="color: #1d4ed8">0 ₫</strong></div>
+                  <div style="margin-top: 0.25rem; color: #475569">Ngân hàng thụ hưởng: <strong id="rut-ngan-hang-nhan">—</strong></div>
+                </div>
+                <div class="form-group">
+                  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.3rem">
+                    <label class="form-label" for="inp-so-tien-rut" style="margin: 0">Số tiền muốn rút (₫ · tối thiểu 100.000 ₫) *</label>
+                    <button type="button" id="btn-rut-toi-da" class="btn btn-ghost btn-sm" style="padding: 0.15rem 0.5rem; font-size: 0.75rem; font-weight: 700; color: #2563eb">
+                      Rút tối đa
+                    </button>
+                  </div>
+                  <input id="inp-so-tien-rut" type="text" inputmode="numeric" autocomplete="off" required class="form-control" placeholder="VD: 200.000" />
+                  <div id="err-so-tien-rut" class="pwd-field-error"></div>
+                </div>
+                <div class="form-group" style="padding: 0.75rem 0.85rem; border-radius: 12px; background: #fffbeb; border: 1px solid #fde68a">
+                  <label class="form-label" for="inp-mat-khau-rut" style="color: #92400e">Xác nhận mật khẩu đăng nhập *</label>
+                  <input id="inp-mat-khau-rut" type="password" required autocomplete="current-password" class="form-control" placeholder="Nhập mật khẩu để xác nhận lệnh rút tiền" />
+                  <div id="err-mat-khau-rut" class="pwd-field-error"></div>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem">
+                  <button type="button" class="btn btn-secondary btn-sm" id="btn-huy-modal-rut-tien">Hủy</button>
+                  <button type="submit" id="btn-submit-rut-tien" class="btn btn-primary btn-sm">Xác nhận &amp; Gửi yêu cầu</button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <!-- Modal Gia sư Xem Khiếu nại & Gửi Giải trình / Bằng chứng Phản biện -->
+          <div id="modal-phan-bien-kn-gs" class="modal-backdrop-custom" style="display: none" role="dialog" aria-modal="true" aria-labelledby="tieu-de-modal-kn-gs">
+            <div class="modal-box-custom" style="max-width: 560px">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.85rem">
+                <div>
+                  <div style="font-size: 0.72rem; font-weight: 700; color: #dc2626; text-transform: uppercase">Đối chất khiếu nại buổi học</div>
+                  <h3 id="tieu-de-modal-kn-gs" style="margin: 0.1rem 0 0; font-size: 1.08rem; font-weight: 800; color: #0f172a">Giải trình &amp; Bằng chứng phản biện</h3>
+                </div>
+                <button type="button" id="btn-dong-modal-kn-gs" class="btn btn-ghost btn-sm" style="font-size: 1.25rem" aria-label="Đóng">×</button>
+              </div>
+
+              <div id="kn-gs-thong-tin-don" style="padding: 0.8rem 0.95rem; border-radius: 12px; background: #f8fafc; border: 1px solid #e2e8f0; font-size: 0.82rem; margin-bottom: 0.85rem; line-height: 1.55"></div>
+              <div id="kn-gs-noi-dung-hs" style="padding: 0.8rem 0.95rem; border-radius: 12px; background: #fef2f2; border: 1px solid #fecaca; font-size: 0.83rem; color: #7f1d1d; margin-bottom: 0.9rem; line-height: 1.55"></div>
+              <div id="tb-modal-kn-gs" style="display: none; margin-bottom: 0.8rem"></div>
+
+              <form id="form-phan-bien-kn-gs" novalidate>
+                <div class="form-group">
+                  <label class="form-label" for="inp-phan-hoi-kn-gs">Nội dung giải trình / bác bỏ của bạn (tối thiểu 10 ký tự) *</label>
+                  <textarea
+                    id="inp-phan-hoi-kn-gs"
+                    rows="4"
+                    minlength="10"
+                    maxlength="2000"
+                    required
+                    class="form-control"
+                    placeholder="Trình bày rõ diễn biến buổi học (thời gian vào lớp, thời lượng đã dạy, thỏa thuận với học viên...) để quản trị viên đối chiếu công bằng."
+                  ></textarea>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="inp-tep-bang-chung-gs">Đính kèm ảnh / PDF bằng chứng (tùy chọn · tối đa 5 MB)</label>
+                  <input id="inp-tep-bang-chung-gs" type="file" accept=".jpg,.jpeg,.png,.webp,.pdf" class="form-control" />
+                  <div id="kn-gs-link-bang-chung-cu" style="margin-top: 0.35rem; font-size: 0.78rem"></div>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem">
+                  <button type="button" class="btn btn-secondary btn-sm" id="btn-huy-modal-kn-gs">Đóng</button>
+                  <button type="submit" id="btn-submit-phan-bien-kn-gs" class="btn btn-primary btn-sm">Gửi giải trình &amp; Bằng chứng</button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <!-- Modal Cảnh báo Xung đột Lịch khi Báo bận (Chống chặn lịch âm thầm) -->
+          <div id="modal-xung-dot-lich" class="modal-backdrop-custom" style="display: none">
+            <div class="modal-box-custom">
+              <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 0.75rem; margin-bottom: 1rem">
+                <div style="display: flex; align-items: center; gap: 0.5rem">
+                  <span style="font-size: 1.5rem">⚠️</span>
+                  <div>
+                    <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: #c24752" id="tieu-de-modal-xung-dot">
+                      Xung đột với buổi học đã đặt
+                    </h3>
+                    <p style="margin: 0.15rem 0 0; font-size: 0.82rem; color: #64748b">
+                      Khoảng ngày báo bận này trùng với các buổi học đã được học sinh đặt trước
+                    </p>
+                  </div>
+                </div>
+                <button type="button" id="btn-dong-modal-xung-dot" class="btn btn-ghost btn-sm" style="font-size: 1.25rem; line-height: 1" aria-label="Đóng">×</button>
+              </div>
+
+              <div id="danh-sach-don-xung-dot" style="margin-bottom: 1.15rem; max-height: 220px; overflow-y: auto; border: 1px solid #fee2e2; border-radius: 12px; background: #fff5f5; padding: 0.75rem">
+                <!-- Render danh sách buổi trùng -->
+              </div>
+
+              <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 0.9rem; margin-bottom: 1.25rem">
+                <div style="font-weight: 700; font-size: 0.86rem; color: #334155; margin-bottom: 0.5rem">
+                  Chọn phương án xử lý cho các buổi học bị ảnh hưởng:
+                </div>
+                <label style="display: flex; align-items: flex-start; gap: 0.5rem; margin-bottom: 0.5rem; font-size: 0.83rem; cursor: pointer">
+                  <input type="radio" name="huongXuLyXungDot" value="DOI_LICH" checked style="margin-top: 0.15rem; accent-color: #3b82f6" />
+                  <span><strong>Đề nghị dời lịch:</strong> Gửi thông báo đề xuất dời buổi học sang ca khác cho học sinh.</span>
+                </label>
+                <label style="display: flex; align-items: flex-start; gap: 0.5rem; font-size: 0.83rem; cursor: pointer">
+                  <input type="radio" name="huongXuLyXungDot" value="HUY_BUOI" style="margin-top: 0.15rem; accent-color: #e2535c" />
+                  <span><strong>Hủy buổi học:</strong> Hoàn 100% học phí ký quỹ cho học sinh và gửi thông báo cáo lỗi.</span>
+                </label>
+              </div>
+
+              <div style="display: flex; justify-content: flex-end; gap: 0.65rem; flex-wrap: wrap">
+                <button type="button" id="btn-huy-modal-xung-dot" class="btn btn-secondary btn-sm">
+                  Hủy bỏ (Quay lại chọn ngày khác)
+                </button>
+                <button type="button" id="btn-xac-nhan-modal-xung-dot" class="btn btn-sm" style="background: #e2535c; color: #ffffff; border-radius: 9999px">
+                  Xác nhận xử lý &amp; Lưu ngày nghỉ
+                </button>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <script type="module">
+      import { api, layAccessToken } from '/assets/js/api.js';
+      import { dinhDangNgayGioVn, dinhDangTienVnd } from '/assets/js/dinh-dang.js';
+      import { icons } from '/assets/js/icons.js';
+      import {
+        highlightKhopMonHoc,
+        taoOptionsNhomMonHocHtml,
+        timKiemMonHocThongMinh,
+      } from '/assets/js/mon-hoc-goi-y.js';
+      import {
+        dangXuatHeThong,
+        dongBoNguoiDungTuApi,
+        escapeHtml,
+        layChuCaiDau,
+        layNhanThuTrongTuan,
+        layTrangChinhTheoVaiTro,
+      } from '/assets/js/giao-dien.js';
+      import { kiemTraNoiDungNguoiDungNhap } from '/assets/js/kiem-tra-noi-dung-ui.js';
+      import {
+        layNhanDanhMucKhieuNai,
+        layNhanLoaiGiayTo,
+        layNhanLoaiLichNgayCuThe,
+        layNhanLoaiSoCaiGiaSu,
+        layNhanTienDonGiaSu,
+        layNhanTrangThaiDonDatLich,
+        layNhanTrangThaiGiayTo,
+        layNhanTrangThaiHoSoGiaSu,
+        layNhanTrangThaiKhieuNai,
+        layNhanTrangThaiRutTien,
+        rutGonCanhBaoDiChuyen,
+        xuatCsvSoCaiGiaSu,
+      } from '/assets/js/trang-thai.js';
+
+      if (!layAccessToken()) {
+        window.location.href = '/pages/dang-nhap.html';
+      }
+
+      // Gắn icon SVG cho thanh điều hướng Studio & Popover góc dưới
+      const btnToggleSbGs = document.getElementById('btn-toggle-sidebar-gs');
+      const khungAppGs = document.getElementById('khung-app-gia-su');
+      const backdropSbGs = document.getElementById('backdrop-sidebar-gs');
+      if (btnToggleSbGs) btnToggleSbGs.innerHTML = icons.list(17);
+
+      btnToggleSbGs?.addEventListener('click', () => {
+        if (window.innerWidth <= 960) {
+          khungAppGs?.classList.toggle('sidebar-mobile-open');
+        } else {
+          khungAppGs?.classList.toggle('sidebar-collapsed');
+        }
+      });
+      backdropSbGs?.addEventListener('click', () => {
+        khungAppGs?.classList.remove('sidebar-mobile-open');
+      });
+
+      document.getElementById('nav-tong-quan').innerHTML = `<span class="studio-nav-btn-left"><span class="studio-nav-ico">${icons.layoutDashboard(16)}</span> <span>Tổng quan dạy học</span></span>`;
+      document.getElementById('nav-ho-so').innerHTML = `<span class="studio-nav-btn-left"><span class="studio-nav-ico">${icons.user(16)}</span> <span>Hồ sơ &amp; Hình thức dạy</span></span>`;
+      document.getElementById('nav-giay-to').innerHTML = `<span class="studio-nav-btn-left"><span class="studio-nav-ico">${icons.fileText(16)}</span> <span>Giấy tờ &amp; Bằng cấp</span></span>`;
+      document.getElementById('nav-mon-hoc').innerHTML = `<span class="studio-nav-btn-left"><span class="studio-nav-ico">${icons.bookOpen(16)}</span> <span>Môn dạy &amp; Học phí</span></span>`;
+      document.getElementById('nav-lich-ranh').innerHTML = `<span class="studio-nav-btn-left"><span class="studio-nav-ico">${icons.calendar(16)}</span> <span>Thời gian biểu &amp; Lịch dạy</span></span>`;
+      const elNavTinGs = document.getElementById('nav-tin-nhan-gs');
+      if (elNavTinGs) elNavTinGs.innerHTML = `<span class="studio-nav-btn-left"><span class="studio-nav-ico">${icons.messageCircle(16)}</span> <span>Tin nhắn học viên</span></span>`;
+      const elNavViGs = document.getElementById('nav-vi-gs');
+      if (elNavViGs) elNavViGs.innerHTML = `<span class="studio-nav-btn-left"><span class="studio-nav-ico">${icons.wallet(16)}</span> <span>Ví &amp; Giao dịch</span></span>`;
+      const elPopCaiDat = document.getElementById('gs-pop-cai-dat');
+      if (elPopCaiDat) elPopCaiDat.innerHTML = `<span style="display: inline-flex; align-items: center; gap: 0.55rem">${icons.settings(15)} <span>Cài đặt tài khoản</span></span>`;
+      const elGsHomeLink = document.getElementById('gs-sb-home-link');
+      if (elGsHomeLink) elGsHomeLink.innerHTML = `<span style="display: inline-flex; align-items: center; gap: 0.55rem">${icons.home(15)} <span>Trang chủ TutorHub</span></span>`;
+      document.getElementById('gs-sb-logout').innerHTML = `<span style="display: inline-flex; align-items: center; gap: 0.55rem">${icons.logout(15)} <span>Đăng xuất</span></span>`;
+      const elGsChev = document.getElementById('ico-gs-chevron');
+      if (elGsChev) elGsChev.innerHTML = icons.chevronsUpDown ? icons.chevronsUpDown(14) : icons.chevronDown(14);
+      document.getElementById('gs-ico-1').innerHTML = icons.wallet(17);
+      document.getElementById('gs-ico-2').innerHTML = icons.calendar(17);
+      document.getElementById('gs-ico-3').innerHTML = icons.star(17);
+      document.getElementById('gs-ico-4').innerHTML = icons.bookOpen(17);
+
+      // Popover tài khoản góc dưới sidebar (phong cách Claude / AI Workspace)
+      const btnGsPill = document.getElementById('btn-gs-user-pill');
+      const popGsMenu = document.getElementById('gs-user-popover');
+      btnGsPill?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isOpen = popGsMenu?.classList.toggle('show');
+        btnGsPill?.classList.toggle('active', isOpen);
+        btnGsPill?.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      });
+      document.addEventListener('click', (e) => {
+        if (!popGsMenu?.contains(e.target) && !btnGsPill?.contains(e.target)) {
+          popGsMenu?.classList.remove('show');
+          btnGsPill?.classList.remove('active');
+          btnGsPill?.setAttribute('aria-expanded', 'false');
+        }
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && popGsMenu?.classList.contains('show')) {
+          popGsMenu.classList.remove('show');
+          btnGsPill?.classList.remove('active');
+          btnGsPill?.setAttribute('aria-expanded', 'false');
+        }
+      });
+
+      document.getElementById('gs-sb-logout')?.addEventListener('click', dangXuatHeThong);
+
+      const tieuDeTab = {
+        'tab-tong-quan': 'Tổng quan dạy học',
+        'tab-ho-so': 'Hồ sơ chuyên môn & Hình thức dạy',
+        'tab-giay-to': 'Giấy tờ xác minh & Bằng cấp',
+        'tab-mon-hoc': 'Môn dạy & Học phí',
+        'tab-lich-ranh': 'Thời gian biểu & Lịch nhận lớp',
+        'tab-tin-nhan': 'Tin nhắn học viên',
+        'tab-vi-giao-dich': 'Ví gia sư & Tra soát giao dịch',
+        'tab-tai-khoan': 'Tài khoản & Bảo mật',
+      };
+
+      let tongQuanHienTai = null;
+      let tongQuanViHienTai = null;
+      let dsGiaoDichHienTai = [];
+      let dsYeuCauRutHienTai = [];
+      let trangGiaoDichHienTai = 1;
+      const KICH_THUOC_TRANG_GD = 10;
+      let khoaIdempotencyRutHienTai = '';
+
+      let gsHoiThoaiDangChonId = null;
+
+      async function taiDsHoiThoaiGs() {
+        const elList = document.getElementById('gs-ds-hoi-thoai');
+        if (!elList) return;
+        try {
+          const res = await api.get('/hoi-thoai');
+          const ds = res?.duLieu || [];
+          if (ds.length === 0) {
+            elList.innerHTML = '<div style="padding: 1.1rem; font-size: 0.82rem; color: var(--th-text-muted)">Chưa có tin nhắn nào từ học viên.</div>';
+            return;
+          }
+          if (!gsHoiThoaiDangChonId) gsHoiThoaiDangChonId = ds[0].id;
+          elList.innerHTML = ds
+            .map(
+              (h) => `
+              <button type="button" class="portal-conv-item ${h.id === gsHoiThoaiDangChonId ? 'active' : ''}" data-ht-id="${h.id}">
+                <span class="avatar-circle" style="width: 36px; height: 36px; font-size: 0.78rem">${escapeHtml(layChuCaiDau(h.tenDoiTac))}</span>
+                <div style="min-width: 0; flex: 1">
+                  <div style="font-weight: 700; font-size: 0.85rem; color: #1e293b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">${escapeHtml(h.tenDoiTac)}</div>
+                  <div style="font-size: 0.75rem; color: #64748b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">${escapeHtml(h.tinNhanCuoi || 'Bắt đầu trò chuyện')}</div>
+                </div>
+              </button>
+            `
+            )
+            .join('');
+          elList.querySelectorAll('.portal-conv-item').forEach((btn) => {
+            btn.addEventListener('click', () => moChiTietHoiThoaiGs(btn.dataset.htId));
+          });
+          if (gsHoiThoaiDangChonId) await moChiTietHoiThoaiGs(gsHoiThoaiDangChonId);
+        } catch (err) {
+          elList.innerHTML = `<div style="padding: 1rem; font-size: 0.8rem; color: #b91c1c">${escapeHtml(err.message)}</div>`;
+        }
+      }
+
+      async function moChiTietHoiThoaiGs(htId) {
+        gsHoiThoaiDangChonId = htId;
+        document.querySelectorAll('#gs-ds-hoi-thoai .portal-conv-item').forEach((b) => {
+          b.classList.toggle('active', b.dataset.htId === htId);
+        });
+        const elHead = document.getElementById('gs-chat-head');
+        const elMsgs = document.getElementById('gs-chat-messages');
+        const formChat = document.getElementById('form-chat-portal-gs');
+        try {
+          const res = await api.get(`/hoi-thoai/${htId}`);
+          const ht = res?.duLieu;
+          if (!ht) return;
+          if (elHead) {
+            elHead.innerHTML = `
+              <div style="display: flex; align-items: center; gap: 0.65rem">
+                <span class="avatar-circle" style="width: 34px; height: 34px; font-size: 0.76rem">${escapeHtml(layChuCaiDau(ht.tenDoiTac))}</span>
+                <div>
+                  <div style="font-weight: 800; font-size: 0.92rem; color: #1e293b">${escapeHtml(ht.tenDoiTac)}</div>
+                  <div style="font-size: 0.72rem; color: var(--th-text-muted)">Học viên TutorHub</div>
+                </div>
+              </div>
+            `;
+          }
+          if (formChat) formChat.style.display = 'flex';
+          const dsTin = ht.dsTinNhan || [];
+          if (dsTin.length === 0) {
+            elMsgs.innerHTML = '<div style="margin: auto; font-size: 0.83rem; color: var(--th-text-muted)">Chưa có tin nhắn trong hội thoại này.</div>';
+          } else {
+            elMsgs.innerHTML = dsTin
+              .map(
+                (t) => `
+                <div class="th-chat-bubble ${t.laCuaToi ? 'mine' : 'theirs'}">
+                  <div>${escapeHtml(t.noiDung)}</div>
+                  ${t.biGanCo ? '<div class="th-chat-flag">Thông tin liên hệ ngoài nền tảng đã được ẩn tự động.</div>' : ''}
+                  <div class="th-chat-time">${dinhDangNgayGioVn(t.taoLuc)}</div>
+                </div>
+              `
+              )
+              .join('');
+            elMsgs.scrollTop = elMsgs.scrollHeight;
+          }
+        } catch (err) {
+          if (elMsgs) elMsgs.innerHTML = `<div class="alert alert-danger">${escapeHtml(err.message)}</div>`;
+        }
+      }
+
+      document.getElementById('btn-lam-moi-chat-gs')?.addEventListener('click', taiDsHoiThoaiGs);
+      document.getElementById('form-chat-portal-gs')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const inp = document.getElementById('inp-chat-portal-gs');
+        const noiDung = inp?.value?.trim();
+        if (!noiDung || !gsHoiThoaiDangChonId) return;
+        inp.disabled = true;
+        try {
+          await api.post(`/hoi-thoai/${gsHoiThoaiDangChonId}/tin-nhan`, { noiDung });
+          inp.value = '';
+          await Promise.all([moChiTietHoiThoaiGs(gsHoiThoaiDangChonId), taiDsHoiThoaiGs()]);
+        } catch (err) {
+          hienThongBao(err.message, 'danger');
+        } finally {
+          inp.disabled = false;
+          inp.focus();
+        }
+      });
+
+      // =========================================================================
+      // B.3: FORM ĐỔI MẬT KHẨU NÂNG CAO (HIỆN/ẨN, ĐỘ MẠNH, VALIDATE TỪNG Ô, LOADING)
+      // =========================================================================
+      document.querySelectorAll('.btn-toggle-pwd').forEach((btn) => {
+        btn.innerHTML = icons.eye(15);
+        btn.addEventListener('click', () => {
+          const inp = document.getElementById(btn.dataset.target);
+          if (!inp) return;
+          const dangAn = inp.type === 'password';
+          inp.type = dangAn ? 'text' : 'password';
+          btn.style.color = dangAn ? '#2563eb' : '#64748b';
+        });
+      });
+
+      function danhGiaDoManhMatKhau(mk) {
+        if (!mk) return { diem: 0, nhan: 'Chưa nhập', mau: '#94a3b8' };
+        let diem = 0;
+        if (mk.length >= 8) diem += 1;
+        if (/[A-Za-z]/.test(mk) && /\d/.test(mk)) diem += 1;
+        if (/[A-Z]/.test(mk) && /[a-z]/.test(mk)) diem += 1;
+        if (/[^A-Za-z0-9]/.test(mk) || mk.length >= 12) diem += 1;
+        const bang = [
+          { nhan: 'Rất yếu', mau: '#dc2626' },
+          { nhan: 'Yếu', mau: '#ea580c' },
+          { nhan: 'Trung bình', mau: '#d97706' },
+          { nhan: 'Khá mạnh', mau: '#2563eb' },
+          { nhan: 'Mạnh', mau: '#16a34a' },
+        ];
+        return { diem, ...bang[diem] };
+      }
+
+      function kiemTraHopLeFormMatKhau(hienLoi = false) {
+        const mkCu = document.getElementById('gs-mk-cu')?.value || '';
+        const mkMoi = document.getElementById('gs-mk-moi')?.value || '';
+        const mkNhapLai = document.getElementById('gs-mk-nhap-lai')?.value || '';
+
+        const errCu = document.getElementById('err-mk-cu');
+        const errMoi = document.getElementById('err-mk-moi');
+        const errLai = document.getElementById('err-mk-nhap-lai');
+        const btnSubmit = document.getElementById('btn-submit-doi-mk-gs');
+
+        // Cập nhật thanh độ mạnh
+        const dm = danhGiaDoManhMatKhau(mkMoi);
+        const bars = document.querySelectorAll('#gs-mk-strength-bars .pwd-strength-bar');
+        bars.forEach((b, idx) => {
+          b.style.backgroundColor = idx < dm.diem ? dm.mau : '#e2e8f0';
+        });
+        const txtStrength = document.getElementById('gs-mk-strength-text');
+        if (txtStrength) {
+          txtStrength.textContent = `Độ mạnh: ${dm.nhan}`;
+          txtStrength.style.color = dm.mau;
+        }
+
+        let loiCu = '';
+        let loiMoi = '';
+        let loiLai = '';
+
+        if (!mkCu) {
+          loiCu = 'Vui lòng nhập mật khẩu hiện tại.';
+        }
+        if (!mkMoi) {
+          loiMoi = 'Vui lòng nhập mật khẩu mới.';
+        } else if (mkMoi.length < 8 || !/[A-Za-z]/.test(mkMoi) || !/\d/.test(mkMoi)) {
+          loiMoi = 'Mật khẩu mới phải từ 8 ký tự trở lên, bao gồm cả chữ và số.';
+        } else if (mkCu && mkMoi === mkCu) {
+          loiMoi = 'Mật khẩu mới phải khác mật khẩu hiện tại.';
+        }
+
+        if (!mkNhapLai) {
+          loiLai = 'Vui lòng nhập lại mật khẩu mới.';
+        } else if (mkMoi && mkNhapLai !== mkMoi) {
+          loiLai = 'Mật khẩu nhập lại chưa khớp.';
+        }
+
+        if (errCu) errCu.textContent = hienLoi || mkCu.length > 0 ? loiCu : '';
+        if (errMoi) errMoi.textContent = hienLoi || mkMoi.length > 0 ? loiMoi : '';
+        if (errLai) errLai.textContent = hienLoi || mkNhapLai.length > 0 ? loiLai : '';
+
+        const hopLe = !loiCu && !loiMoi && !loiLai;
+        if (btnSubmit) btnSubmit.disabled = !hopLe;
+        return hopLe;
+      }
+
+      ['gs-mk-cu', 'gs-mk-moi', 'gs-mk-nhap-lai'].forEach((id) => {
+        document.getElementById(id)?.addEventListener('input', () => kiemTraHopLeFormMatKhau(false));
+      });
+
+      document.getElementById('form-doi-mk-gs')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const tbMk = document.getElementById('tb-doi-mk-gs');
+        if (tbMk) tbMk.style.display = 'none';
+        if (!kiemTraHopLeFormMatKhau(true)) return;
+
+        const btnSubmit = document.getElementById('btn-submit-doi-mk-gs');
+        btnSubmit.disabled = true;
+        btnSubmit.textContent = 'Đang cập nhật...';
+
+        try {
+          await api.post('/nguoi-dung/toi/doi-mat-khau', {
+            matKhauCu: document.getElementById('gs-mk-cu').value,
+            matKhauMoi: document.getElementById('gs-mk-moi').value,
+          });
+          document.getElementById('form-doi-mk-gs').reset();
+          kiemTraHopLeFormMatKhau(false);
+          if (tbMk) {
+            tbMk.style.display = 'block';
+            tbMk.className = 'alert alert-success';
+            tbMk.textContent = 'Đã cập nhật mật khẩu thành công!';
+          }
+        } catch (err) {
+          if (tbMk) {
+            tbMk.style.display = 'block';
+            tbMk.className = 'alert alert-danger';
+            tbMk.textContent = err.message || 'Không thể đổi mật khẩu.';
+          }
+        } finally {
+          btnSubmit.textContent = 'Cập nhật mật khẩu';
+          kiemTraHopLeFormMatKhau(false);
+        }
+      });
+
+      function chuyenTab(tabId) {
+        const tb = document.getElementById('hop-thong-bao');
+        if (tb) tb.style.display = 'none';
+        khungAppGs?.classList.remove('sidebar-mobile-open');
+        popGsMenu?.classList.remove('show');
+        document.querySelectorAll('.studio-nav-btn').forEach((b) => b.classList.toggle('active', b.dataset.tab === tabId));
+        document.querySelectorAll('.tab-panel').forEach((p) => {
+          p.style.display = p.id === tabId ? (tabId === 'tab-tong-quan' ? 'flex' : 'block') : 'none';
+        });
+        document.getElementById('gs-tieu-de-tab').textContent = tieuDeTab[tabId] || 'Cổng Gia sư';
+        if (tabId === 'tab-tin-nhan') {
+          taiDsHoiThoaiGs();
+        }
+        if (tabId === 'tab-vi-giao-dich') {
+          dongBoVaRenderViGiaoDich();
+        }
+        try {
+          const url = new URL(window.location.href);
+          url.searchParams.set('tab', tabId);
+          window.history.replaceState({}, '', url.toString());
+        } catch {
+          // Bỏ qua
+        }
+      }
+
+      document.querySelectorAll('.studio-nav-btn[data-tab]').forEach((btn) => {
+        btn.addEventListener('click', () => chuyenTab(btn.dataset.tab));
+      });
+      document.getElementById('gs-pop-cai-dat')?.addEventListener('click', () => chuyenTab('tab-tai-khoan'));
+      document.getElementById('btn-nhay-ngan-hang-tu-ho-so')?.addEventListener('click', () => chuyenTab('tab-tai-khoan'));
+      document.getElementById('btn-hero-lich')?.addEventListener('click', () => chuyenTab('tab-lich-ranh'));
+      document.getElementById('btn-hero-mon')?.addEventListener('click', () => chuyenTab('tab-mon-hoc'));
+
+      const kpiCardVi = document.getElementById('kpi-card-vi-gs');
+      kpiCardVi?.addEventListener('click', () => chuyenTab('tab-vi-giao-dich'));
+      kpiCardVi?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          chuyenTab('tab-vi-giao-dich');
+        }
+      });
+
+      const tabParam = new URLSearchParams(window.location.search).get('tab');
+      if (tabParam && tieuDeTab[tabParam]) {
+        chuyenTab(tabParam);
+      }
+
+      const user = await dongBoNguoiDungTuApi();
+      if (user?.email) {
+        const elPopGsEmail = document.getElementById('pop-gs-email');
+        if (elPopGsEmail) elPopGsEmail.textContent = user.email;
+      }
+      const hopThongBao = document.getElementById('hop-thong-bao');
+      let dsMonHocHeThong = [];
+      let hoSoHienTai = null;
+      let demDong = 0;
+      let dsKhieuNaiGiaSu = [];
+      let dsThongBaoGiaSu = [];
+      let khieuNaiDangMoModalGs = null;
+
+      // Chuông Thông báo Gia sư (đọc từ API /api/thong-bao/toi)
+      const elIcoGsBell = document.getElementById('ico-gs-bell');
+      if (elIcoGsBell) elIcoGsBell.innerHTML = icons.bell(18);
+      const btnGsBell = document.getElementById('btn-gs-thong-bao');
+      const dropdownGsBell = document.getElementById('dropdown-gs-thong-bao');
+      const badgeGsBell = document.getElementById('gs-badge-thong-bao');
+      const listGsBell = document.getElementById('gs-ds-thong-bao');
+
+      btnGsBell?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const mo = dropdownGsBell?.classList.toggle('show');
+        btnGsBell.setAttribute('aria-expanded', mo ? 'true' : 'false');
+      });
+
+      document.getElementById('btn-gs-doc-tat-ca-tb')?.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        try {
+          await api.post('/thong-bao/doc-tat-ca', {});
+          dsThongBaoGiaSu = dsThongBaoGiaSu.map((t) => ({ ...t, docLuc: t.docLuc || new Date().toISOString() }));
+          renderThongBaoGiaSu();
+        } catch {
+          // Bỏ qua
+        }
+      });
+
+      document.addEventListener('click', (e) => {
+        if (dropdownGsBell && !dropdownGsBell.contains(e.target) && !btnGsBell?.contains(e.target)) {
+          dropdownGsBell.classList.remove('show');
+          btnGsBell?.setAttribute('aria-expanded', 'false');
+        }
+      });
+
+      function renderThongBaoGiaSu() {
+        if (!listGsBell || !badgeGsBell) return;
+        const soChuaDoc = dsThongBaoGiaSu.filter((t) => !t.docLuc).length;
+        if (soChuaDoc > 0) {
+          badgeGsBell.style.display = 'flex';
+          badgeGsBell.textContent = soChuaDoc > 9 ? '9+' : String(soChuaDoc);
+        } else {
+          badgeGsBell.style.display = 'none';
+        }
+
+        if (dsThongBaoGiaSu.length === 0) {
+          listGsBell.innerHTML = '<div style="padding: 1rem; text-align: center; font-size: 0.82rem; color: #64748b">Chưa có thông báo mới.</div>';
+          return;
+        }
+
+        listGsBell.innerHTML = dsThongBaoGiaSu
+          .map((t) => {
+            const laKn = t.loai === 'KHIEU_NAI';
+            const mauDot = t.docLuc ? '#cbd5e1' : laKn ? '#ef4444' : '#2563eb';
+            return `
+              <button type="button" class="bell-dropdown-item bell-dropdown-item-btn btn-item-tb-gs" data-id="${escapeHtml(t.id)}" data-loai="${escapeHtml(t.loai)}" data-tieu-de="${escapeHtml(t.tieuDe)}">
+                <span class="bell-item-dot" style="background: ${mauDot}"></span>
+                <span class="bell-item-content">
+                  <span class="bell-item-title" style="display: block; ${t.docLuc ? 'font-weight: 500; color: #64748b' : ''}">${escapeHtml(t.tieuDe)}</span>
+                  <span style="display: block; font-size: 0.76rem; color: #475569; margin-top: 2px; line-height: 1.4">${escapeHtml(t.noiDung)}</span>
+                  <span class="bell-item-time" style="display: block">${dinhDangNgayGioVn(t.taoLuc)}</span>
+                </span>
+              </button>
+            `;
+          })
+          .join('');
+
+        listGsBell.querySelectorAll('.btn-item-tb-gs').forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            dropdownGsBell?.classList.remove('show');
+            btnGsBell?.setAttribute('aria-expanded', 'false');
+            try {
+              await api.post(`/thong-bao/${btn.dataset.id}/da-doc`, {});
+              const item = dsThongBaoGiaSu.find((x) => x.id === btn.dataset.id);
+              if (item) item.docLuc = new Date().toISOString();
+              renderThongBaoGiaSu();
+            } catch {
+              // Bỏ qua
+            }
+            if (btn.dataset.loai === 'KHIEU_NAI') {
+              const knMatch =
+                dsKhieuNaiGiaSu.find((k) => (btn.dataset.tieuDe || '').includes(k.maDon)) ||
+                dsKhieuNaiGiaSu.find((k) => k.trangThai === 'MO') ||
+                dsKhieuNaiGiaSu[0];
+              if (knMatch) moModalPhanBienKhieuNaiGs(knMatch);
+            }
+          });
+        });
+      }
+
+      async function taiThongBaoVaKhieuNaiGiaSu() {
+        const [resTb, resKn] = await Promise.all([
+          api.get('/thong-bao/toi?gioiHan=20').catch(() => null),
+          api.get('/khieu-nai/toi').catch(() => null),
+        ]);
+        dsThongBaoGiaSu = resTb?.duLieu || [];
+        dsKhieuNaiGiaSu = resKn?.duLieu || [];
+        renderThongBaoGiaSu();
+      }
+
+      const dongModalKnGs = () => {
+        const m = document.getElementById('modal-phan-bien-kn-gs');
+        if (m) m.style.display = 'none';
+      };
+      document.getElementById('btn-dong-modal-kn-gs')?.addEventListener('click', dongModalKnGs);
+      document.getElementById('btn-huy-modal-kn-gs')?.addEventListener('click', dongModalKnGs);
+
+      function moModalPhanBienKhieuNaiGs(kn) {
+        if (!kn) return;
+        khieuNaiDangMoModalGs = kn;
+        const tt = layNhanTrangThaiKhieuNai(kn.trangThai);
+        const dangMo = kn.trangThai === 'MO';
+        const elInfo = document.getElementById('kn-gs-thong-tin-don');
+        const elHs = document.getElementById('kn-gs-noi-dung-hs');
+        const elTb = document.getElementById('tb-modal-kn-gs');
+        const elLinkCu = document.getElementById('kn-gs-link-bang-chung-cu');
+        const inpPh = document.getElementById('inp-phan-hoi-kn-gs');
+        const inpTep = document.getElementById('inp-tep-bang-chung-gs');
+        const btnSub = document.getElementById('btn-submit-phan-bien-kn-gs');
+
+        if (elTb) elTb.style.display = 'none';
+        if (elInfo) {
+          elInfo.innerHTML = `
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap">
+              <span>Đơn <strong style="font-family: monospace">${escapeHtml(kn.maDon)}</strong> · <strong>${escapeHtml(kn.tenMonHoc)}</strong> (${kn.hinhThuc === 'TRUC_TUYEN' ? 'Trực tuyến' : 'Tại nhà'} · ${kn.thoiLuongPhut || 60} phút)</span>
+              <span class="badge ${tt.lop}">${escapeHtml(tt.nhan)}</span>
+            </div>
+            <div style="margin-top: 0.3rem; color: #334155">
+              Học viên: <strong>${escapeHtml(kn.tenHocSinh)}</strong>${kn.batDauLuc ? ` · Buổi học: ${dinhDangNgayGioVn(kn.batDauLuc)}` : ''}
+            </div>
+            <div style="margin-top: 0.35rem; padding: 0.45rem 0.6rem; border-radius: 8px; background: #eff6ff; border: 1px solid #bfdbfe; color: #1e3a8a; font-size: 0.78rem">
+              <strong>Học phí lịch sử đã thanh toán (Escrow): ${dinhDangTienVnd(kn.soTienThanhToan)}</strong>
+              (giá cố định lúc đặt: ${dinhDangTienVnd(kn.giaMoiGioSnapshot || 0)}/giờ — mọi phân xử hoàn/giải ngân luôn theo số tiền lịch sử này, không đổi nếu bạn điều chỉnh học phí hiện tại).
+            </div>
+          `;
+        }
+
+        if (elHs) {
+          elHs.innerHTML = `
+            <div style="font-weight: 700; margin-bottom: 0.25rem">
+              Khiếu nại từ học viên · ${escapeHtml(layNhanDanhMucKhieuNai(kn.danhMuc))} (${dinhDangNgayGioVn(kn.taoLuc)})
+            </div>
+            <div>${escapeHtml(kn.moTa)}</div>
+            ${
+              kn.urlXemBangChungHocSinh
+                ? `<div style="margin-top: 0.45rem"><a href="${escapeHtml(kn.urlXemBangChungHocSinh)}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm" style="height: 28px; font-size: 0.75rem">Xem bằng chứng học viên ↗</a></div>`
+                : ''
+            }
+          `;
+        }
+
+        if (inpPh) {
+          inpPh.value = kn.phanHoiGiaSu || '';
+          inpPh.disabled = !dangMo;
+        }
+        if (inpTep) {
+          inpTep.value = '';
+          inpTep.disabled = !dangMo;
+        }
+        if (elLinkCu) {
+          elLinkCu.innerHTML = kn.urlXemBangChungGiaSu
+            ? `<a href="${escapeHtml(kn.urlXemBangChungGiaSu)}" target="_blank" rel="noopener noreferrer" style="color: #2563eb; font-weight: 600">Xem tệp bằng chứng bạn đã nộp ↗</a>`
+            : kn.phanHoiGiaSuLuc
+              ? `<span style="color: #64748b">Bạn đã gửi giải trình lúc ${dinhDangNgayGioVn(kn.phanHoiGiaSuLuc)} (có thể cập nhật thêm trước khi quản trị phân xử).</span>`
+              : '';
+        }
+        if (btnSub) {
+          btnSub.style.display = dangMo ? 'inline-flex' : 'none';
+          btnSub.textContent = kn.phanHoiGiaSu ? 'Cập nhật giải trình & Bằng chứng' : 'Gửi giải trình & Bằng chứng';
+        }
+        if (!dangMo && elTb) {
+          elTb.style.display = 'block';
+          elTb.className = 'alert alert-info';
+          elTb.textContent = `Khiếu nại đã được phân xử: ${kn.ghiChuGiaiQuyet || 'Đã đóng'} (Đã hoàn học viên: ${dinhDangTienVnd(kn.tienDaHoan || 0)}).`;
+        }
+
+        const m = document.getElementById('modal-phan-bien-kn-gs');
+        if (m) m.style.display = 'flex';
+      }
+
+      document.getElementById('form-phan-bien-kn-gs')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!khieuNaiDangMoModalGs) return;
+        const phanHoi = (document.getElementById('inp-phan-hoi-kn-gs')?.value || '').trim();
+        const fileTep = document.getElementById('inp-tep-bang-chung-gs')?.files?.[0] || null;
+        const elTb = document.getElementById('tb-modal-kn-gs');
+        const btnSub = document.getElementById('btn-submit-phan-bien-kn-gs');
+
+        if (elTb) elTb.style.display = 'none';
+        if (phanHoi.length < 10) {
+          if (elTb) {
+            elTb.style.display = 'block';
+            elTb.className = 'alert alert-danger';
+            elTb.textContent = 'Vui lòng nhập nội dung giải trình tối thiểu 10 ký tự.';
+          }
+          return;
+        }
+
+        if (btnSub) btnSub.disabled = true;
+        try {
+          let bangChungUrl = null;
+          if (fileTep) {
+            const fd = new FormData();
+            fd.append('tep', fileTep);
+            const upRes = await api.post('/khieu-nai/tep-bang-chung', fd);
+            bangChungUrl = upRes?.duLieu?.duongDanTep || null;
+          }
+          await api.post(`/khieu-nai/${khieuNaiDangMoModalGs.id}/phan-hoi-gia-su`, { phanHoi, bangChungUrl });
+          dongModalKnGs();
+          hienThongBao('Đã gửi giải trình & bằng chứng phản biện thành công! Quản trị viên sẽ đối chiếu 2 chiều.', 'success');
+          await taiTongQuanGiaSu();
+        } catch (err) {
+          if (elTb) {
+            elTb.style.display = 'block';
+            elTb.className = 'alert alert-danger';
+            elTb.textContent = err.message || 'Không thể gửi giải trình khiếu nại.';
+          }
+        } finally {
+          if (btnSub) btnSub.disabled = false;
+        }
+      });
+
+      const DANH_SACH_THU = [
+        { thu: 2, ten: 'Thứ Hai', short: 'T2' },
+        { thu: 3, ten: 'Thứ Ba', short: 'T3' },
+        { thu: 4, ten: 'Thứ Tư', short: 'T4' },
+        { thu: 5, ten: 'Thứ Năm', short: 'T5' },
+        { thu: 6, ten: 'Thứ Sáu', short: 'T6' },
+        { thu: 7, ten: 'Thứ Bảy', short: 'T7' },
+        { thu: 1, ten: 'Chủ Nhật', short: 'CN' },
+      ];
+
+      // State lưu các ca dạy theo thứ: { 2: [{ bd: '18:30', kt: '21:00', hinhThuc: 'CA_HAI' }], ... }
+      let lichTuanState = {};
+      let dangXuLyNghi = null;
+
+      function hienThongBao(msg, loai = 'success') {
+        hopThongBao.style.display = 'block';
+        hopThongBao.className = `alert alert-${loai}`;
+        hopThongBao.textContent = msg;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      function dongBoTrangThaiBanKinh() {
+        const coTrucTuyen = document.getElementById('chk-truc-tuyen')?.checked ?? true;
+        const coTrucTiep = document.getElementById('chk-truc-tiep').checked;
+        const inpBanKinh = document.getElementById('gs-ban-kinh');
+        const ghiChu = document.getElementById('ghi-chu-ban-kinh');
+        inpBanKinh.disabled = !coTrucTiep;
+        if (!coTrucTiep) {
+          inpBanKinh.value = '0';
+          ghiChu.textContent = 'Không áp dụng khi bạn chỉ dạy trực tuyến toàn quốc.';
+        } else {
+          if (Number(inpBanKinh.value) < 1) inpBanKinh.value = '10';
+          ghiChu.textContent = 'Phạm vi tối đa di chuyển đến nhà học sinh (1 – 100 km).';
+        }
+        const chkHocThu = document.getElementById('chk-mo-hoc-thu');
+        if (chkHocThu) {
+          chkHocThu.disabled = !coTrucTuyen;
+          if (!coTrucTuyen) chkHocThu.checked = false;
+        }
+      }
+
+      document.getElementById('chk-truc-tuyen')?.addEventListener('change', dongBoTrangThaiBanKinh);
+      document.getElementById('chk-truc-tiep')?.addEventListener('change', dongBoTrangThaiBanKinh);
+
+      if (user && user.vaiTro !== 'GIA_SU') {
+        hopThongBao.style.display = 'block';
+        hopThongBao.className = 'alert alert-warning';
+        hopThongBao.innerHTML = `Cổng Gia sư chỉ dành cho tài khoản Gia sư. <a href="${layTrangChinhTheoVaiTro(user.vaiTro)}" style="font-weight: 700; text-decoration: underline">Chuyển về cổng của bạn →</a>`;
+      } else {
+        await khoiTaoTrang();
+      }
+
+      async function khoiTaoTrang() {
+        try {
+          const resMon = await api.get('/mon-hoc');
+          dsMonHocHeThong = resMon?.duLieu || [];
+          await Promise.all([taiHoSoGiaSu(), taiTongQuanGiaSu()]);
+        } catch (err) {
+          hienThongBao(err.message, 'danger');
+        }
+      }
+
+      async function taiTongQuanViGiaSu() {
+        try {
+          const res = await api.get('/vi/toi');
+          tongQuanViHienTai = res?.duLieu || null;
+        } catch {
+          tongQuanViHienTai = null;
+        }
+        dongBoCacViTriSoDuVi();
+      }
+
+      function dongBoCacViTriSoDuVi() {
+        const khaDung = Number(tongQuanViHienTai?.soDuKhaDung ?? tongQuanHienTai?.soDuVi ?? 0);
+        const sapNhan = Number(tongQuanViHienTai?.soDuSapNhan ?? 0);
+        const dangRut = Number(tongQuanViHienTai?.soDuDangXuLyRut ?? 0);
+        const tongDaRut = Number(tongQuanViHienTai?.tongDaRut ?? 0);
+        const tyLePhi = Number(tongQuanViHienTai?.tyLePhiHienHanh ?? 12);
+        const nh = tongQuanViHienTai?.nganHang || null;
+
+        const elSbVi = document.getElementById('gs-sb-vi');
+        if (elSbVi) elSbVi.textContent = `Ví: ${dinhDangTienVnd(khaDung)}`;
+
+        const elKpiVi = document.getElementById('gs-kpi-vi');
+        if (elKpiVi) elKpiVi.textContent = dinhDangTienVnd(khaDung);
+        const elViCho = document.getElementById('gs-kpi-vi-cho');
+        const elViDangRut = document.getElementById('gs-kpi-vi-dang-rut');
+        const elViRut = document.getElementById('gs-kpi-vi-rut');
+        if (elViCho) elViCho.textContent = dinhDangTienVnd(sapNhan);
+        if (elViDangRut) elViDangRut.textContent = dinhDangTienVnd(dangRut);
+        if (elViRut) elViRut.textContent = dinhDangTienVnd(tongDaRut);
+
+        const elTabKhaDung = document.getElementById('vi-so-du-kha-dung');
+        const elTabSapNhan = document.getElementById('vi-so-du-dang-cho');
+        const elTabDangRut = document.getElementById('vi-so-du-dang-rut');
+        const elTabDaRut = document.getElementById('vi-tong-da-rut');
+        const elTabSapNhanSub = document.getElementById('vi-sap-nhan-sub');
+        const elTabNhSub = document.getElementById('vi-ngan-hang-rut-sub');
+
+        if (elTabKhaDung) elTabKhaDung.textContent = dinhDangTienVnd(khaDung);
+        if (elTabSapNhan) elTabSapNhan.textContent = dinhDangTienVnd(sapNhan);
+        if (elTabDangRut) elTabDangRut.textContent = dinhDangTienVnd(dangRut);
+        if (elTabDaRut) elTabDaRut.textContent = dinhDangTienVnd(tongDaRut);
+        if (elTabSapNhanSub) elTabSapNhanSub.textContent = `Dự kiến theo tỷ lệ phí hiện hành (${tyLePhi}%)`;
+        if (elTabNhSub) {
+          elTabNhSub.textContent = nh
+            ? `${nh.tenNganHang} · ${nh.soTaiKhoanChe}`
+            : 'Chưa liên kết ngân hàng thụ hưởng';
+        }
+      }
+
+      function renderViecCanLam(d) {
+        const el = document.getElementById('gs-viec-can-lam');
+        const badge = document.getElementById('gs-viec-badge');
+        if (!el) return;
+
+        const dsLich = d?.dsLichDayGanDay || [];
+        const soChoXacNhan = dsLich.filter((x) => x.trangThai === 'CHO_XAC_NHAN').length;
+        const soDangRut = Number(tongQuanViHienTai?.soDuDangXuLyRut ?? 0);
+        const chuaCoNganHang = !tongQuanViHienTai?.nganHang && !hoSoHienTai?.taiKhoanNganHang;
+        const canGuiDuyet = hoSoHienTai && (hoSoHienTai.trangThaiHoSo === 'NHAP' || hoSoHienTai.trangThaiHoSo === 'TU_CHOI');
+        const soTranhChap = dsLich.filter((x) => x.trangThai === 'TRANH_CHAP').length;
+
+        const viec = [];
+        if (soChoXacNhan > 0) {
+          viec.push({
+            tieuDe: `${soChoXacNhan} yêu cầu lớp chờ xác nhận`,
+            moTa: 'Phản hồi sớm cho học viên sau khi tiền học phí đã được tạm giữ.',
+            loai: 'warning',
+            hanhDong: 'Xem danh sách',
+            onClick: () => document.getElementById('gs-ds-lich-day')?.scrollIntoView({ behavior: 'smooth', block: 'center' }),
+          });
+        }
+        const dsKnMo = dsKhieuNaiGiaSu.filter((k) => k.trangThai === 'MO');
+        const knChuaPhanHoi = dsKnMo.find((k) => !k.phanHoiGiaSu);
+        if (dsKnMo.length > 0 || soTranhChap > 0) {
+          const knMucTieu = knChuaPhanHoi || dsKnMo[0];
+          viec.push({
+            tieuDe: knChuaPhanHoi
+              ? `${dsKnMo.length} khiếu nại từ học viên cần bạn phản biện`
+              : `${dsKnMo.length || soTranhChap} buổi học đang khiếu nại`,
+            moTa: knChuaPhanHoi
+              ? `Đơn ${knChuaPhanHoi.maDon} (${dinhDangTienVnd(knChuaPhanHoi.soTienThanhToan)}): Vui lòng gửi giải trình & bằng chứng để quản trị viên đối chiếu 2 chiều.`
+              : 'Bạn đã gửi giải trình phản biện; khoản học phí lịch sử đang chờ quản trị viên phân xử.',
+            loai: 'danger',
+            hanhDong: knChuaPhanHoi ? 'Gửi phản biện ngay' : 'Xem khiếu nại',
+            onClick: () => {
+              if (knMucTieu) moModalPhanBienKhieuNaiGs(knMucTieu);
+              else document.getElementById('gs-ds-lich-day')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            },
+          });
+        }
+        if (chuaCoNganHang) {
+          viec.push({
+            tieuDe: 'Chưa thiết lập tài khoản ngân hàng',
+            moTa: 'Cập nhật ngân hàng thụ hưởng trong Cài đặt tài khoản để rút thu nhập.',
+            loai: 'info',
+            hanhDong: 'Thiết lập ngay',
+            onClick: () => chuyenTab('tab-tai-khoan'),
+          });
+        }
+        if (soDangRut > 0) {
+          viec.push({
+            tieuDe: `Lệnh rút ${dinhDangTienVnd(soDangRut)} đang chờ chi trả`,
+            moTa: 'Số tiền đã được khóa riêng và đang chờ quản trị viên chuyển khoản.',
+            loai: 'info',
+            hanhDong: 'Mở Ví',
+            onClick: () => chuyenTab('tab-vi-giao-dich'),
+          });
+        }
+        if (canGuiDuyet) {
+          viec.push({
+            tieuDe: 'Hoàn thiện & gửi duyệt hồ sơ gia sư',
+            moTa: 'Bổ sung đủ thông tin, môn dạy và giấy tờ để hiển thị công khai.',
+            loai: 'warning',
+            hanhDong: 'Mở Hồ sơ',
+            onClick: () => chuyenTab('tab-ho-so'),
+          });
+        }
+
+        if (badge) {
+          badge.textContent = String(viec.length);
+          badge.className = `badge ${viec.length > 0 ? 'badge-warning' : 'badge-success'}`;
+        }
+
+        if (viec.length === 0) {
+          el.innerHTML = `
+            <div style="padding: 0.9rem; border-radius: 11px; background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; font-size: 0.83rem; font-weight: 600">
+              Mọi việc quan trọng đã hoàn tất! Bạn đã sẵn sàng đón lớp mới.
+            </div>
+          `;
+          return;
+        }
+
+        const styleMap = {
+          warning: 'background: #fffbeb; border: 1px solid #fde68a; color: #92400e',
+          danger: 'background: #fef2f2; border: 1px solid #fecaca; color: #991b1b',
+          info: 'background: #f5f9ff; border: 1px solid #cde0fe; color: #1e3a8a',
+        };
+
+        el.innerHTML = viec
+          .map(
+            (v, idx) => `
+            <div style="padding: 0.72rem 0.85rem; border-radius: 11px; ${styleMap[v.loai] || styleMap.info}; display: flex; flex-direction: column; gap: 0.35rem">
+              <div style="font-weight: 700; font-size: 0.84rem">${escapeHtml(v.tieuDe)}</div>
+              <div style="font-size: 0.77rem; opacity: 0.9; line-height: 1.45">${escapeHtml(v.moTa)}</div>
+              <div>
+                <button type="button" class="btn btn-secondary btn-sm btn-viec-can-lam" data-idx="${idx}" style="height: 28px; font-size: 0.74rem; padding: 0 0.65rem">
+                  ${escapeHtml(v.hanhDong)} →
+                </button>
+              </div>
+            </div>
+          `
+          )
+          .join('');
+
+        el.querySelectorAll('.btn-viec-can-lam').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const item = viec[Number(btn.dataset.idx)];
+            if (item?.onClick) item.onClick();
+          });
+        });
+      }
+
+      async function taiTongQuanGiaSu() {
+        try {
+          const [res] = await Promise.all([
+            api.get('/gia-su/toi/tong-quan'),
+            taiTongQuanViGiaSu(),
+            taiThongBaoVaKhieuNaiGiaSu(),
+          ]);
+          const d = res?.duLieu;
+          if (!d) return;
+          tongQuanHienTai = d;
+
+          document.getElementById('gs-sb-avatar').textContent = layChuCaiDau(d.hoTen);
+          document.getElementById('gs-sb-ten').textContent = d.hoTen;
+          const elPopGsTen = document.getElementById('pop-gs-ten');
+          if (elPopGsTen) elPopGsTen.textContent = d.hoTen;
+          const elGsBannerGreet = document.getElementById('gs-loi-chao-banner');
+          if (elGsBannerGreet) elGsBannerGreet.textContent = `Xin chào, ${d.hoTen}!`;
+
+          // 2 chip hình thức giảng dạy ngay dưới banner chào mừng
+          const elBannerChips = document.getElementById('gs-banner-mode-chips');
+          if (elBannerChips) {
+            elBannerChips.innerHTML = `
+              <button type="button" class="tag-mode ${d.dayTrucTuyen ? 'online' : ''}" id="chip-banner-online" style="cursor: pointer; border: 1px solid ${d.dayTrucTuyen ? '#bfdbfe' : '#e2e8f0'}; background: ${d.dayTrucTuyen ? '#eff6ff' : '#f8fafc'}; color: ${d.dayTrucTuyen ? '#1d4ed8' : '#64748b'}" title="Bấm để chỉnh sửa hình thức dạy">
+                ${icons.video(12)} <span>Online: ${d.dayTrucTuyen ? 'Toàn quốc' : 'Đang tắt'}</span>
+              </button>
+              <button type="button" class="tag-mode ${d.dayTrucTiep ? 'offline' : ''}" id="chip-banner-offline" style="cursor: pointer; border: 1px solid ${d.dayTrucTiep ? '#bae6fd' : '#e2e8f0'}; background: ${d.dayTrucTiep ? '#f0f9ff' : '#f8fafc'}; color: ${d.dayTrucTiep ? '#0369a1' : '#64748b'}" title="Bấm để chỉnh sửa bán kính phục vụ">
+                ${icons.home(12)} <span>Trực tiếp: ${d.dayTrucTiep ? `≤ ${d.banKinhPhucVuKm} km` : 'Đang tắt'}</span>
+              </button>
+            `;
+            document.getElementById('chip-banner-online')?.addEventListener('click', () => chuyenTab('tab-ho-so'));
+            document.getElementById('chip-banner-offline')?.addEventListener('click', () => chuyenTab('tab-ho-so'));
+          }
+
+          dongBoCacViTriSoDuVi();
+          renderViecCanLam(d);
+
+          document.getElementById('gs-kpi-buoi').textContent = `${d.soBuoiHoanThanh} buổi`;
+          document.getElementById('gs-kpi-buoi-sub').textContent = `${d.soBuoiSapToi} buổi sắp tới đang chờ dạy`;
+          document.getElementById('gs-kpi-diem').textContent = d.soLuotDanhGia > 0 ? `${d.diemDanhGiaTrungBinh.toFixed(1)} / 5.0` : 'Chưa có';
+          document.getElementById('gs-kpi-luot-sub').textContent = `${d.soLuotDanhGia} lượt đánh giá từ học sinh`;
+
+          const dsLichAll = d.dsLichDayGanDay || [];
+          const soLopChoXacNhan = dsLichAll.filter((x) => x.trangThai === 'CHO_XAC_NHAN').length;
+          const soBuoiHieuLuc = dsLichAll.filter((x) => x.trangThai === 'CHO_XAC_NHAN' || x.trangThai === 'DA_XAC_NHAN' || x.trangThai === 'HOAN_THANH').length;
+          document.getElementById('gs-kpi-cau-hinh').textContent = `${soLopChoXacNhan} lớp`;
+          document.getElementById('gs-kpi-giay-to-sub').textContent = `Giờ dạy tuần này: ${soBuoiHieuLuc} buổi (${d.soKhungGioHangTuan} ca mở)`;
+
+          const tyLePhiHienHanh = Number(tongQuanViHienTai?.tyLePhiHienHanh ?? 12);
+          const elLich = document.getElementById('gs-ds-lich-day');
+          const ds = d.dsLichDayGanDay || [];
+          if (ds.length === 0) {
+            elLich.innerHTML = '<div style="padding: 1.5rem 0.5rem; text-align: center; color: var(--th-text-muted); font-size: 0.85rem">Chưa có đơn đặt lịch nào. Hoàn thiện thời gian biểu nhận lớp và hồ sơ để học sinh dễ dàng đặt lịch.</div>';
+          } else {
+            const nowMs = Date.now();
+            const parseUtcMs = (iso) => {
+              if (!iso) return 0;
+              const s = String(iso).trim();
+              return new Date(/[zZ]|[+-]\d{2}:?\d{2}$/.test(s) ? s : `${s}Z`).getTime();
+            };
+
+            elLich.innerHTML = ds
+              .map((don) => {
+                const laOnline = don.hinhThuc === 'TRUC_TUYEN';
+                const tt = layNhanTrangThaiDonDatLich(don.trangThai);
+                const ktMs = parseUtcMs(don.ketThucLuc);
+                const daKetThuc = ktMs > 0 && nowMs >= ktMs;
+                const diaChiHs = don.diaChiHocSinh || (laOnline ? null : 'Khu vực học sinh');
+                const mapsUrl = don.uocTinhDiChuyen?.googleMapsUrl || (diaChiHs ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(diaChiHs)}` : null);
+                const hocPhi = Number(don.tongTien || 0);
+                const thucNhan = Number(don.thuNhapGiaSu || 0);
+                const phiNenTang = Number(don.phiNenTang ?? Math.max(0, hocPhi - thucNhan));
+                const nhanTien = layNhanTienDonGiaSu(don);
+                const laDuKien = don.trangThaiThanhToan !== 'DA_GIAI_NGAN';
+                const tooltipTien = laDuKien
+                  ? `Dự kiến theo tỷ lệ phí hiện hành (${tyLePhiHienHanh}%): Học phí ${dinhDangTienVnd(hocPhi)} − phí ${dinhDangTienVnd(phiNenTang)} = ${dinhDangTienVnd(thucNhan)}`
+                  : `Đã chốt giải ngân: Học phí ${dinhDangTienVnd(hocPhi)} − phí nền tảng ${dinhDangTienVnd(phiNenTang)} = ${dinhDangTienVnd(thucNhan)}`;
+                const khongKhaThi = don.uocTinhDiChuyen?.mucDoKhaThi === 'KHONG_KHA_THI';
+                const canhBaoRutGon = don.uocTinhDiChuyen ? rutGonCanhBaoDiChuyen(don.uocTinhDiChuyen) : null;
+                const choThanhToanPrepaid = don.trangThai === 'CHO_XAC_NHAN' && hocPhi > 0 && don.trangThaiThanhToan !== 'DANG_GIU';
+
+                let cotTienHtml = '';
+                if (nhanTien.hien) {
+                  if (nhanTien.hienSoTien) {
+                    cotTienHtml = `
+                      <div style="text-align: right; flex-shrink: 0" title="${escapeHtml(tooltipTien)}">
+                        <div style="font-weight: 700; font-size: 0.94rem; color: #2563eb; cursor: help">+${dinhDangTienVnd(thucNhan)}</div>
+                        <div style="font-size: 0.72rem; color: var(--th-text-muted); cursor: help">Học phí ${dinhDangTienVnd(hocPhi)}</div>
+                        ${
+                          nhanTien.linkSoCai
+                            ? `<button type="button" class="lesson-money-status-link settled btn-tra-soat-tu-lop" data-ma-don="${escapeHtml(don.maDon)}" title="Bấm để xem bút toán sổ cái thật trong Ví gia sư">${escapeHtml(nhanTien.nhan)}</button>`
+                            : `<div style="margin-top: 0.2rem"><span class="badge ${nhanTien.lop}" style="font-size: 0.68rem">${escapeHtml(nhanTien.nhan)}</span></div>`
+                        }
+                      </div>
+                    `;
+                  } else {
+                    cotTienHtml = `
+                      <div style="text-align: right; flex-shrink: 0">
+                        <span class="badge ${nhanTien.lop}" style="font-size: 0.72rem">${escapeHtml(nhanTien.nhan)}</span>
+                      </div>
+                    `;
+                  }
+                }
+
+                return `
+                  <div class="lesson-list-item" id="lesson-item-${escapeHtml(don.maDon)}" style="flex-direction: column; align-items: stretch; gap: 0.65rem">
+                    <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 0.75rem">
+                      <div style="min-width: 0; flex: 1">
+                        <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap">
+                          <strong style="font-size: 0.94rem">${escapeHtml(don.tenMonHoc)}</strong>
+                          <span class="tag-mode ${laOnline ? 'online' : 'offline'}">
+                            ${laOnline ? icons.video(12) : icons.home(12)}
+                            <span>${laOnline ? 'Trực tuyến' : 'Tại nhà'}</span>
+                          </span>
+                          ${don.laBuoiHocThu ? '<span class="badge badge-success" style="font-size: 0.68rem">Học thử Online 0 ₫</span>' : ''}
+                          <span class="badge ${tt.lopBadge}">${escapeHtml(tt.nhan)}</span>
+                          ${don.trangThai === 'DA_XAC_NHAN' && daKetThuc ? '<span class="badge" style="background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; font-size: 0.68rem">Đã kết thúc</span>' : ''}
+                        </div>
+                        <div style="margin-top: 0.3rem; font-size: 0.8rem; color: var(--th-text-muted); display: flex; flex-wrap: wrap; gap: 0.3rem 1rem">
+                          <span>Học sinh: <strong style="color: var(--th-text-secondary)">${escapeHtml(don.tenDoiTac)}</strong></span>
+                          <span>${dinhDangNgayGioVn(don.batDauLuc)}</span>
+                          <span>Mã: ${escapeHtml(don.maDon)}</span>
+                        </div>
+                      </div>
+                      ${cotTienHtml}
+                    </div>
+
+                    ${!laOnline && diaChiHs ? `
+                      <div style="padding: 0.45rem 0.65rem; border-radius: 8px; background: #f8fafc; border: 1px solid #e2e8f0; font-size: 0.79rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem">
+                        <div style="display: flex; align-items: center; gap: 0.35rem; color: #1e293b">
+                          <span style="color: #ef4444; font-size: 0.9rem">📍</span>
+                          <span>Địa chỉ: <strong>${escapeHtml(diaChiHs)}</strong></span>
+                        </div>
+                        ${mapsUrl ? `
+                          <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.2rem 0.55rem; font-size: 0.74rem; border-radius: 6px; background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; text-decoration: none; font-weight: 600">
+                            🧭 Mở chỉ đường Google Maps ↗
+                          </a>
+                        ` : ''}
+                      </div>
+                    ` : ''}
+
+                    ${don.uocTinhDiChuyen && canhBaoRutGon ? `
+                      <div>
+                        ${don.uocTinhDiChuyen.mucDoKhaThi === 'THOAI_MAI'
+                          ? `<span class="badge" title="${escapeHtml(canhBaoRutGon.chiTiet)}" style="background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; font-size: 0.74rem; font-weight: 600; cursor: help">✅ ${escapeHtml(canhBaoRutGon.tomTat)}</span>`
+                          : don.uocTinhDiChuyen.mucDoKhaThi === 'KHA_GAP'
+                          ? `<span class="badge" title="${escapeHtml(canhBaoRutGon.chiTiet)}" style="background: #fffbeb; color: #b45309; border: 1px solid #fde68a; font-size: 0.74rem; font-weight: 600; cursor: help">⚠️ ${escapeHtml(canhBaoRutGon.tomTat)}</span>`
+                          : `<span class="badge" title="${escapeHtml(canhBaoRutGon.chiTiet)}" style="background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; font-size: 0.74rem; font-weight: 600; cursor: help">❌ ${escapeHtml(canhBaoRutGon.tomTat)}</span>`
+                        }
+                      </div>
+                    ` : ''}
+                    ${don.trangThai === 'CHO_XAC_NHAN' ? `
+                      <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap; padding-top: 0.35rem; border-top: 1px dashed #e2eaf6">
+                        <button
+                          type="button"
+                          class="btn btn-emerald btn-sm btn-xac-nhan-don-gs"
+                          data-don-id="${don.id}"
+                          style="height: 32px; font-size: 0.78rem"
+                          ${khongKhaThi || choThanhToanPrepaid ? `disabled title="${escapeHtml(choThanhToanPrepaid ? 'Đơn có phí chỉ có thể xác nhận sau khi học viên thanh toán giữ chỗ' : canhBaoRutGon?.tomTat || 'Không đủ thời gian di chuyển từ lớp trước')}"` : ''}
+                        >
+                          ✓ Xác nhận nhận lớp
+                        </button>
+                        <button type="button" class="btn btn-danger btn-sm btn-tu-choi-don-gs" data-don-id="${don.id}" style="height: 32px; font-size: 0.78rem">
+                          Từ chối
+                        </button>
+                        ${choThanhToanPrepaid ? '<span style="font-size: 0.75rem; color: #b45309">Đang chờ học viên thanh toán giữ chỗ...</span>' : ''}
+                      </div>
+                    ` : ''}
+                    ${laOnline && don.trangThai === 'DA_XAC_NHAN' && !daKetThuc ? `
+                      <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap; padding-top: 0.35rem; border-top: 1px dashed #dbeafe">
+                        <a href="/pages/phong-hoc.html?donId=${encodeURIComponent(don.id)}" class="btn btn-tutor-blue btn-sm" style="height: 32px; font-size: 0.78rem">
+                          Mở phòng học
+                        </a>
+                      </div>
+                    ` : ''}
+                    ${don.trangThai === 'TRANH_CHAP' ? (() => {
+                      const knDon = dsKhieuNaiGiaSu.find((k) => k.donDatLichId === don.id || k.maDon === don.maDon);
+                      return knDon ? `
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; flex-wrap: wrap; padding: 0.6rem 0.75rem; border-radius: 10px; background: #fef2f2; border: 1px solid #fecaca; font-size: 0.79rem; color: #991b1b">
+                          <span>
+                            <strong>Khiếu nại từ học viên:</strong> ${knDon.phanHoiGiaSu ? 'Bạn đã gửi giải trình (đang chờ quản trị phân xử).' : 'Chưa có phản biện từ bạn — hãy gửi giải trình & bằng chứng ngay.'}
+                          </span>
+                          <button type="button" class="btn btn-danger btn-sm btn-mo-phan-bien-kn" data-kn-id="${escapeHtml(knDon.id)}" style="height: 30px; font-size: 0.76rem">
+                            ${knDon.phanHoiGiaSu ? 'Xem / Cập nhật giải trình' : 'Gửi bác bỏ & Bằng chứng'}
+                          </button>
+                        </div>
+                      ` : '';
+                    })() : ''}
+                  </div>
+                `;
+              })
+              .join('');
+
+            elLich.querySelectorAll('.btn-mo-phan-bien-kn').forEach((btn) => {
+              btn.addEventListener('click', () => {
+                const kn = dsKhieuNaiGiaSu.find((k) => k.id === btn.dataset.knId);
+                if (kn) moModalPhanBienKhieuNaiGs(kn);
+              });
+            });
+
+            elLich.querySelectorAll('.btn-tra-soat-tu-lop').forEach((btn) => {
+              btn.addEventListener('click', async () => {
+                const maDon = btn.dataset.maDon || '';
+                const inpTk = document.getElementById('gd-tu-khoa');
+                if (inpTk) inpTk.value = maDon;
+                trangGiaoDichHienTai = 1;
+                chuyenTab('tab-vi-giao-dich');
+                await taiSoCaiGiaoDichGiaSu();
+                const gd = dsGiaoDichHienTai.find((x) => x.maDon === maDon);
+                if (gd) await moDrawerChiTietGiaoDich(gd.id);
+              });
+            });
+
+            elLich.querySelectorAll('.btn-xac-nhan-don-gs').forEach((btn) => {
+              btn.addEventListener('click', async () => {
+                btn.disabled = true;
+                try {
+                  await api.post(`/don-dat-lich/${btn.dataset.donId}/xac-nhan`, {});
+                  hienThongBao('Đã xác nhận nhận lớp thành công!', 'success');
+                  await taiTongQuanGiaSu();
+                } catch (err) {
+                  hienThongBao(err.message, 'danger');
+                  btn.disabled = false;
+                }
+              });
+            });
+
+            elLich.querySelectorAll('.btn-tu-choi-don-gs').forEach((btn) => {
+              btn.addEventListener('click', async () => {
+                const lyDo = prompt('Nhập lý do từ chối buổi học (tối thiểu 3 ký tự):', 'Kẹt lịch cá nhân');
+                if (!lyDo || lyDo.trim().length < 3) return;
+                btn.disabled = true;
+                try {
+                  await api.post(`/don-dat-lich/${btn.dataset.donId}/tu-choi`, { lyDo: lyDo.trim() });
+                  hienThongBao('Đã từ chối đơn đặt lịch (học phí tạm giữ sẽ tự động hoàn 100% về ví học viên nếu đã thanh toán).', 'info');
+                  await taiTongQuanGiaSu();
+                } catch (err) {
+                  hienThongBao(err.message, 'danger');
+                  btn.disabled = false;
+                }
+              });
+            });
+          }
+        } catch (err) {
+          hienThongBao(err.message, 'danger');
+        }
+      }
+
+      async function taiHoSoGiaSu() {
+        const res = await api.get('/gia-su/toi');
+        hoSoHienTai = res?.duLieu;
+        if (!hoSoHienTai) return;
+
+        renderTrangThaiVaChecklist(hoSoHienTai);
+        dienFormHoSo(hoSoHienTai);
+        renderGiayTo(hoSoHienTai.dsGiayTo || []);
+        renderFormMonDay(hoSoHienTai.dsMonDay || []);
+        khoiTaoLichTuanTuApi(
+          hoSoHienTai.lichRanh?.dsLichLapHangTuan || [],
+          hoSoHienTai.lichRanh?.thoiGianDemPhut ?? hoSoHienTai.thoiGianDemPhut,
+          hoSoHienTai.lichRanh?.thoiLuongToiThieuTaiNhaPhut ?? hoSoHienTai.thoiLuongToiThieuTaiNhaPhut
+        );
+        renderLichNgayCuThe(hoSoHienTai.lichRanh?.dsLichNgayCuThe || []);
+      }
+
+      function renderTrangThaiVaChecklist(hs) {
+        const tt = layNhanTrangThaiHoSoGiaSu(hs.trangThaiHoSo);
+        const coTheGuiDuyet = hs.trangThaiHoSo === 'NHAP' || hs.trangThaiHoSo === 'TU_CHOI';
+
+        // A.1: Chỉ giữ 1 badge trạng thái duyệt ở Header (đã xóa 2 badge lặp trong menu tài khoản)
+        document.getElementById('khung-trang-thai-duyet').innerHTML = `
+          <span class="badge ${tt.lopBadge}">Hồ sơ: ${escapeHtml(tt.nhan)}</span>
+          ${
+            coTheGuiDuyet
+              ? '<button id="btn-gui-duyet-ho-so" type="button" class="btn btn-emerald btn-sm">Gửi duyệt hồ sơ</button>'
+              : ''
+          }
+          ${
+            hs.trangThaiHoSo === 'DA_DUYET'
+              ? `<a class="btn btn-secondary btn-sm" href="/pages/ho-so-gia-su.html?id=${hs.id}">${icons.externalLink(13)} <span>Hồ sơ công khai</span></a>`
+              : ''
+          }
+        `;
+
+        document.getElementById('btn-gui-duyet-ho-so')?.addEventListener('click', async () => {
+          try {
+            await api.post('/gia-su/toi/gui-duyet', {});
+            hienThongBao('Đã gửi hồ sơ thành công! Hồ sơ của bạn đã chuyển sang trạng thái chờ duyệt.', 'success');
+            await Promise.all([taiHoSoGiaSu(), taiTongQuanGiaSu()]);
+          } catch (err) {
+            const chiTiet = (err.chiTiet || []).map((c) => `• ${c.thongBao}`).join(' ');
+            hienThongBao(`${err.message} ${chiTiet}`, 'danger');
+          }
+        });
+
+        const dk = [
+          { nhan: 'Tiêu đề ≥ 10 ký tự', dat: (hs.tieuDe || '').trim().length >= 10 },
+          { nhan: 'Giới thiệu ≥ 50 ký tự', dat: (hs.gioiThieu || '').trim().length >= 50 },
+          { nhan: 'Học vấn đầy đủ', dat: (hs.hocVan || '').trim().length >= 2 },
+          { nhan: 'Khu vực hoạt động', dat: Boolean((hs.khuVuc || '').trim()) },
+          { nhan: 'Chính sách buổi học đầu tiên', dat: true },
+          { nhan: 'Ít nhất 1 môn dạy', dat: (hs.dsMonDay || []).length >= 1 },
+          { nhan: 'Ít nhất 1 giấy tờ xác minh', dat: (hs.dsGiayTo || []).length >= 1 },
+        ];
+        const soDat = dk.filter((x) => x.dat).length;
+        const phanTram = Math.round((soDat / dk.length) * 100);
+        const elChecklist = document.getElementById('khung-checklist');
+
+        // A.3: Khi 7/7 hoàn tất, thu gọn thành 1 dòng "Hồ sơ hoàn tất ✓". Chỉ mở checklist khi còn mục thiếu.
+        if (soDat === dk.length) {
+          elChecklist.style.padding = '0.6rem 0.85rem';
+          elChecklist.innerHTML = `
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; font-size: 0.8rem; font-weight: 700; color: #15803d">
+              <span>Hồ sơ hoàn tất ✓</span>
+              <span class="badge badge-success" style="font-size: 0.68rem">7/7</span>
+            </div>
+          `;
+        } else {
+          elChecklist.style.padding = '0.95rem';
+          elChecklist.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem">
+              <span style="font-weight: 700; font-size: 0.8rem">Tiến độ hồ sơ</span>
+              <span style="font-size: 0.76rem; font-weight: 700; color: #2563eb">${soDat}/${dk.length}</span>
+            </div>
+            <div style="height: 5px; border-radius: 9999px; background: #e2e8f0; overflow: hidden; margin-bottom: 0.65rem">
+              <div style="height: 100%; width: ${phanTram}%; background: #3b82f6"></div>
+            </div>
+            <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.28rem; font-size: 0.75rem">
+              ${dk
+                .map(
+                  (item) =>
+                    `<li style="display: flex; align-items: center; gap: 0.35rem; color: ${item.dat ? '#15803d' : 'var(--th-text-muted)'}">
+                      ${item.dat ? icons.check(12) : '<span style="width: 12px; text-align: center">·</span>'}
+                      <span>${item.nhan}</span>
+                    </li>`
+                )
+                .join('')}
+            </ul>
+          `;
+        }
+
+        dongBoTheNganHangTabTaiKhoan(hs);
+      }
+
+      function dienFormHoSo(hs) {
+        document.getElementById('gs-ho-ten').value = hs.hoTen || '';
+        document.getElementById('gs-sdt').value = hs.soDienThoai || '';
+        document.getElementById('gs-khu-vuc').value = hs.khuVuc || '';
+        document.getElementById('gs-hoc-van').value = hs.hocVan || '';
+        document.getElementById('gs-tieu-de').value = hs.tieuDe || '';
+        document.getElementById('gs-gioi-thieu').value = hs.gioiThieu || '';
+        document.getElementById('gs-kinh-nghiem').value = hs.soNamKinhNghiem ?? 0;
+        const coOnline = (hs.hinhThucDay || []).includes('TRUC_TUYEN');
+        document.getElementById('chk-truc-tuyen').checked = coOnline;
+        document.getElementById('chk-truc-tiep').checked = (hs.hinhThucDay || []).includes('TRUC_TIEP');
+        const chkHocThu = document.getElementById('chk-mo-hoc-thu');
+        chkHocThu.disabled = !coOnline;
+        chkHocThu.checked = coOnline && Boolean(hs.coHocThu);
+        document.getElementById('gs-ban-kinh').value = hs.banKinhPhucVuKm ?? 0;
+        dongBoTrangThaiBanKinh();
+        dongBoTheNganHangTabTaiKhoan(hs);
+      }
+
+      // =========================================================================
+      // THẺ THÔNG TIN NGÂN HÀNG NHẬN TIỀN (CHE 4 SỐ CUỐI, SỬA QUA PUT /gia-su/toi/ngan-hang)
+      // =========================================================================
+      function dongBoTheNganHangTabTaiKhoan(hs) {
+        const nh = tongQuanViHienTai?.nganHang || hs?.taiKhoanNganHang;
+        const elTen = document.getElementById('tk-nh-ten-xem');
+        const elStk = document.getElementById('tk-nh-stk-xem');
+        const elChu = document.getElementById('tk-nh-chu-xem');
+        const stkHienThi = nh?.soTaiKhoanChe || nh?.soTaiKhoan || 'Chưa cập nhật';
+        if (elTen) elTen.textContent = nh?.tenNganHang || 'Chưa cập nhật';
+        if (elStk) elStk.textContent = stkHienThi;
+        if (elChu) elChu.textContent = nh?.chuTaiKhoan || 'Chưa cập nhật';
+
+        const inpTen = document.getElementById('tk-nh-ten-inp');
+        const inpStk = document.getElementById('tk-nh-stk-inp');
+        const inpChu = document.getElementById('tk-nh-chu-inp');
+        if (inpTen) inpTen.value = nh?.tenNganHang || '';
+        if (inpStk) inpStk.value = '';
+        if (inpChu) inpChu.value = nh?.chuTaiKhoan || '';
+      }
+
+      const khungXemNh = document.getElementById('khung-xem-ngan-hang');
+      const formSuaNhTk = document.getElementById('form-sua-ngan-hang-tk');
+      const tbNhTk = document.getElementById('tb-ngan-hang-tk');
+
+      document.getElementById('btn-mo-sua-ngan-hang')?.addEventListener('click', () => {
+        if (tbNhTk) tbNhTk.style.display = 'none';
+        if (khungXemNh) khungXemNh.style.display = 'none';
+        if (formSuaNhTk) formSuaNhTk.style.display = 'block';
+        document.getElementById('tk-nh-stk-inp').value = '';
+        document.getElementById('tk-nh-mat-khau-xn').value = '';
+      });
+
+      document.getElementById('btn-huy-sua-ngan-hang')?.addEventListener('click', () => {
+        if (tbNhTk) tbNhTk.style.display = 'none';
+        if (formSuaNhTk) formSuaNhTk.style.display = 'none';
+        if (khungXemNh) khungXemNh.style.display = 'block';
+      });
+
+      formSuaNhTk?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (tbNhTk) tbNhTk.style.display = 'none';
+        const tenNH = document.getElementById('tk-nh-ten-inp')?.value?.trim() || '';
+        const soTK = document.getElementById('tk-nh-stk-inp')?.value?.trim() || '';
+        const chuTK = document.getElementById('tk-nh-chu-inp')?.value?.trim().toUpperCase() || '';
+        const mkXn = document.getElementById('tk-nh-mat-khau-xn')?.value || '';
+
+        if (!tenNH || !soTK || !chuTK) {
+          if (tbNhTk) {
+            tbNhTk.style.display = 'block';
+            tbNhTk.className = 'alert alert-danger';
+            tbNhTk.textContent = 'Vui lòng điền đầy đủ Tên ngân hàng, Số tài khoản mới và Tên chủ tài khoản.';
+          }
+          return;
+        }
+        if (!mkXn) {
+          if (tbNhTk) {
+            tbNhTk.style.display = 'block';
+            tbNhTk.className = 'alert alert-danger';
+            tbNhTk.textContent = 'Vui lòng nhập mật khẩu đăng nhập hiện tại để xác nhận thay đổi tài khoản nhận tiền.';
+          }
+          return;
+        }
+
+        const btnLuu = document.getElementById('btn-luu-ngan-hang-tk');
+        btnLuu.disabled = true;
+        btnLuu.textContent = 'Đang xác thực & lưu...';
+
+        try {
+          await api.put('/gia-su/toi/ngan-hang', {
+            tenNganHang: tenNH,
+            soTaiKhoan: soTK,
+            chuTaiKhoan: chuTK,
+            matKhauXacNhan: mkXn,
+          });
+
+          await Promise.all([taiHoSoGiaSu(), taiTongQuanGiaSu()]);
+          if (formSuaNhTk) formSuaNhTk.style.display = 'none';
+          if (khungXemNh) khungXemNh.style.display = 'block';
+          if (tbNhTk) {
+            tbNhTk.style.display = 'block';
+            tbNhTk.className = 'alert alert-success';
+            tbNhTk.textContent = 'Đã xác thực mật khẩu và cập nhật tài khoản ngân hàng thành công!';
+          }
+        } catch (err) {
+          if (tbNhTk) {
+            tbNhTk.style.display = 'block';
+            tbNhTk.className = 'alert alert-danger';
+            tbNhTk.textContent = err.message || 'Mật khẩu xác nhận không đúng hoặc không thể lưu thông tin ngân hàng.';
+          }
+        } finally {
+          btnLuu.disabled = false;
+          btnLuu.textContent = 'Xác nhận & Lưu ngân hàng';
+        }
+      });
+
+      // =========================================================================
+      // SỔ CÁI VÍ & RÚT TIỀN GIA SƯ (KẾT NỐI TRỰC TIẾP 5 DỊCH VỤ VÍ THẬT)
+      // =========================================================================
+      async function dongBoVaRenderViGiaoDich() {
+        await Promise.all([taiTongQuanViGiaSu(), taiSoCaiGiaoDichGiaSu(), taiLichSuRutTienGiaSu()]);
+      }
+
+      async function taiSoCaiGiaoDichGiaSu() {
+        const tbody = document.getElementById('tbody-so-cai-gd');
+        const elPaging = document.getElementById('khung-phan-trang-gd');
+        if (!tbody) return;
+
+        const qs = new URLSearchParams({
+          trang: String(trangGiaoDichHienTai),
+          kichThuocTrang: String(KICH_THUOC_TRANG_GD),
+        });
+        const loai = document.getElementById('gd-loai')?.value || '';
+        const tuNgay = document.getElementById('gd-tu-ngay')?.value || '';
+        const denNgay = document.getElementById('gd-den-ngay')?.value || '';
+        const tuKhoa = (document.getElementById('gd-tu-khoa')?.value || '').trim();
+        if (loai) qs.set('loai', loai);
+        if (tuNgay) qs.set('tuNgay', tuNgay);
+        if (denNgay) qs.set('denNgay', denNgay);
+        if (tuKhoa) qs.set('tuKhoa', tuKhoa);
+
+        try {
+          const res = await api.get(`/vi/toi/giao-dich?${qs.toString()}`);
+          dsGiaoDichHienTai = res?.duLieu || [];
+          const meta = res?.meta || { trang: 1, kichThuocTrang: KICH_THUOC_TRANG_GD, tong: dsGiaoDichHienTai.length, tongTrang: 1 };
+
+          if (dsGiaoDichHienTai.length === 0) {
+            tbody.innerHTML = `
+              <tr>
+                <td colspan="6" style="padding: 2.2rem 1rem; text-align: center; color: var(--th-text-muted)">
+                  Không có bút toán sổ cái nào khớp với bộ lọc hiện tại.
+                </td>
+              </tr>
+            `;
+            if (elPaging) elPaging.innerHTML = '<span>Hiển thị 0 bút toán</span>';
+            return;
+          }
+
+          tbody.innerHTML = dsGiaoDichHienTai
+            .map((g) => {
+              const loaiInfo = layNhanLoaiSoCaiGiaSu(g.loai);
+              const laDuong = g.soTien > 0;
+              const laAm = g.soTien < 0;
+              const chuoiTien = laDuong
+                ? `+${dinhDangTienVnd(g.soTien)}`
+                : laAm
+                  ? `−${dinhDangTienVnd(Math.abs(g.soTien))}`
+                  : dinhDangTienVnd(0);
+
+              const thamChieuHtml = g.maDon
+                ? `<button type="button" class="link-more btn-nhay-den-buoi-hoc" data-ma-don="${escapeHtml(g.maDon)}" style="background: none; border: none; padding: 0; font-family: monospace; font-size: 0.81rem; font-weight: 700; cursor: pointer">${escapeHtml(g.maDon)} ↗</button>
+                   <div style="font-size: 0.74rem; color: var(--th-text-muted)">${escapeHtml(g.tenMonHoc || '')}${g.tenHocVien ? ` · ${escapeHtml(g.tenHocVien)}` : ''}</div>`
+                : g.tenNganHangRut
+                  ? `<span style="font-size: 0.81rem; font-weight: 600">${escapeHtml(g.tenNganHangRut)} <span style="font-family: monospace">${escapeHtml(g.soTaiKhoanRutChe || '')}</span></span>`
+                  : '<span style="color: #94a3b8">—</span>';
+
+              return `
+                <tr class="tx-row-clickable" data-gd-id="${escapeHtml(g.id)}" tabindex="0" role="button" aria-label="Xem chi tiết bút toán số ${g.soThuTu}">
+                  <td><strong style="font-family: monospace; font-size: 0.82rem; color: #1e293b">#${g.soThuTu}</strong></td>
+                  <td style="white-space: nowrap; font-size: 0.81rem">${dinhDangNgayGioVn(g.taoLuc)}</td>
+                  <td><span class="badge ${loaiInfo.lop}">${escapeHtml(loaiInfo.nhan)}</span></td>
+                  <td style="text-align: right; white-space: nowrap" class="${laDuong ? 'tx-amount-pos' : laAm ? 'tx-amount-neg' : ''}">${chuoiTien}</td>
+                  <td style="text-align: right; white-space: nowrap; font-weight: 600">${dinhDangTienVnd(g.soDuSau)}</td>
+                  <td>${thamChieuHtml}</td>
+                </tr>
+              `;
+            })
+            .join('');
+
+          tbody.querySelectorAll('.tx-row-clickable').forEach((tr) => {
+            tr.addEventListener('click', (e) => {
+              if (e.target.closest('.btn-nhay-den-buoi-hoc')) return;
+              moDrawerChiTietGiaoDich(tr.dataset.gdId);
+            });
+            tr.addEventListener('keydown', (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                moDrawerChiTietGiaoDich(tr.dataset.gdId);
+              }
+            });
+          });
+
+          tbody.querySelectorAll('.btn-nhay-den-buoi-hoc').forEach((btn) => {
+            btn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              const maDon = btn.dataset.maDon;
+              chuyenTab('tab-tong-quan');
+              setTimeout(() => {
+                const cardLop = document.getElementById(`lesson-item-${maDon}`);
+                if (cardLop) {
+                  cardLop.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  cardLop.style.boxShadow = '0 0 0 3px #60a5fa';
+                  setTimeout(() => (cardLop.style.boxShadow = ''), 2200);
+                }
+              }, 120);
+            });
+          });
+
+          const tongTrang = Math.max(1, meta.tongTrang || 1);
+          const batDau = (meta.trang - 1) * meta.kichThuocTrang;
+          if (elPaging) {
+            elPaging.innerHTML = `
+              <span>Hiển thị <strong>${batDau + 1}–${Math.min(batDau + dsGiaoDichHienTai.length, meta.tong)}</strong> trên tổng <strong>${meta.tong}</strong> bút toán</span>
+              <div style="display: flex; align-items: center; gap: 0.4rem">
+                <button type="button" class="btn btn-secondary btn-sm" id="btn-gd-prev" ${meta.trang <= 1 ? 'disabled' : ''}>← Trước</button>
+                <span style="font-weight: 700; padding: 0 0.4rem">Trang ${meta.trang} / ${tongTrang}</span>
+                <button type="button" class="btn btn-secondary btn-sm" id="btn-gd-next" ${meta.trang >= tongTrang ? 'disabled' : ''}>Sau →</button>
+              </div>
+            `;
+            document.getElementById('btn-gd-prev')?.addEventListener('click', () => {
+              if (trangGiaoDichHienTai > 1) {
+                trangGiaoDichHienTai -= 1;
+                taiSoCaiGiaoDichGiaSu();
+              }
+            });
+            document.getElementById('btn-gd-next')?.addEventListener('click', () => {
+              if (trangGiaoDichHienTai < tongTrang) {
+                trangGiaoDichHienTai += 1;
+                taiSoCaiGiaoDichGiaSu();
+              }
+            });
+          }
+        } catch (err) {
+          tbody.innerHTML = `<tr><td colspan="6" style="padding: 1.25rem; color: #b91c1c">${escapeHtml(err.message)}</td></tr>`;
+        }
+      }
+
+      async function taiLichSuRutTienGiaSu() {
+        const tbody = document.getElementById('tbody-lich-su-rut-tien');
+        if (!tbody) return;
+        try {
+          const res = await api.get('/vi/toi/rut-tien?trang=1&kichThuocTrang=20');
+          dsYeuCauRutHienTai = res?.duLieu || [];
+          if (dsYeuCauRutHienTai.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 1.2rem; color: var(--th-text-muted)">Chưa có yêu cầu rút tiền nào.</td></tr>';
+            return;
+          }
+          tbody.innerHTML = dsYeuCauRutHienTai
+            .map((r) => {
+              const ttInfo = layNhanTrangThaiRutTien(r.trangThai);
+              return `
+                <tr>
+                  <td style="font-size: 0.81rem; white-space: nowrap">${dinhDangNgayGioVn(r.taoLuc)}</td>
+                  <td>
+                    <div style="font-weight: 600">${escapeHtml(r.tenNganHang)} · <span style="font-family: monospace">${escapeHtml(r.soTaiKhoanChe)}</span></div>
+                    <div style="font-size: 0.74rem; color: var(--th-text-muted)">${escapeHtml(r.chuTaiKhoan)}</div>
+                  </td>
+                  <td style="text-align: right; font-weight: 800; color: #0f172a; white-space: nowrap">${dinhDangTienVnd(r.soTien)}</td>
+                  <td><span class="badge ${ttInfo.lop}">${escapeHtml(ttInfo.nhan)}</span></td>
+                  <td style="font-size: 0.8rem; color: var(--th-text-muted)">${escapeHtml(r.ghiChu || '—')}</td>
+                </tr>
+              `;
+            })
+            .join('');
+        } catch (err) {
+          tbody.innerHTML = `<tr><td colspan="5" style="padding: 1rem; color: #b91c1c">${escapeHtml(err.message)}</td></tr>`;
+        }
+      }
+
+      async function moDrawerChiTietGiaoDich(gdId) {
+        const drawer = document.getElementById('drawer-chi-tiet-gd');
+        const body = document.getElementById('noi-dung-drawer-gd');
+        if (!drawer || !body) return;
+
+        body.innerHTML = '<div style="padding: 1.5rem; text-align: center; color: var(--th-text-muted)">Đang tải chi tiết bút toán...</div>';
+        drawer.classList.add('open');
+
+        try {
+          const res = await api.get(`/vi/toi/giao-dich/${gdId}`);
+          const gd = res?.duLieu;
+          if (!gd) return;
+
+          const loaiInfo = layNhanLoaiSoCaiGiaSu(gd.loai);
+          const chuoiTien = gd.soTien > 0 ? `+${dinhDangTienVnd(gd.soTien)}` : gd.soTien < 0 ? `−${dinhDangTienVnd(Math.abs(gd.soTien))}` : dinhDangTienVnd(0);
+          const laThuNhap = gd.loai === 'THU_NHAP';
+
+          body.innerHTML = `
+            <div style="padding: 1rem; border-radius: 14px; background: #f8fbff; border: 1px solid #dbeafe; text-align: center">
+              <div style="font-size: 0.76rem; color: #475569; font-weight: 600">${escapeHtml(loaiInfo.nhan)} · Bút toán #${gd.soThuTu}</div>
+              <div style="font-size: 1.45rem; font-weight: 800; margin-top: 0.2rem" class="${gd.soTien > 0 ? 'tx-amount-pos' : gd.soTien < 0 ? 'tx-amount-neg' : ''}">
+                ${chuoiTien}
+              </div>
+              <div style="margin-top: 0.45rem"><span class="badge ${loaiInfo.lop}">${escapeHtml(loaiInfo.nhan)}</span></div>
+            </div>
+
+            <div class="tx-detail-row">
+              <span class="tx-detail-lbl">Thứ tự sổ cái</span>
+              <span class="tx-detail-val" style="font-family: monospace">#${gd.soThuTu}</span>
+            </div>
+            <div class="tx-detail-row">
+              <span class="tx-detail-lbl">Thời gian ghi sổ</span>
+              <span class="tx-detail-val">${dinhDangNgayGioVn(gd.taoLuc)}</span>
+            </div>
+            <div class="tx-detail-row">
+              <span class="tx-detail-lbl">Số dư sổ sách trước GD</span>
+              <span class="tx-detail-val">${dinhDangTienVnd(gd.soDuTruoc)}</span>
+            </div>
+            <div class="tx-detail-row">
+              <span class="tx-detail-lbl">Số dư sổ sách sau GD</span>
+              <span class="tx-detail-val">${dinhDangTienVnd(gd.soDuSau)}</span>
+            </div>
+            ${
+              laThuNhap
+                ? `
+              <div class="tx-detail-row">
+                <span class="tx-detail-lbl">Mã buổi học liên kết</span>
+                <span class="tx-detail-val" style="font-family: monospace">${escapeHtml(gd.maDon || '—')}</span>
+              </div>
+              <div class="tx-detail-row">
+                <span class="tx-detail-lbl">Học viên</span>
+                <span class="tx-detail-val">${escapeHtml(gd.tenHocVien || '—')}</span>
+              </div>
+              <div class="tx-detail-row">
+                <span class="tx-detail-lbl">Môn học</span>
+                <span class="tx-detail-val">${escapeHtml(gd.tenMonHoc || '—')}</span>
+              </div>
+              <div class="tx-detail-row">
+                <span class="tx-detail-lbl">Số học viên đã trả</span>
+                <span class="tx-detail-val">${dinhDangTienVnd(gd.soHocVienTra ?? 0)}</span>
+              </div>
+              <div class="tx-detail-row">
+                <span class="tx-detail-lbl">Phí nền tảng (${gd.tyLePhi ?? 0}%)</span>
+                <span class="tx-detail-val" style="color: #dc2626">−${dinhDangTienVnd(gd.phiNenTang ?? 0)}</span>
+              </div>
+              <div class="tx-detail-row">
+                <span class="tx-detail-lbl">Thu nhập thực nhận</span>
+                <span class="tx-detail-val" style="color: #15803d">${dinhDangTienVnd(gd.soTien)}</span>
+              </div>
+            `
+                : `
+              <div class="tx-detail-row">
+                <span class="tx-detail-lbl">Ngân hàng thụ hưởng</span>
+                <span class="tx-detail-val">${escapeHtml(gd.tenNganHangRut || '—')} ${escapeHtml(gd.soTaiKhoanRutChe || '')}</span>
+              </div>
+            `
+            }
+            <div style="padding: 0.75rem 0.9rem; border-radius: 12px; background: #f8fafc; border: 1px solid #e2e8f0; font-size: 0.8rem; color: #475569; line-height: 1.5">
+              <strong>Diễn giải đối soát:</strong> ${escapeHtml(gd.ghiChu || 'Bút toán sổ cái bất biến.')}
+            </div>
+          `;
+        } catch (err) {
+          body.innerHTML = `<div class="alert alert-danger">${escapeHtml(err.message)}</div>`;
+        }
+      }
+
+      const drawerGd = document.getElementById('drawer-chi-tiet-gd');
+      document.getElementById('btn-dong-drawer-gd')?.addEventListener('click', () => drawerGd?.classList.remove('open'));
+      drawerGd?.addEventListener('click', (e) => {
+        if (e.target === drawerGd) drawerGd.classList.remove('open');
+      });
+
+      document.getElementById('form-loc-giao-dich-gs')?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        trangGiaoDichHienTai = 1;
+        taiSoCaiGiaoDichGiaSu();
+      });
+
+      ['gd-loai', 'gd-tu-ngay', 'gd-den-ngay'].forEach((id) => {
+        document.getElementById(id)?.addEventListener('change', () => {
+          trangGiaoDichHienTai = 1;
+          taiSoCaiGiaoDichGiaSu();
+        });
+      });
+
+      document.getElementById('btn-dat-lai-loc-gd')?.addEventListener('click', () => {
+        document.getElementById('form-loc-giao-dich-gs')?.reset();
+        trangGiaoDichHienTai = 1;
+        taiSoCaiGiaoDichGiaSu();
+      });
+
+      document.getElementById('btn-xuat-csv-gd')?.addEventListener('click', () => {
+        xuatCsvSoCaiGiaSu(dsGiaoDichHienTai);
+      });
+
+      // Modal Rút tiền (Định dạng ngàn + Rút tối đa + Mật khẩu xác nhận + IdempotencyKey)
+      const modalRutTien = document.getElementById('modal-rut-tien-gs');
+      const inpSoTienRut = document.getElementById('inp-so-tien-rut');
+      const inpMatKhauRut = document.getElementById('inp-mat-khau-rut');
+      const errSoTienRut = document.getElementById('err-so-tien-rut');
+      const errMatKhauRut = document.getElementById('err-mat-khau-rut');
+      const tbModalRut = document.getElementById('tb-modal-rut-tien');
+
+      function phanTichSoTienRut(raw) {
+        const digits = String(raw || '').replace(/[^\d]/g, '');
+        return digits ? parseInt(digits, 10) : 0;
+      }
+
+      function dinhDangSoNgan(num) {
+        return num > 0 ? Number(num).toLocaleString('vi-VN') : '';
+      }
+
+      inpSoTienRut?.addEventListener('input', () => {
+        const val = phanTichSoTienRut(inpSoTienRut.value);
+        inpSoTienRut.value = dinhDangSoNgan(val);
+        if (errSoTienRut) errSoTienRut.textContent = '';
+      });
+
+      document.getElementById('btn-rut-toi-da')?.addEventListener('click', () => {
+        const khaDung = Number(tongQuanViHienTai?.soDuKhaDung ?? 0);
+        if (inpSoTienRut) inpSoTienRut.value = dinhDangSoNgan(khaDung);
+        if (errSoTienRut) errSoTienRut.textContent = '';
+      });
+
+      document.getElementById('btn-mo-modal-rut-tien')?.addEventListener('click', async () => {
+        await taiTongQuanViGiaSu();
+        const khaDung = Number(tongQuanViHienTai?.soDuKhaDung ?? 0);
+        const nh = tongQuanViHienTai?.nganHang;
+        khoaIdempotencyRutHienTai = `RUT-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+        document.getElementById('rut-so-du-hien-tai').textContent = dinhDangTienVnd(khaDung);
+        document.getElementById('rut-ngan-hang-nhan').textContent = nh
+          ? `${nh.tenNganHang} (${nh.soTaiKhoanChe}) · ${nh.chuTaiKhoan}`
+          : 'Chưa thiết lập (vào Cài đặt tài khoản)';
+        if (inpSoTienRut) inpSoTienRut.value = khaDung >= 100000 ? dinhDangSoNgan(Math.min(khaDung, 200000)) : '';
+        if (inpMatKhauRut) inpMatKhauRut.value = '';
+        if (errSoTienRut) errSoTienRut.textContent = '';
+        if (errMatKhauRut) errMatKhauRut.textContent = '';
+        if (tbModalRut) tbModalRut.style.display = 'none';
+        if (modalRutTien) modalRutTien.style.display = 'flex';
+      });
+
+      const dongModalRut = () => {
+        if (modalRutTien) modalRutTien.style.display = 'none';
+      };
+      document.getElementById('btn-dong-modal-rut-tien')?.addEventListener('click', dongModalRut);
+      document.getElementById('btn-huy-modal-rut-tien')?.addEventListener('click', dongModalRut);
+
+      document.getElementById('form-rut-tien-gs')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (errSoTienRut) errSoTienRut.textContent = '';
+        if (errMatKhauRut) errMatKhauRut.textContent = '';
+        if (tbModalRut) tbModalRut.style.display = 'none';
+
+        const soTien = phanTichSoTienRut(inpSoTienRut?.value);
+        const matKhauXacNhan = inpMatKhauRut?.value || '';
+        const khaDung = Number(tongQuanViHienTai?.soDuKhaDung ?? 0);
+
+        let hopLe = true;
+        if (soTien < 100000) {
+          if (errSoTienRut) errSoTienRut.textContent = 'Số tiền rút tối thiểu là 100.000 ₫.';
+          hopLe = false;
+        } else if (soTien > khaDung) {
+          if (errSoTienRut) errSoTienRut.textContent = `Số tiền rút vượt quá số dư khả dụng (${dinhDangTienVnd(khaDung)}).`;
+          hopLe = false;
+        }
+        if (!matKhauXacNhan) {
+          if (errMatKhauRut) errMatKhauRut.textContent = 'Vui lòng nhập mật khẩu đăng nhập để xác nhận.';
+          hopLe = false;
+        }
+        if (!hopLe) return;
+
+        const btnSubmit = document.getElementById('btn-submit-rut-tien');
+        if (btnSubmit) {
+          btnSubmit.disabled = true;
+          btnSubmit.textContent = 'Đang gửi lệnh rút...';
+        }
+
+        try {
+          await api.post('/vi/toi/rut-tien', {
+            soTien,
+            matKhauXacNhan,
+            idempotencyKey: khoaIdempotencyRutHienTai,
+          });
+          dongModalRut();
+          await Promise.all([dongBoVaRenderViGiaoDich(), taiTongQuanGiaSu()]);
+          hienThongBao(`Đã tạo yêu cầu rút tiền ${dinhDangTienVnd(soTien)} thành công! Số tiền đã được khóa chờ quản trị viên chi trả.`, 'success');
+        } catch (err) {
+          if (tbModalRut) {
+            tbModalRut.style.display = 'block';
+            tbModalRut.className = 'alert alert-danger';
+            tbModalRut.textContent = err.message || 'Không thể tạo yêu cầu rút tiền.';
+          }
+        } finally {
+          if (btnSubmit) {
+            btnSubmit.disabled = false;
+            btnSubmit.textContent = 'Xác nhận & Gửi yêu cầu';
+          }
+        }
+      });
+
+      document.getElementById('form-ho-so-gia-su')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const tieuDe = document.getElementById('gs-tieu-de').value.trim();
+        const gioiThieu = document.getElementById('gs-gioi-thieu').value.trim();
+        const hocVan = document.getElementById('gs-hoc-van').value.trim();
+
+        for (const [nhan, giaTri] of [
+          ['Tiêu đề hồ sơ', tieuDe],
+          ['Giới thiệu bản thân', gioiThieu],
+          ['Học vấn', hocVan],
+        ]) {
+          const kq = kiemTraNoiDungNguoiDungNhap(giaTri);
+          if (!kq.hopLe) {
+            hienThongBao(`${nhan}: ${kq.dsViPham[0].lyDo}`, 'danger');
+            return;
+          }
+        }
+
+        const hinhThucDay = [];
+        if (document.getElementById('chk-truc-tuyen').checked) hinhThucDay.push('TRUC_TUYEN');
+        if (document.getElementById('chk-truc-tiep').checked) hinhThucDay.push('TRUC_TIEP');
+
+        const moHocThu = document.getElementById('chk-mo-hoc-thu').checked;
+
+        try {
+          await api.put('/gia-su/toi', {
+            hoTen: document.getElementById('gs-ho-ten').value.trim(),
+            soDienThoai: document.getElementById('gs-sdt').value.trim() || null,
+            khuVuc: document.getElementById('gs-khu-vuc').value.trim() || null,
+            tieuDe,
+            gioiThieu,
+            hocVan,
+            soNamKinhNghiem: Number(document.getElementById('gs-kinh-nghiem').value) || 0,
+            hinhThucDay,
+            coHocThu: hinhThucDay.includes('TRUC_TUYEN') && moHocThu,
+            banKinhPhucVuKm: hinhThucDay.includes('TRUC_TIEP') ? Number(document.getElementById('gs-ban-kinh').value) || 10 : 0,
+          });
+          hienThongBao('Đã lưu thông tin hồ sơ gia sư thành công!', 'success');
+          await Promise.all([taiHoSoGiaSu(), taiTongQuanGiaSu()]);
+        } catch (err) {
+          const chiTiet = (err.chiTiet || []).map((c) => c.thongBao).join(' ');
+          hienThongBao(`${err.message} ${chiTiet}`.trim(), 'danger');
+        }
+      });
+
+      function renderGiayTo(ds) {
+        const el = document.getElementById('ds-giay-to-bang');
+        if (ds.length === 0) {
+          el.innerHTML = '<p style="font-size: 0.86rem; color: var(--th-text-muted)">Chưa có giấy tờ xác minh nào được tải lên.</p>';
+          return;
+        }
+        el.innerHTML = ds
+          .map((g) => {
+            const tt = layNhanTrangThaiGiayTo(g.trangThai);
+            return `
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.85rem 1rem; border: 1px solid var(--th-border); border-radius: var(--th-radius-md); margin-bottom: 0.65rem; flex-wrap: wrap; gap: 0.6rem">
+                <div>
+                  <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap">
+                    <strong style="font-size: 0.9rem">${escapeHtml(g.tenTepGoc)}</strong>
+                    <span class="badge badge-info">${escapeHtml(layNhanLoaiGiayTo(g.loai))}</span>
+                    <span class="badge ${tt.lopBadge}">${escapeHtml(tt.nhan)}</span>
+                  </div>
+                  <div style="font-size: 0.76rem; color: var(--th-text-muted); margin-top: 0.25rem">
+                    Tệp được lưu trữ bảo mật riêng tư
+                  </div>
+                </div>
+                <div style="display: flex; gap: 0.45rem">
+                  <button type="button" class="btn btn-secondary btn-sm btn-xem-tep" data-id="${g.id}">
+                    ${icons.eye(14)} <span>Lấy liên kết xem tệp</span>
+                  </button>
+                  <button type="button" class="btn btn-danger btn-sm btn-xoa-giay-to" data-id="${g.id}">
+                    ${icons.trash(14)} <span>Xóa</span>
+                  </button>
+                </div>
+              </div>
+            `;
+          })
+          .join('');
+
+        el.querySelectorAll('.btn-xem-tep').forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            try {
+              const res = await api.get(`/giay-to/${btn.dataset.id}/url-xem`);
+              const d = res?.duLieu;
+              const gioHetHan = d?.hetHanLuc ? new Date(d.hetHanLuc).toLocaleTimeString('vi-VN') : '';
+              hienThongBao(`Đã cấp liên kết bảo mật xem tệp "${d.tenTepGoc}" (hiệu lực đến ${gioHetHan}).`, 'info');
+            } catch (err) {
+              hienThongBao(err.message, 'danger');
+            }
+          });
+        });
+
+        el.querySelectorAll('.btn-xoa-giay-to').forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            if (!confirm('Bạn có chắc chắn muốn xóa giấy tờ này?')) return;
+            try {
+              await api.delete(`/gia-su/toi/giay-to/${btn.dataset.id}`);
+              hienThongBao('Đã xóa giấy tờ xác minh.', 'success');
+              await Promise.all([taiHoSoGiaSu(), taiTongQuanGiaSu()]);
+            } catch (err) {
+              hienThongBao(err.message, 'danger');
+            }
+          });
+        });
+      }
+
+      document.getElementById('form-tai-giay-to')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const file = document.getElementById('inp-tep-giay-to').files[0];
+        if (!file) return;
+        const fd = new FormData();
+        fd.append('loai', document.getElementById('sel-loai-giay-to').value);
+        fd.append('tep', file);
+
+        try {
+          await api.post('/gia-su/toi/giay-to', fd);
+          document.getElementById('form-tai-giay-to').reset();
+          hienThongBao('Đã tải giấy tờ lên hệ thống bảo mật thành công (đang chờ duyệt).', 'success');
+          await Promise.all([taiHoSoGiaSu(), taiTongQuanGiaSu()]);
+        } catch (err) {
+          hienThongBao(err.message, 'danger');
+        }
+      });
+
+      function taoDongMonHtml(item = {}) {
+        demDong += 1;
+        const idx = demDong;
+        const optsMon = taoOptionsNhomMonHocHtml(dsMonHocHeThong, item.monHocId || '', null, escapeHtml);
+
+        return `
+          <div class="dong-mon-day" style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 0.5rem; align-items: center">
+            <select id="mon-id-${idx}" name="monHocId" aria-label="Chọn môn học" class="form-control mon-id">${optsMon}</select>
+            <input id="gia-gio-${idx}" name="giaMoiGio" aria-label="Học phí mỗi giờ" type="number" class="form-control gia-gio" min="20000" max="5000000" step="10000" value="${item.giaMoiGio || 200000}" placeholder="Học phí mỗi giờ" />
+            <button type="button" class="btn btn-ghost btn-sm btn-xoa-dong" aria-label="Xóa dòng môn học">${icons.trash(14)}</button>
+          </div>
+        `;
+      }
+
+      const inpTimNhanhMonGs = document.getElementById('inp-tim-nhanh-mon-gs');
+      const boxGoiYMonGs = document.getElementById('ds-goi-y-mon-gs');
+
+      function themDongMonDayVoiId(monHocId) {
+        const el = document.getElementById('ds-mon-day-form');
+        if (!el) return;
+        const daTonTai = [...el.querySelectorAll('.mon-id')].some((sel) => sel.value === monHocId);
+        if (daTonTai) {
+          hienThongBao('Môn học này đã có trong danh sách giảng dạy của bạn.', 'info');
+          return;
+        }
+        el.insertAdjacentHTML('beforeend', taoDongMonHtml({ monHocId, giaMoiGio: 200000 }));
+        const lastBtn = el.querySelector('.dong-mon-day:last-child .btn-xoa-dong');
+        lastBtn?.addEventListener('click', () => lastBtn.parentElement.remove());
+      }
+
+      function renderGoiYMonGs(tuKhoa = '') {
+        if (!boxGoiYMonGs) return;
+        const ds = timKiemMonHocThongMinh(dsMonHocHeThong, tuKhoa, 12);
+        if (ds.length === 0) {
+          boxGoiYMonGs.innerHTML = `<div style="padding: 0.75rem 0.9rem; font-size: 0.82rem; color: #64748b">Không tìm thấy môn học khớp "${escapeHtml(tuKhoa)}".</div>`;
+          boxGoiYMonGs.style.display = 'block';
+          return;
+        }
+        boxGoiYMonGs.innerHTML = ds
+          .map(
+            (m) => `
+            <button type="button" class="btn-chon-mon-nhanh-gs" data-id="${escapeHtml(m.id)}" style="width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; padding: 0.55rem 0.85rem; border: none; border-bottom: 1px solid #f1f5f9; background: #ffffff; cursor: pointer; text-align: left; font-family: inherit; font-size: 0.85rem">
+              <span><strong>${highlightKhopMonHoc(m.ten, tuKhoa, escapeHtml)}</strong></span>
+              <span style="font-size: 0.73rem; color: #64748b">${escapeHtml(m.nhom || '')} · + Thêm</span>
+            </button>
+          `
+          )
+          .join('');
+        boxGoiYMonGs.style.display = 'block';
+        boxGoiYMonGs.querySelectorAll('.btn-chon-mon-nhanh-gs').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            themDongMonDayVoiId(btn.dataset.id);
+            if (inpTimNhanhMonGs) inpTimNhanhMonGs.value = '';
+            boxGoiYMonGs.style.display = 'none';
+          });
+        });
+      }
+
+      inpTimNhanhMonGs?.addEventListener('focus', () => renderGoiYMonGs(inpTimNhanhMonGs.value));
+      inpTimNhanhMonGs?.addEventListener('input', () => renderGoiYMonGs(inpTimNhanhMonGs.value));
+      document.addEventListener('click', (e) => {
+        if (boxGoiYMonGs && !boxGoiYMonGs.contains(e.target) && e.target !== inpTimNhanhMonGs) {
+          boxGoiYMonGs.style.display = 'none';
+        }
+      });
+
+      function renderFormMonDay(ds) {
+        const el = document.getElementById('ds-mon-day-form');
+        const list = ds.length > 0 ? ds : [{ giaMoiGio: 200000 }];
+        el.innerHTML = list.map((m) => taoDongMonHtml(m)).join('');
+        el.querySelectorAll('.btn-xoa-dong').forEach((b) => b.addEventListener('click', () => b.parentElement.remove()));
+      }
+
+      document.getElementById('btn-them-dong-mon')?.addEventListener('click', () => {
+        const el = document.getElementById('ds-mon-day-form');
+        el.insertAdjacentHTML('beforeend', taoDongMonHtml({ giaMoiGio: 200000 }));
+        const lastBtn = el.querySelector('.dong-mon-day:last-child .btn-xoa-dong');
+        lastBtn?.addEventListener('click', () => lastBtn.parentElement.remove());
+      });
+
+      document.getElementById('btn-luu-mon-day')?.addEventListener('click', async () => {
+        const rows = [...document.querySelectorAll('.dong-mon-day')].map((row) => ({
+          monHocId: row.querySelector('.mon-id').value,
+          giaMoiGio: Number(row.querySelector('.gia-gio').value),
+        }));
+        try {
+          await api.put('/gia-su/toi/mon-hoc', { dsMonDay: rows });
+          hienThongBao('Đã cập nhật danh sách môn dạy & học phí thành công!', 'success');
+          await Promise.all([taiHoSoGiaSu(), taiTongQuanGiaSu()]);
+        } catch (err) {
+          hienThongBao(err.message, 'danger');
+        }
+      });
+
+      // ══════════════════════════════════════════════════════════════════════════
+      // QUẢN LÝ THỜI GIAN BIỂU CỐ ĐỊNH TRONG TUẦN (WEEKLY TEACHING SCHEDULE)
+      // ══════════════════════════════════════════════════════════════════════════
+
+      function dongBoHienThiThoiGianDem() {
+        const wrap = document.getElementById('wrap-thoi-gian-dem');
+        if (!wrap) return;
+        const coSlotTaiNha = Object.values(lichTuanState).some((slots) =>
+          slots.some((s) => s.hinhThuc === 'TRUC_TIEP' || s.hinhThuc === 'CA_HAI')
+        );
+        wrap.style.opacity = coSlotTaiNha ? '1' : '0.45';
+        wrap.title = coSlotTaiNha
+          ? 'Đang áp dụng thời gian đệm cho các ca Tại nhà hoặc Cả hai'
+          : 'Chỉ áp dụng khi bạn có ít nhất 1 ca nhận dạy Tại nhà';
+      }
+
+      function khoiTaoLichTuanTuApi(dsLichLap = [], thoiGianDem = 30, thoiLuongToiThieu = 90) {
+        lichTuanState = {};
+        DANH_SACH_THU.forEach((d) => {
+          lichTuanState[d.thu] = [];
+        });
+        dsLichLap.forEach((l) => {
+          if (lichTuanState[l.thuTrongTuan]) {
+            lichTuanState[l.thuTrongTuan].push({
+              bd: (l.gioBatDau || '18:30').slice(0, 5),
+              kt: (l.gioKetThuc || '21:00').slice(0, 5),
+              hinhThuc: l.hinhThucLich || 'CA_HAI',
+            });
+          }
+        });
+
+        const selDem = document.getElementById('sel-thoi-gian-dem');
+        if (selDem) selDem.value = String(thoiGianDem || 30);
+
+        const selLuong = document.getElementById('sel-thoi-luong-toi-thieu');
+        if (selLuong) selLuong.value = String(thoiLuongToiThieu || 90);
+
+        // Khởi tạo ngày mặc định cho khối báo bận
+        const homNay = new Date().toISOString().slice(0, 10);
+        const inpTuNgay = document.getElementById('ln-tu-ngay');
+        const inpDenNgay = document.getElementById('ln-den-ngay');
+        if (inpTuNgay && !inpTuNgay.value) {
+          inpTuNgay.value = homNay;
+          inpTuNgay.min = homNay;
+        }
+        if (inpDenNgay && !inpDenNgay.value) {
+          inpDenNgay.value = homNay;
+          inpDenNgay.min = homNay;
+        }
+
+        dongBoHienThiThoiGianDem();
+        renderWeeklySchedule();
+      }
+
+      function renderWeeklySchedule() {
+        const container = document.getElementById('weekly-schedule-grid');
+        if (!container) return;
+
+        container.innerHTML = DANH_SACH_THU.map((d) => {
+          const slots = lichTuanState[d.thu] || [];
+          const isAct = slots.length > 0;
+          return `
+            <div class="schedule-day-row ${isAct ? 'active' : 'inactive'}" data-thu="${d.thu}">
+              <div class="day-info-col">
+                <span class="day-name">${d.ten}</span>
+                <span class="day-status-label">${isAct ? `${slots.length} ca nhận dạy` : 'Nghỉ (Không nhận lớp)'}</span>
+              </div>
+              <label class="switch-toggle-wrap" title="${isAct ? 'Gạt để tắt ngày này' : 'Gạt để mở nhận lớp ngày này'}">
+                <input type="checkbox" class="day-toggle-input" ${isAct ? 'checked' : ''} data-thu="${d.thu}" />
+                <span class="switch-slider"></span>
+              </label>
+              <div class="day-slots-col">
+                ${
+                  isAct
+                    ? slots
+                        .map(
+                          (s, idx) => `
+                    <div class="slot-pill-item" data-idx="${idx}">
+                      <input type="time" class="slot-bd" value="${s.bd}" data-thu="${d.thu}" data-idx="${idx}" title="Giờ bắt đầu" />
+                      <span style="color: #94a3b8; font-weight: 700">–</span>
+                      <input type="time" class="slot-kt" value="${s.kt}" data-thu="${d.thu}" data-idx="${idx}" title="Giờ kết thúc" />
+                      <select class="slot-hinh-thuc ht-${s.hinhThuc || 'CA_HAI'}" data-thu="${d.thu}" data-idx="${idx}" title="Hình thức nhận ca này">
+                        <option value="CA_HAI" ${(s.hinhThuc || 'CA_HAI') === 'CA_HAI' ? 'selected' : ''}>🔄 Cả hai</option>
+                        <option value="TRUC_TUYEN" ${s.hinhThuc === 'TRUC_TUYEN' ? 'selected' : ''}>🌐 Chỉ Online</option>
+                        <option value="TRUC_TIEP" ${s.hinhThuc === 'TRUC_TIEP' ? 'selected' : ''}>🏠 Chỉ Tại nhà</option>
+                      </select>
+                      <button type="button" class="btn-del-slot" data-thu="${d.thu}" data-idx="${idx}" title="Xóa ca này">×</button>
+                    </div>
+                  `
+                        )
+                        .join('')
+                    : '<span style="color: #94a3b8; font-size: 0.84rem; font-style: italic">Không nhận học sinh trong ngày này</span>'
+                }
+                ${
+                  isAct
+                    ? `
+                  <button type="button" class="btn-add-slot-day" data-thu="${d.thu}">+ Thêm ca</button>
+                  <button type="button" class="btn-copy-day" data-thu="${d.thu}" title="Sao chép khung giờ này sang các ngày khác">
+                    ${icons.copy(13)} <span>Sao chép</span>
+                  </button>
+                `
+                    : ''
+                }
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        ganSuKienLichTuan();
+      }
+
+      function ganSuKienLichTuan() {
+        const grid = document.getElementById('weekly-schedule-grid');
+        if (!grid) return;
+
+        // 1. Toggle bật/tắt ngày
+        grid.querySelectorAll('.day-toggle-input').forEach((input) => {
+          input.addEventListener('change', (e) => {
+            const thu = Number(e.target.dataset.thu);
+            if (e.target.checked) {
+              if (!lichTuanState[thu] || lichTuanState[thu].length === 0) {
+                lichTuanState[thu] = [{ bd: '18:30', kt: '21:00', hinhThuc: 'CA_HAI' }];
+              }
+            } else {
+              lichTuanState[thu] = [];
+            }
+            dongBoHienThiThoiGianDem();
+            renderWeeklySchedule();
+          });
+        });
+
+        // 2. Thêm ca dạy trong ngày
+        grid.querySelectorAll('.btn-add-slot-day').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const thu = Number(btn.dataset.thu);
+            if (!lichTuanState[thu]) lichTuanState[thu] = [];
+            const hasEvening = lichTuanState[thu].some((s) => s.bd >= '17:00');
+            const defaultSlot = hasEvening
+              ? { bd: '08:30', kt: '11:30', hinhThuc: 'CA_HAI' }
+              : { bd: '18:30', kt: '21:00', hinhThuc: 'CA_HAI' };
+            lichTuanState[thu].push(defaultSlot);
+            dongBoHienThiThoiGianDem();
+            renderWeeklySchedule();
+          });
+        });
+
+        // 3. Xóa ca dạy
+        grid.querySelectorAll('.btn-del-slot').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const thu = Number(btn.dataset.thu);
+            const idx = Number(btn.dataset.idx);
+            if (lichTuanState[thu]) {
+              lichTuanState[thu].splice(idx, 1);
+            }
+            dongBoHienThiThoiGianDem();
+            renderWeeklySchedule();
+          });
+        });
+
+        // 4. Cập nhật giờ bắt đầu / kết thúc
+        grid.querySelectorAll('.slot-bd').forEach((input) => {
+          input.addEventListener('change', (e) => {
+            const thu = Number(e.target.dataset.thu);
+            const idx = Number(e.target.dataset.idx);
+            if (lichTuanState[thu]?.[idx]) {
+              lichTuanState[thu][idx].bd = e.target.value;
+            }
+          });
+        });
+        grid.querySelectorAll('.slot-kt').forEach((input) => {
+          input.addEventListener('change', (e) => {
+            const thu = Number(e.target.dataset.thu);
+            const idx = Number(e.target.dataset.idx);
+            if (lichTuanState[thu]?.[idx]) {
+              lichTuanState[thu][idx].kt = e.target.value;
+            }
+          });
+        });
+
+        // 5. Cập nhật hình thức ca dạy (Chỉ Online / Chỉ Tại nhà / Cả hai)
+        grid.querySelectorAll('.slot-hinh-thuc').forEach((select) => {
+          select.addEventListener('change', (e) => {
+            const thu = Number(e.target.dataset.thu);
+            const idx = Number(e.target.dataset.idx);
+            const val = e.target.value;
+            if (lichTuanState[thu]?.[idx]) {
+              lichTuanState[thu][idx].hinhThuc = val;
+            }
+            select.className = `slot-hinh-thuc ht-${val}`;
+            dongBoHienThiThoiGianDem();
+          });
+        });
+
+        // 6. Nút Sao chép khung giờ sang các ngày khác
+        grid.querySelectorAll('.btn-copy-day').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const thu = Number(btn.dataset.thu);
+            const slotsToCopy = lichTuanState[thu] || [];
+            if (slotsToCopy.length === 0) return;
+
+            const tenThuGoc = DANH_SACH_THU.find((d) => d.thu === thu)?.ten || 'ngày này';
+            const apDungT2T6 = confirm(
+              `Bạn có muốn sao chép toàn bộ khung giờ của ${tenThuGoc} sang tất cả các ngày trong tuần (Thứ Hai – Thứ Sáu) không?\n(Bấm OK để áp dụng T2–T6, hoặc Hủy để áp dụng cho toàn bộ tuần T2–CN)`
+            );
+
+            const targetThus = apDungT2T6 ? [2, 3, 4, 5, 6] : [2, 3, 4, 5, 6, 7, 1];
+            targetThus.forEach((t) => {
+              if (t !== thu) {
+                lichTuanState[t] = slotsToCopy.map((s) => ({ ...s }));
+              }
+            });
+
+            dongBoHienThiThoiGianDem();
+            renderWeeklySchedule();
+            hienThongBao(`Đã sao chép khung giờ từ ${tenThuGoc} sang các ngày khác thành công!`, 'success');
+          });
+        });
+      }
+
+      // Xử lý các nút Gợi ý 1-Click (Presets) — mặc định hình thức = "Cả hai"
+      document.querySelectorAll('.btn-preset-schedule').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const preset = btn.dataset.preset;
+          if (preset === 'toi_trong_tuan') {
+            DANH_SACH_THU.forEach((d) => {
+              if (d.thu >= 2 && d.thu <= 6) {
+                lichTuanState[d.thu] = [{ bd: '18:30', kt: '21:00', hinhThuc: 'CA_HAI' }];
+              } else {
+                lichTuanState[d.thu] = [];
+              }
+            });
+            hienThongBao('Đã áp dụng mẫu: Buổi tối trong tuần (T2 – T6: 18:30 – 21:00, Cả hai hình thức). Bấm "Lưu thời gian biểu" để xác nhận!', 'success');
+          } else if (preset === 'cuoi_tuan') {
+            DANH_SACH_THU.forEach((d) => {
+              if (d.thu === 7 || d.thu === 1) {
+                lichTuanState[d.thu] = [
+                  { bd: '08:30', kt: '11:30', hinhThuc: 'CA_HAI' },
+                  { bd: '18:30', kt: '21:00', hinhThuc: 'CA_HAI' },
+                ];
+              } else {
+                lichTuanState[d.thu] = [];
+              }
+            });
+            hienThongBao('Đã áp dụng mẫu: Dạy cuối tuần (T7 & CN, Cả hai hình thức). Bấm "Lưu thời gian biểu" để xác nhận!', 'success');
+          } else if (preset === 'tat_ca_buoi_toi') {
+            DANH_SACH_THU.forEach((d) => {
+              lichTuanState[d.thu] = [{ bd: '19:00', kt: '21:30', hinhThuc: 'CA_HAI' }];
+            });
+            hienThongBao('Đã áp dụng mẫu: Mọi buổi tối trong tuần (T2 – CN: 19:00 – 21:30, Cả hai hình thức). Bấm "Lưu thời gian biểu" để xác nhận!', 'success');
+          } else if (preset === 'xoa_het') {
+            if (!confirm('Bạn có chắc chắn muốn xóa toàn bộ các khung giờ trong tuần không?')) {
+              return;
+            }
+            DANH_SACH_THU.forEach((d) => {
+              lichTuanState[d.thu] = [];
+            });
+            hienThongBao('⚠️ Thời gian biểu đã được đặt lại trên giao diện (chưa lưu vào hệ thống). Bấm "Lưu thời gian biểu" để áp dụng chính thức.', 'warning');
+          }
+          dongBoHienThiThoiGianDem();
+          renderWeeklySchedule();
+        });
+      });
+
+      // Lưu thời gian biểu cố định & Cài đặt đệm di chuyển / thời lượng tối thiểu
+      document.getElementById('btn-luu-lich-lap')?.addEventListener('click', async () => {
+        const rows = [];
+        let coLoiGio = false;
+        let coLoiThoiLuong = null;
+
+        const thoiLuongToiThieu = Number(document.getElementById('sel-thoi-luong-toi-thieu')?.value) || 90;
+        const thoiGianDem = Number(document.getElementById('sel-thoi-gian-dem')?.value) || 30;
+
+        function toPhut(str) {
+          const [h, m] = str.split(':').map(Number);
+          return h * 60 + m;
+        }
+
+        DANH_SACH_THU.forEach((d) => {
+          const slots = lichTuanState[d.thu] || [];
+          slots.forEach((s) => {
+            if (!s.bd || !s.kt) return;
+            if (s.bd >= s.kt) {
+              coLoiGio = true;
+            }
+            const phut = toPhut(s.kt) - toPhut(s.bd);
+            if (s.hinhThuc === 'TRUC_TIEP' && phut < thoiLuongToiThieu) {
+              coLoiThoiLuong = `${d.ten} (${s.bd} – ${s.kt}): ca tại nhà phải dài ít nhất ${thoiLuongToiThieu} phút.`;
+            }
+            rows.push({
+              thuTrongTuan: d.thu,
+              gioBatDau: s.bd,
+              gioKetThuc: s.kt,
+              hinhThucLich: s.hinhThuc || 'CA_HAI',
+            });
+          });
+        });
+
+        if (coLoiGio) {
+          hienThongBao('Giờ kết thúc ca dạy phải sau giờ bắt đầu. Vui lòng kiểm tra lại!', 'danger');
+          return;
+        }
+
+        if (coLoiThoiLuong) {
+          hienThongBao(`Thời lượng chưa hợp lệ: ${coLoiThoiLuong}`, 'danger');
+          return;
+        }
+
+        try {
+          await api.put('/gia-su/toi/lich-lap-hang-tuan', {
+            dsLichLapHangTuan: rows,
+            thoiGianDemPhut: thoiGianDem,
+            thoiLuongToiThieuTaiNhaPhut: thoiLuongToiThieu,
+          });
+          hienThongBao('Đã lưu thời gian biểu giảng dạy & cài đặt đệm di chuyển thành công!', 'success');
+          await Promise.all([taiHoSoGiaSu(), taiTongQuanGiaSu()]);
+        } catch (err) {
+          hienThongBao(err.message, 'danger');
+        }
+      });
+
+      // ══════════════════════════════════════════════════════════════════════════
+      // QUẢN LÝ NGÀY NGHỈ & CA NGOẠI LỆ (CẢNH BÁO XUNG ĐỘT KHI BÁO BẬN)
+      // ══════════════════════════════════════════════════════════════════════════
+
+      const colCaNgay = document.getElementById('col-ca-ngay');
+      const colGioBd = document.getElementById('col-gio-bd');
+      const colGioKt = document.getElementById('col-gio-kt');
+      const chkCaNgay = document.getElementById('chk-ca-ngay');
+      const inpTuNgay = document.getElementById('ln-tu-ngay');
+      const inpDenNgay = document.getElementById('ln-den-ngay');
+      const modalXungDot = document.getElementById('modal-xung-dot-lich');
+      const dsXungDotEl = document.getElementById('danh-sach-don-xung-dot');
+
+      // Tự động đồng bộ ngày kết thúc khi ngày bắt đầu thay đổi
+      inpTuNgay?.addEventListener('change', () => {
+        if (!inpTuNgay.value) return;
+        if (inpDenNgay) {
+          inpDenNgay.min = inpTuNgay.value;
+          if (!inpDenNgay.value || inpDenNgay.value < inpTuNgay.value) {
+            inpDenNgay.value = inpTuNgay.value;
+          }
+        }
+      });
+
+      chkCaNgay?.addEventListener('change', (e) => {
+        const isCaNgay = e.target.checked;
+        if (colGioBd) colGioBd.style.display = isCaNgay ? 'none' : 'block';
+        if (colGioKt) colGioKt.style.display = isCaNgay ? 'none' : 'block';
+      });
+
+      function dongModalXungDot() {
+        if (modalXungDot) modalXungDot.style.display = 'none';
+        dangXuLyNghi = null;
+      }
+
+      document.getElementById('btn-dong-modal-xung-dot')?.addEventListener('click', dongModalXungDot);
+      document.getElementById('btn-huy-modal-xung-dot')?.addEventListener('click', dongModalXungDot);
+
+      document.getElementById('btn-xac-nhan-modal-xung-dot')?.addEventListener('click', async () => {
+        if (!dangXuLyNghi) return;
+        const huong = document.querySelector('input[name="huongXuLyXungDot"]:checked')?.value || 'DOI_LICH';
+
+        try {
+          await api.post('/gia-su/toi/lich-ngay-cu-the', dangXuLyNghi);
+          dongModalXungDot();
+          document.getElementById('form-lich-ngoai-le')?.reset();
+          if (chkCaNgay) chkCaNgay.checked = true;
+          if (colGioBd) colGioBd.style.display = 'none';
+          if (colGioKt) colGioKt.style.display = 'none';
+
+          hienThongBao(
+            `Đã lưu ngày nghỉ thành công! Hệ thống đã ghi nhận xử lý các buổi học bị ảnh hưởng theo hướng ${
+              huong === 'DOI_LICH' ? 'đề nghị dời lịch với học sinh' : 'hủy buổi học & hoàn tiền cho học sinh'
+            }.`,
+            'success'
+          );
+          await Promise.all([taiHoSoGiaSu(), taiTongQuanGiaSu()]);
+        } catch (err) {
+          hienThongBao(err.message, 'danger');
+        }
+      });
+
+      function renderLichNgayCuThe(ds) {
+        const el = document.getElementById('ds-lich-ngay-cu-the');
+        if (!el) return;
+        if (ds.length === 0) {
+          el.innerHTML = '<p style="font-size: 0.86rem; color: #64748b; margin: 0; padding: 0.5rem 0">Chưa có lịch ngày nghỉ ngoại lệ nào được tạo.</p>';
+          return;
+        }
+        el.innerHTML = ds
+          .map((l) => {
+            const gioStr = l.gioBatDau && l.gioKetThuc ? `${l.gioBatDau} – ${l.gioKetThuc}` : 'Cả ngày';
+            const ngayStr = l.ngayKetThuc && l.ngayKetThuc !== l.ngayCuThe
+              ? `${l.ngayCuThe} → ${l.ngayKetThuc}`
+              : l.ngayCuThe;
+            const lyDoStr = l.lyDo ? `· Lý do: <em>${escapeHtml(l.lyDo)}</em>` : '';
+
+            return `
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.8rem 1.1rem; border: 1.5px solid #fecaca; background: #fff5f5; border-radius: 12px; margin-bottom: 0.65rem; flex-wrap: wrap; gap: 0.5rem">
+                <div style="display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap">
+                  <span style="font-size: 1.1rem">⏸️</span>
+                  <strong style="font-size: 0.92rem; color: #0f172a">${escapeHtml(ngayStr)}</strong>
+                  <span class="badge badge-danger">Báo bận / Tạm nghỉ</span>
+                  <span style="font-size: 0.84rem; color: #475569; font-weight: 600">(${gioStr})</span>
+                  <span style="font-size: 0.8rem; color: #64748b">${lyDoStr}</span>
+                </div>
+                <button type="button" class="btn btn-ghost btn-sm btn-xoa-ln" data-id="${l.id}" title="Xóa ngày nghỉ này">${icons.trash(14)}</button>
+              </div>
+            `;
+          })
+          .join('');
+
+        el.querySelectorAll('.btn-xoa-ln').forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            if (!confirm('Bạn có chắc chắn muốn xóa ngày nghỉ này để tiếp tục nhận lớp?')) return;
+            try {
+              await api.delete(`/gia-su/toi/lich-ngay-cu-the/${btn.dataset.id}`);
+              hienThongBao('Đã gỡ bỏ ngày nghỉ ngoại lệ thành công.', 'success');
+              await Promise.all([taiHoSoGiaSu(), taiTongQuanGiaSu()]);
+            } catch (err) {
+              hienThongBao(err.message, 'danger');
+            }
+          });
+        });
+      }
+
+      document.getElementById('form-lich-ngoai-le')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const tuNgay = document.getElementById('ln-tu-ngay')?.value;
+        const denNgay = document.getElementById('ln-den-ngay')?.value;
+        if (!tuNgay || !denNgay) {
+          hienThongBao('Vui lòng chọn đầy đủ từ ngày và đến ngày.', 'danger');
+          return;
+        }
+
+        if (denNgay < tuNgay) {
+          hienThongBao('Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu.', 'danger');
+          return;
+        }
+
+        const isCaNgay = document.getElementById('chk-ca-ngay')?.checked;
+        const bd = isCaNgay ? null : document.getElementById('ln-bd')?.value || null;
+        const kt = isCaNgay ? null : document.getElementById('ln-kt')?.value || null;
+        const lyDo = document.getElementById('sel-ly-do-nghi')?.value || null;
+
+        if (!isCaNgay && (!bd || !kt || bd >= kt)) {
+          hienThongBao('Giờ kết thúc phải sau giờ bắt đầu.', 'danger');
+          return;
+        }
+
+        const payload = {
+          ngayCuThe: tuNgay,
+          ngayKetThuc: denNgay === tuNgay ? null : denNgay,
+          loai: 'NGHI_PHEP',
+          gioBatDau: bd,
+          gioKetThuc: kt,
+          lyDo,
+        };
+
+        // 1. Kiểm tra xung đột trước khi lưu (Chống chặn lịch âm thầm)
+        try {
+          const params = new URLSearchParams({
+            tuNgay,
+            denNgay,
+          });
+          if (bd) params.append('gioBatDau', bd);
+          if (kt) params.append('gioKetThuc', kt);
+
+          const resConflict = await api.get(`/gia-su/toi/xung-dot-ngay-nghi?${params.toString()}`);
+          const dataConflict = resConflict?.duLieu;
+
+          if (dataConflict && dataConflict.coXungDot && dataConflict.dsXungDot?.length > 0) {
+            // Có xung đột: Mở Modal cảnh báo bắt buộc xử lý
+            dangXuLyNghi = payload;
+            document.getElementById('tieu-de-modal-xung-dot').textContent =
+              `Phát hiện trùng với ${dataConflict.soLuongXungDot} buổi học đã đặt!`;
+
+            dsXungDotEl.innerHTML = dataConflict.dsXungDot
+              .map((d) => {
+                const laOnline = d.hinhThuc === 'TRUC_TUYEN';
+                const tt = layNhanTrangThaiDonDatLich(d.trangThai);
+                return `
+                  <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0.65rem; border-bottom: 1px solid #fecaca; font-size: 0.82rem">
+                    <div>
+                      <strong>${escapeHtml(d.tenHocSinh)}</strong> · <span>${d.ngay} (${d.gioBatDau} – ${d.gioKetThuc})</span>
+                      <div style="color: #64748b; font-size: 0.76rem; margin-top: 0.15rem">Mã đơn: ${escapeHtml(d.maDon)}</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.4rem">
+                      <span class="badge ${laOnline ? 'badge-info' : 'badge-success'}">${laOnline ? 'Online' : 'Tại nhà'}</span>
+                      <span class="badge ${tt.lopBadge}">${escapeHtml(tt.nhan)}</span>
+                    </div>
+                  </div>
+                `;
+              })
+              .join('');
+
+            modalXungDot.style.display = 'flex';
+            return;
+          }
+
+          // 2. Không có xung đột: Lưu trực tiếp
+          await api.post('/gia-su/toi/lich-ngay-cu-the', payload);
+          document.getElementById('form-lich-ngoai-le').reset();
+          if (chkCaNgay) chkCaNgay.checked = true;
+          if (colGioBd) colGioBd.style.display = 'none';
+          if (colGioKt) colGioKt.style.display = 'none';
+
+          const phamViStr = denNgay === tuNgay ? tuNgay : `${tuNgay} đến ${denNgay}`;
+          hienThongBao(`Đã báo bận từ ngày ${phamViStr} thành công. Học sinh sẽ không thể đặt lịch vào thời gian này.`, 'success');
+          await Promise.all([taiHoSoGiaSu(), taiTongQuanGiaSu()]);
+        } catch (err) {
+          hienThongBao(err.message, 'danger');
+        }
+      });
+    </script>
+  </body>
+</html>

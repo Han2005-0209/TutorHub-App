@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/assets/img/icon-192.svg" />
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <title>Gia sư Yêu thích — TutorHub</title>
+  </head>
+  <body class="theme-user">
+    <div id="khung-header"></div>
+
+    <main class="container" style="padding: 1.75rem 1.25rem 3rem">
+      <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 1.35rem; flex-wrap: wrap; gap: 0.75rem">
+        <div>
+          <h1 style="margin: 0; font-size: 1.55rem; font-weight: 800; letter-spacing: -0.02em">Gia sư yêu thích</h1>
+          <p style="margin: 0.25rem 0 0; color: var(--th-text-muted); font-size: 0.88rem">
+            Danh sách gia sư bạn đã lưu để thuận tiện so sánh hình thức dạy, học phí và đặt lịch học
+          </p>
+        </div>
+        <a class="btn btn-primary btn-sm" href="/pages/tim-kiem-gia-su.html">Khám phá thêm gia sư</a>
+      </div>
+
+      <div id="hop-thong-bao" style="display: none"></div>
+      <div id="khung-yeu-thich" class="grid-3" style="gap: 1.5rem">
+        <div class="sk-sp-tutor-card" aria-hidden="true">
+          <div class="sk-block sk-sp-tutor-media"></div>
+          <div class="sk-sp-tutor-body">
+            <span class="sk-line" style="height: 15px; width: 55%"></span>
+            <span class="sk-line" style="height: 14px; width: 92%"></span>
+            <span class="sk-line" style="height: 18px; width: 45%"></span>
+          </div>
+        </div>
+        <div class="sk-sp-tutor-card" aria-hidden="true">
+          <div class="sk-block sk-sp-tutor-media"></div>
+          <div class="sk-sp-tutor-body">
+            <span class="sk-line" style="height: 15px; width: 55%"></span>
+            <span class="sk-line" style="height: 14px; width: 92%"></span>
+            <span class="sk-line" style="height: 18px; width: 45%"></span>
+          </div>
+        </div>
+        <div class="sk-sp-tutor-card" aria-hidden="true">
+          <div class="sk-block sk-sp-tutor-media"></div>
+          <div class="sk-sp-tutor-body">
+            <span class="sk-line" style="height: 15px; width: 55%"></span>
+            <span class="sk-line" style="height: 14px; width: 92%"></span>
+            <span class="sk-line" style="height: 18px; width: 45%"></span>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <div id="khung-footer"></div>
+
+    <script type="module">
+      import { api, layAccessToken } from '/assets/js/api.js';
+      import {
+        dongBoNguoiDungTuApi,
+        escapeHtml,
+        renderCardGiaSu,
+        renderFooter,
+        renderHeader,
+      } from '/assets/js/giao-dien.js';
+
+      if (!layAccessToken()) {
+        window.location.href = '/pages/dang-nhap.html';
+      }
+
+      renderHeader('#khung-header');
+      renderFooter('#khung-footer');
+      const user = await dongBoNguoiDungTuApi();
+      renderHeader('#khung-header');
+
+      const khung = document.getElementById('khung-yeu-thich');
+      const hopThongBao = document.getElementById('hop-thong-bao');
+
+      if (user && user.vaiTro !== 'HOC_SINH') {
+        hopThongBao.style.display = 'block';
+        hopThongBao.className = 'alert alert-warning';
+        hopThongBao.textContent = 'Trang Gia sư yêu thích chỉ dành cho tài khoản Học sinh.';
+        khung.innerHTML = '';
+      } else {
+        await taiDsYeuThich();
+      }
+
+      async function taiDsYeuThich() {
+        try {
+          const res = await api.get('/muc-yeu-thich');
+          const ds = res?.duLieu || [];
+          if (ds.length === 0) {
+            khung.innerHTML = `
+              <div class="card" style="grid-column: 1 / -1; text-align: center; padding: 2.75rem">
+                <div style="font-weight: 700; font-size: 1rem">Bạn chưa lưu gia sư nào</div>
+                <p style="margin: 0.35rem 0 1.15rem; font-size: 0.86rem; color: var(--th-text-muted)">
+                  Nhấn nút Lưu trên thẻ gia sư khi tìm kiếm để giữ danh sách so sánh tại đây.
+                </p>
+                <a class="btn btn-primary btn-sm" href="/pages/tim-kiem-gia-su.html">Tìm kiếm gia sư ngay</a>
+              </div>
+            `;
+            return;
+          }
+
+          khung.innerHTML = ds.map((item) => renderCardGiaSu(item.giaSu)).join('');
+          khung.querySelectorAll('.btn-yeu-thich').forEach((btn) => {
+            btn.addEventListener('click', async (ev) => {
+              ev.preventDefault();
+              ev.stopPropagation();
+              const giaSuId = btn.dataset.giaSuId;
+              try {
+                await api.delete(`/muc-yeu-thich/${giaSuId}`);
+                await taiDsYeuThich();
+              } catch (err) {
+                alert(err.message);
+              }
+            });
+          });
+        } catch (err) {
+          khung.innerHTML = `<div class="alert alert-danger" style="grid-column: 1 / -1">${escapeHtml(err.message)}</div>`;
+        }
+      }
+    </script>
+  </body>
+</html>

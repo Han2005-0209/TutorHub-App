@@ -1,0 +1,1501 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Trở thành Gia sư — TutorHub</title>
+    <link rel="icon" type="image/svg+xml" href="/assets/img/icon-192.svg" />
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+      :root {
+        --wizard-blue: #3b82f6;
+        --wizard-blue-hover: #2563eb;
+        --wizard-blue-soft: #eff6ff;
+        --wizard-blue-border: #cde0fe;
+      }
+
+      body {
+        background-color: #f8fbff;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* Top Progress Bar */
+      .wizard-topbar {
+        position: sticky;
+        top: 0;
+        z-index: 40;
+        background: rgba(255, 255, 255, 0.98);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid #eef2f6;
+        padding: 0.75rem 1.5rem;
+      }
+
+      .wizard-topbar-inner {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+      }
+
+      .wizard-brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 800;
+        font-size: 1.2rem;
+        color: var(--th-primary);
+        text-decoration: none;
+      }
+
+      .wizard-steps-indicator {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .wizard-step-bullet {
+        width: 32px;
+        height: 6px;
+        border-radius: 9999px;
+        background: #e2e8f0;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      .wizard-step-bullet.active {
+        background: var(--wizard-blue);
+        width: 48px;
+      }
+
+      .wizard-step-bullet.completed {
+        background: #22c55e;
+      }
+
+      /* 2-Column Split Layout */
+      .wizard-container {
+        flex: 1;
+        max-width: 1200px;
+        width: 100%;
+        margin: 0 auto;
+        padding: 2.25rem 1.5rem 5rem;
+      }
+
+      .wizard-split {
+        display: grid;
+        grid-template-columns: minmax(0, 1.45fr) minmax(320px, 1fr);
+        gap: 3rem;
+        align-items: start;
+      }
+
+      /* Left Form Column */
+      .wizard-main {
+        background: #ffffff;
+        border: 1px solid #eef2f6;
+        border-radius: 28px;
+        padding: 2.5rem;
+        box-shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.05);
+      }
+
+      .wizard-step-header {
+        margin-bottom: 2rem;
+      }
+
+      .wizard-badge-step {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        background: var(--wizard-blue-soft);
+        border: 1px solid var(--wizard-blue-border);
+        color: var(--wizard-blue-hover);
+        font-size: 0.8rem;
+        font-weight: 700;
+        margin-bottom: 0.75rem;
+      }
+
+      .wizard-title {
+        margin: 0;
+        font-size: 1.75rem;
+        font-weight: 800;
+        line-height: 1.25;
+        letter-spacing: -0.025em;
+        color: #0f172a;
+      }
+
+      .wizard-subtitle {
+        margin: 0.5rem 0 0;
+        font-size: 0.95rem;
+        color: #64748b;
+        line-height: 1.5;
+      }
+
+      /* Right Sidebar Advice Column */
+      .wizard-sidebar {
+        position: sticky;
+        top: 90px;
+        background: #ffffff;
+        border: 1px solid #f1f5f9;
+        border-radius: 24px;
+        padding: 2rem;
+        box-shadow: 0 6px 24px -6px rgba(15, 23, 42, 0.04);
+      }
+
+      .wizard-sidebar-title {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1.05rem;
+        font-weight: 800;
+        color: #0f172a;
+        margin: 0 0 1.25rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid #f1f5f9;
+      }
+
+      .wizard-tip-box {
+        background: #f5f9ff;
+        border-left: 4px solid var(--wizard-blue);
+        border-radius: 0 14px 14px 0;
+        padding: 1rem 1.15rem;
+        margin-bottom: 1.25rem;
+        font-size: 0.88rem;
+        line-height: 1.55;
+        color: #334155;
+      }
+
+      .wizard-tip-example {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        margin-top: 1rem;
+        font-size: 0.85rem;
+      }
+
+      .tip-do {
+        padding: 0.75rem 1rem;
+        border-radius: 12px;
+        background: #f0fdf4;
+        border: 1px solid #bbf7d0;
+        color: #166534;
+      }
+
+      .tip-avoid {
+        padding: 0.75rem 1rem;
+        border-radius: 12px;
+        background: #fff6f7;
+        border: 1px solid #fbd5da;
+        color: #c24752;
+      }
+
+      /* Step Components */
+      .subject-pill-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.65rem;
+        margin: 1rem 0 1.5rem;
+      }
+
+      .subject-choice-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.65rem 1.25rem;
+        border-radius: 9999px;
+        border: 1.5px solid #e2e8f0;
+        background: #ffffff;
+        color: #334155;
+        font-size: 0.92rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+
+      .subject-choice-pill:hover {
+        border-color: #cbd5e1;
+        background: #f8fafc;
+      }
+
+      .subject-choice-pill.selected {
+        border-color: var(--wizard-blue);
+        background: var(--wizard-blue-soft);
+        color: var(--wizard-blue-hover);
+        box-shadow: 0 2px 8px rgba(59, 130, 246, 0.14);
+      }
+
+      /* Mode Card Selectors */
+      .mode-select-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      .mode-select-card {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        padding: 1.25rem;
+        border-radius: 18px;
+        border: 1.5px solid #e2e8f0;
+        background: #ffffff;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .mode-select-card:hover {
+        border-color: #cbd5e1;
+        background: #f8fbff;
+      }
+
+      .mode-select-card.selected {
+        border-color: var(--wizard-blue);
+        background: #f5f9ff;
+        box-shadow: 0 4px 14px rgba(59, 130, 246, 0.08);
+      }
+
+      .mode-select-card input[type='checkbox'] {
+        width: 20px;
+        height: 20px;
+        margin-top: 0.2rem;
+        accent-color: var(--wizard-blue);
+        cursor: pointer;
+      }
+
+      /* Phương thức giảng dạy */
+
+      /* Nút GPS & Chọn nhanh Thành phố */
+      .btn-gps-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.35rem 0.85rem;
+        border-radius: 9999px;
+        background: #eff6ff;
+        color: #2563eb;
+        border: 1px solid #bfdbfe;
+        font-size: 0.82rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+
+      .btn-gps-pill:hover:not(:disabled) {
+        background: #dbeafe;
+        border-color: #93c5fd;
+      }
+
+      .quick-city-pill {
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        background: #f1f5f9;
+        color: #475569;
+        border: 1px solid #e2e8f0;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+
+      .quick-city-pill:hover {
+        background: #e2e8f0;
+        color: #0f172a;
+      }
+
+      /* Counter Badges */
+      .input-with-counter {
+        position: relative;
+        margin-bottom: 1.5rem;
+      }
+
+      .word-counter-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-size: 0.78rem;
+        font-weight: 700;
+        padding: 0.2rem 0.6rem;
+        border-radius: 9999px;
+        margin-top: 0.35rem;
+        background: #f1f5f9;
+        color: #64748b;
+        transition: all 0.2s ease;
+      }
+
+      .word-counter-badge.valid {
+        background: #ecfdf5;
+        color: #059669;
+      }
+
+      /* Benchmark Box */
+      .benchmark-box {
+        background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%);
+        border: 1px solid #bfdbfe;
+        border-radius: 18px;
+        padding: 1.25rem 1.45rem;
+        margin: 1.5rem 0;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.85rem;
+      }
+
+      .benchmark-box-icon {
+        font-size: 1.4rem;
+        flex-shrink: 0;
+      }
+
+      /* Bottom Navigation Actions */
+      .wizard-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-top: 2.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #f1f5f9;
+      }
+
+      .btn-wizard-next {
+        height: 50px;
+        padding: 0 2rem;
+        border-radius: 9999px;
+        background: var(--wizard-blue);
+        color: #ffffff;
+        font-size: 1rem;
+        font-weight: 700;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 14px rgba(59, 130, 246, 0.26);
+      }
+
+      .btn-wizard-next:hover:not(:disabled) {
+        background: var(--wizard-blue-hover);
+        transform: translateY(-1px);
+        box-shadow: 0 6px 18px rgba(59, 130, 246, 0.34);
+      }
+
+      .btn-wizard-next:disabled {
+        background: #cbd5e1;
+        box-shadow: none;
+        cursor: not-allowed;
+        color: #64748b;
+      }
+
+      .btn-wizard-back {
+        height: 50px;
+        padding: 0 1.5rem;
+        border-radius: 9999px;
+        background: transparent;
+        color: #64748b;
+        font-size: 0.95rem;
+        font-weight: 600;
+        border: 1px solid #e2e8f0;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.15s ease;
+      }
+
+      .btn-wizard-back:hover {
+        background: #f8fafc;
+        color: #0f172a;
+      }
+
+      /* Photo Upload Frame */
+      .avatar-drop-zone {
+        width: 140px;
+        height: 140px;
+        border-radius: 50%;
+        border: 2px dashed #cbd5e1;
+        background: #f8fafc;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        margin: 1rem auto 1.5rem;
+        transition: all 0.2s ease;
+      }
+
+      .avatar-drop-zone:hover {
+        border-color: var(--wizard-blue);
+        background: #f5f9ff;
+      }
+
+      .avatar-drop-preview {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        position: absolute;
+        inset: 0;
+        display: none;
+      }
+
+      @media (max-width: 900px) {
+        .wizard-split {
+          grid-template-columns: 1fr;
+          gap: 1.5rem;
+        }
+        .wizard-sidebar {
+          position: static;
+        }
+        .wizard-main {
+          padding: 1.5rem;
+        }
+      }
+    </style>
+  </head>
+  <body class="theme-tutor">
+    <!-- Top Progress Bar -->
+    <header class="wizard-topbar">
+      <div class="wizard-topbar-inner">
+        <a href="/index.html" class="wizard-brand">
+          <img src="/assets/img/icon-192.svg" alt="TutorHub" width="28" height="28" />
+          <span>TutorHub</span>
+        </a>
+
+        <!-- 5 Bước chỉ báo -->
+        <div class="wizard-steps-indicator" id="step-indicator-bar" aria-label="Tiến trình đăng ký 5 bước">
+          <div class="wizard-step-bullet active" data-step="1" title="Bước 1: Môn dạy"></div>
+          <div class="wizard-step-bullet" data-step="2" title="Bước 2: Hình thức & Địa điểm"></div>
+          <div class="wizard-step-bullet" data-step="3" title="Bước 3: Phương pháp & Giới thiệu"></div>
+          <div class="wizard-step-bullet" data-step="4" title="Bước 4: Học phí & Học thử"></div>
+          <div class="wizard-step-bullet" data-step="5" title="Bước 5: Tài khoản & Xác minh"></div>
+        </div>
+
+        <div>
+          <a href="/pages/tro-thanh-gia-su.html" style="font-size: 0.88rem; color: #64748b; text-decoration: none; font-weight: 600">
+            Thoát
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <main class="wizard-container">
+      <div class="wizard-split">
+        <!-- CỘT TRÁI (60%): Form tương tác -->
+        <div class="wizard-main">
+          <!-- BƯỚC 1: Chọn Môn học giảng dạy -->
+          <div id="step-panel-1" class="wizard-step-panel">
+            <div class="wizard-step-header">
+              <span class="wizard-badge-step">Bước 1 / 5</span>
+              <h1 class="wizard-title">Bạn muốn dạy môn học nào?</h1>
+              <p class="wizard-subtitle">
+                Chọn môn học sở trường của bạn. Bạn luôn có thể bổ sung thêm nhiều môn học khác sau khi kích hoạt hồ sơ.
+              </p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="inp-tim-mon-wizard">Tìm nhanh môn học (gõ vài ký tự trong hơn 160 môn):</label>
+              <input
+                id="inp-tim-mon-wizard"
+                type="text"
+                class="form-control"
+                autocomplete="off"
+                placeholder="VD: Toán, IELTS, Python, Piano, Tiếng Nhật, Cờ vua, Đồ họa..."
+                style="height: 46px; border-radius: 12px; margin-bottom: 0.75rem"
+              />
+              <div id="khung-mon-da-chon-wizard" style="font-size: 0.84rem; color: #1e40af; font-weight: 700; margin-bottom: 0.65rem"></div>
+              <div id="ds-nhom-mon-wizard" style="display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.85rem"></div>
+              <div class="subject-pill-grid" id="ds-mon-hoc-selector">
+                <!-- Nạp động từ API -->
+              </div>
+            </div>
+          </div>
+
+          <!-- BƯỚC 2: Hình thức dạy & Địa điểm -->
+          <div id="step-panel-2" class="wizard-step-panel" style="display: none">
+            <div class="wizard-step-header">
+              <span class="wizard-badge-step">Bước 2 / 5</span>
+              <h2 class="wizard-title">Hình thức &amp; Địa điểm giảng dạy</h2>
+              <p class="wizard-subtitle">
+                Linh hoạt nhận học sinh trực tuyến toàn quốc hoặc kèm trực tiếp tại nhà trong bán kính thuận tiện.
+              </p>
+            </div>
+
+            <div class="mode-select-grid">
+              <label class="mode-select-card selected" id="card-mode-online">
+                <input type="checkbox" id="chk-day-truc-tuyen" checked />
+                <div>
+                  <div style="font-weight: 700; font-size: 1.05rem; color: #0f172a">
+                    Học trực tuyến qua webcam (Online 1-1)
+                  </div>
+                  <div style="font-size: 0.88rem; color: #64748b; margin-top: 0.25rem">
+                    Dạy học sinh trên toàn quốc qua phòng học video tích hợp sẵn của TutorHub. Tự do sắp xếp thời gian linh hoạt.
+                  </div>
+                </div>
+              </label>
+
+              <label class="mode-select-card selected" id="card-mode-offline">
+                <input type="checkbox" id="chk-day-truc-tiep" checked />
+                <div>
+                  <div style="font-weight: 700; font-size: 1.05rem; color: #0f172a">
+                    Dạy trực tiếp tại nhà học sinh (Offline)
+                  </div>
+                  <div style="font-size: 0.88rem; color: #64748b; margin-top: 0.25rem">
+                    Đến kèm tận nhà học sinh trong khu vực sinh sống của bạn.
+                  </div>
+                </div>
+              </label>
+            </div>
+
+            <div id="khung-dia-diem-offline" style="margin-top: 1.5rem">
+              <div class="form-group">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem">
+                  <label class="form-label" for="inp-khu-vuc-gs" style="margin: 0">
+                    Khu vực sinh sống &amp; dạy kèm (Quận/Huyện, Tỉnh/TP):
+                  </label>
+                  <button type="button" class="btn-gps-pill" id="btn-gps-current" title="Sử dụng định vị thiết bị">
+                    <span>📍</span>
+                    <span>Lấy vị trí hiện tại của tôi</span>
+                  </button>
+                </div>
+                <div style="position: relative">
+                  <input
+                    id="inp-khu-vuc-gs"
+                    type="text"
+                    class="form-control"
+                    style="height: 48px; border-radius: 12px; padding-left: 38px"
+                    placeholder="Ví dụ: Cầu Giấy, Hà Nội hoặc Quận 1, TP. Hồ Chí Minh"
+                    value="Cầu Giấy, Hà Nội"
+                  />
+                  <span style="position: absolute; left: 14px; top: 14px; font-size: 1.05rem; color: #94a3b8">📍</span>
+                </div>
+
+                <div style="margin-top: 0.65rem; display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap">
+                  <span style="font-size: 0.78rem; color: #64748b; font-weight: 600">Chọn nhanh:</span>
+                  <button type="button" class="quick-city-pill" data-city="Cầu Giấy, Hà Nội" data-lat="21.0362" data-lng="105.7906">Hà Nội</button>
+                  <button type="button" class="quick-city-pill" data-city="Quận 1, TP. Hồ Chí Minh" data-lat="10.7769" data-lng="106.7009">TP. Hồ Chí Minh</button>
+                  <button type="button" class="quick-city-pill" data-city="Ninh Kiều, Cần Thơ" data-lat="10.0342" data-lng="105.7876">Cần Thơ</button>
+                  <button type="button" class="quick-city-pill" data-city="Hải Châu, Đà Nẵng" data-lat="16.0544" data-lng="108.2022">Đà Nẵng</button>
+                  <button type="button" class="quick-city-pill" data-city="Hồng Bàng, Hải Phòng" data-lat="20.8651" data-lng="106.6838">Hải Phòng</button>
+                </div>
+              </div>
+
+              <!-- Bản đồ tương tác Leaflet -->
+              <div class="form-group" style="margin-top: 1.15rem">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.45rem">
+                  <span style="font-size: 0.88rem; font-weight: 700; color: #1e293b">Bản đồ phạm vi phục vụ trực quan:</span>
+                  <span style="font-size: 0.78rem; color: #64748b">Kéo thả ghim 📍 trên bản đồ để chọn tâm điểm</span>
+                </div>
+                <div id="map-onboarding-gs" style="height: 230px; width: 100%; border-radius: 16px; border: 1px solid #e2e8f0; z-index: 1"></div>
+              </div>
+
+              <div class="form-group" style="margin-top: 1rem">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem">
+                  <label class="form-label" for="rng-ban-kinh" style="margin: 0">Bán kính di chuyển tối đa:</label>
+                  <span style="font-weight: 800; color: var(--wizard-blue-hover); font-size: 1.05rem" id="lbl-ban-kinh">10 km</span>
+                </div>
+                <input
+                  id="rng-ban-kinh"
+                  type="range"
+                  min="2"
+                  max="30"
+                  step="1"
+                  value="10"
+                  style="width: 100%; accent-color: var(--wizard-blue)"
+                />
+                <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #94a3b8; margin-top: 0.25rem">
+                  <span>Gần nhà (2 km)</span>
+                  <span>Thuận tiện (10 – 15 km)</span>
+                  <span>Rộng khắp thành phố (30 km)</span>
+                </div>
+              </div>
+            </div>
+
+            <div style="margin-top: 1.25rem; padding: 0.85rem 1rem; border-radius: 12px; background: #f8fafc; font-size: 0.84rem; color: #64748b; display: flex; align-items: center; gap: 0.5rem">
+              <span>🔒</span>
+              <span>Địa chỉ nhà cụ thể và số điện thoại của bạn được bảo mật riêng tư. Học sinh chỉ thấy Quận/Huyện và vòng tròn bán kính di chuyển.</span>
+            </div>
+          </div>
+
+          <!-- BƯỚC 3: Tiêu đề & Giới thiệu sư phạm (Chuẩn Progressive Disclosure Superprof) -->
+          <div id="step-panel-3" class="wizard-step-panel" style="display: none">
+            <div class="wizard-step-header">
+              <span class="wizard-badge-step">Bước 3 / 5</span>
+              <h2 class="wizard-title">Tiêu đề &amp; Giới thiệu sư phạm</h2>
+              <p class="wizard-subtitle">
+                Học sinh và phụ huynh sẽ đọc phần này đầu tiên để cảm nhận năng lực và quyết định liên hệ bạn. Hãy viết thật tự nhiên và chân thành!
+              </p>
+            </div>
+
+            <div class="input-with-counter">
+              <label class="form-label" for="inp-tieu-de-tin">
+                Tiêu đề tin đăng gia sư:
+              </label>
+              <input
+                id="inp-tieu-de-tin"
+                type="text"
+                class="form-control"
+                style="height: 48px; border-radius: 12px"
+                placeholder="Ví dụ: Sinh viên ĐH Sư phạm chuyên kèm Toán THCS bồi dưỡng lấy lại gốc và luyện thi vào 10"
+              />
+              <div style="display: flex; justify-content: space-between; align-items: center">
+                <div class="word-counter-badge" id="badge-count-tieu-de">0 / 10 từ</div>
+                <span style="font-size: 0.78rem; color: #94a3b8">Tối thiểu 10 từ</span>
+              </div>
+            </div>
+
+            <!-- Ô 1: Phương pháp giảng dạy & Tiến trình buổi học -->
+            <div class="input-with-counter">
+              <label class="form-label" for="txt-phuong-phap-day">
+                Phương pháp giảng dạy &amp; Kế hoạch buổi học:
+              </label>
+              <textarea
+                id="txt-phuong-phap-day"
+                class="form-control"
+                rows="5"
+                style="border-radius: 16px; padding: 1rem; resize: vertical"
+                placeholder="Mô tả phong cách giảng dạy, cách tiếp cận bài học, giáo trình sử dụng và cách bạn giúp học sinh tiến bộ qua từng buổi..."
+              ></textarea>
+              <div style="display: flex; justify-content: space-between; align-items: center">
+                <div class="word-counter-badge" id="badge-count-phuong-phap">0 / 25 từ</div>
+                <span style="font-size: 0.78rem; color: #94a3b8">Tối thiểu 25 từ</span>
+              </div>
+            </div>
+
+            <!-- Ô 2: Về bạn (Học vấn, kinh nghiệm & thành tích) -->
+            <div class="input-with-counter" style="margin-top: 1.25rem">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem">
+                <label class="form-label" for="txt-ve-ban" style="margin: 0">
+                  Về bạn (Học vấn, kinh nghiệm &amp; thành tích):
+                </label>
+              </div>
+              <p style="font-size: 0.82rem; color: #64748b; margin: 0 0 0.5rem">
+                Chia sẻ quá trình học tập, trường bạn đã/đang theo học, chuyên ngành, số năm đi dạy và những kết quả nổi bật của bạn.
+              </p>
+              <textarea
+                id="txt-ve-ban"
+                class="form-control"
+                rows="5"
+                style="border-radius: 16px; padding: 1rem; resize: vertical"
+                placeholder="Ví dụ: Em hiện là sinh viên năm 3 khoa Toán Tin — ĐH Bách Khoa. Em đã có 2 năm kinh nghiệm dạy kèm cho các bạn học sinh cấp 2, 3 mất gốc lấy lại căn bản và ôn thi đạt điểm 8+..."
+              ></textarea>
+              <div style="display: flex; justify-content: space-between; align-items: center">
+                <div class="word-counter-badge" id="badge-count-ve-ban">0 / 25 từ</div>
+                <span style="font-size: 0.78rem; color: #94a3b8">Tối thiểu 25 từ</span>
+              </div>
+            </div>
+
+            <div style="margin-top: 1.25rem; padding: 0.85rem 1rem; border-radius: 12px; background: #eff6ff; border: 1px solid #bfdbfe; font-size: 0.84rem; color: #1e3a8a; display: flex; align-items: center; gap: 0.5rem">
+              <span>💡</span>
+              <span><strong>Mẹo ghi điểm:</strong> Phụ huynh thích đọc những câu chuyện học tập thực tế và sự nhiệt huyết của bạn hơn là những danh xưng khô khan.</span>
+            </div>
+          </div>
+
+          <!-- BƯỚC 4: Học phí & Buổi học thử -->
+          <div id="step-panel-4" class="wizard-step-panel" style="display: none">
+            <div class="wizard-step-header">
+              <span class="wizard-badge-step">Bước 4 / 5</span>
+              <h2 class="wizard-title">Thiết lập học phí &amp; Học thử</h2>
+              <p class="wizard-subtitle">
+                Bạn hoàn toàn làm chủ mức giá của mình. Hệ thống giải ngân an toàn qua ký quỹ Escrow bảo vệ bạn 100%.
+              </p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="inp-gia-moi-gio">Mức học phí mỗi giờ (VNĐ):</label>
+              <div style="position: relative">
+                <input
+                  id="inp-gia-moi-gio"
+                  type="number"
+                  step="10000"
+                  class="form-control"
+                  style="height: 56px; border-radius: 14px; font-size: 1.35rem; font-weight: 800; color: #0f172a; padding-right: 70px"
+                  value="200000"
+                />
+                <span style="position: absolute; right: 18px; top: 16px; font-weight: 700; color: #64748b">₫ / giờ</span>
+              </div>
+            </div>
+
+            <!-- Benchmark Tham Chiếu Thị Trường (Theo Superprof) -->
+            <div class="benchmark-box" id="khung-benchmark-hoc-phi">
+              <div class="benchmark-box-icon">💡</div>
+              <div>
+                <div style="font-weight: 800; font-size: 0.95rem; color: #1e3a8a">
+                  Mức phí tham chiếu thị trường
+                </div>
+                <div style="font-size: 0.88rem; color: #1e293b; margin-top: 0.25rem; line-height: 1.5" id="lbl-benchmark-text">
+                  Mức học phí trung bình môn Toán tại khu vực của bạn dao động từ <strong>150.000 ₫ – 250.000 ₫/giờ</strong>. Gia sư có bằng Thạc sĩ hoặc luyện thi HSG thường đặt từ <strong>250.000 ₫ – 350.000 ₫/giờ</strong>.
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 1.5rem">
+              <label class="card" style="padding: 1.15rem; cursor: pointer; display: flex; align-items: flex-start; gap: 0.75rem; border-radius: 16px; background: #f8fbff; border-color: #dbeafe">
+                <input type="checkbox" id="chk-hoc-thu" checked style="width: 20px; height: 20px; accent-color: var(--wizard-blue); margin-top: 2px" />
+                <div>
+                  <div style="font-weight: 700; font-size: 0.95rem; color: #1e3a8a">Mở ưu đãi buổi học thử Online miễn phí (60 phút · Khuyên dùng)</div>
+                  <div style="font-size: 0.84rem; color: #475569; margin-top: 0.25rem; line-height: 1.5">
+                    Áp dụng tự động 1 lần cho học sinh mới đặt lịch lần đầu học <strong>Online: Miễn phí (0 ₫, 60 phút)</strong>. Chỉ áp dụng khi bạn bật hình thức dạy trực tuyến. Tỷ lệ học sinh tiếp tục đặt dài hạn tăng hơn 85%!
+                  </div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- BƯỚC 5: Tài khoản, Ảnh chân dung & Xác minh bằng cấp -->
+          <div id="step-panel-5" class="wizard-step-panel" style="display: none">
+            <div class="wizard-step-header">
+              <span class="wizard-badge-step">Bước 5 / 5</span>
+              <h2 class="wizard-title">Ảnh chân dung &amp; Xác thực hồ sơ</h2>
+              <p class="wizard-subtitle">
+                Gia sư có ảnh chân dung sáng sủa và bằng cấp xác minh nhận được nhiều yêu cầu học gấp 3 lần!
+              </p>
+            </div>
+
+            <!-- Khung Tải Ảnh Chân Dung Trực quan -->
+            <div class="form-group" style="text-align: center">
+              <div class="avatar-drop-zone" id="btn-drop-avatar" title="Nhấn để chọn ảnh chân dung">
+                <img id="img-avatar-preview" class="avatar-drop-preview" alt="Xem trước ảnh chân dung" />
+                <div id="avatar-placeholder-view">
+                  <span style="font-size: 1.8rem">📷</span>
+                  <div style="font-size: 0.75rem; font-weight: 700; color: #64748b; margin-top: 0.25rem">Tải ảnh lên</div>
+                </div>
+                <input id="inp-avatar-file" type="file" accept="image/jpeg,image/png,image/webp" style="display: none" />
+              </div>
+              <p style="font-size: 0.8rem; color: #64748b; margin: 0">
+                Chọn ảnh khuôn mặt rõ nét, mỉm cười thân thiện (JPG, PNG, WebP ≤ 2MB)
+              </p>
+            </div>
+
+            <!-- Nếu là Khách chưa đăng nhập: Điền tài khoản tạo mới -->
+            <div id="khung-thong-tin-tai-khoan">
+              <div class="form-group">
+                <label class="form-label" for="inp-ho-ten">Họ và tên đầy đủ:</label>
+                <input id="inp-ho-ten" type="text" class="form-control" style="height: 48px; border-radius: 12px" placeholder="Nguyễn Văn A" required />
+              </div>
+
+              <div class="grid-2" style="gap: 1rem">
+                <div class="form-group">
+                  <label class="form-label" for="inp-email">Địa chỉ Email:</label>
+                  <input id="inp-email" type="email" class="form-control" style="height: 48px; border-radius: 12px" placeholder="email@example.com" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="inp-sdt">Số điện thoại:</label>
+                  <input id="inp-sdt" type="tel" class="form-control" style="height: 48px; border-radius: 12px" placeholder="0901234567" required />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="inp-mat-khau">Mật khẩu (≥ 8 ký tự, gồm chữ và số):</label>
+                <input id="inp-mat-khau" type="password" class="form-control" style="height: 48px; border-radius: 12px" placeholder="Tạo mật khẩu an toàn" required />
+              </div>
+            </div>
+
+            <!-- Tải lên Bằng cấp / Chứng chỉ để nhận huy hiệu Xác minh chính thức -->
+            <div class="form-group" style="margin-top: 1.5rem; padding: 1.35rem; border-radius: 18px; background: #f5f9ff; border: 1.5px dashed #93c5fd">
+              <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem">
+                <span style="font-size: 1.25rem">🛡️</span>
+                <div style="font-weight: 800; font-size: 1rem; color: #1d4ed8">
+                  Minh chứng Bằng cấp / Thẻ sinh viên để nhận huy hiệu "Đã xác minh":
+                </div>
+              </div>
+              <p style="font-size: 0.84rem; color: #374151; margin: 0 0 0.85rem; line-height: 1.5">
+                Thông tin học vấn tự giới thiệu chỉ mang tính tham khảo ban đầu. Để hồ sơ được cấp huy hiệu <strong>"Đã xác minh bằng cấp"</strong> chính thức và ưu tiên hiển thị hàng đầu, vui lòng tải ảnh chụp Bằng đại học, Thẻ sinh viên hoặc Chứng chỉ của bạn để Ban Quản trị đối chiếu. Tệp được mã hóa và lưu trữ bảo mật riêng tư tuyệt đối.
+              </p>
+              <input id="inp-giay-to-file" type="file" accept=".pdf,image/jpeg,image/png,image/webp" class="form-control" style="border-radius: 10px; background: #ffffff" />
+            </div>
+
+            <div id="hop-thong-bao-loi" style="display: none; margin-top: 1rem"></div>
+          </div>
+
+          <!-- Bottom Navigation Controls -->
+          <div class="wizard-footer">
+            <button type="button" class="btn-wizard-back" id="btn-back" style="visibility: hidden">
+              ← Quay lại
+            </button>
+            <button type="button" class="btn-wizard-next" id="btn-next">
+              <span>Tiếp tục</span>
+              <span>→</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- CỘT PHẢI (40%): Lời khuyên & Gợi ý sư phạm (Theo Superprof) -->
+        <aside class="wizard-sidebar" id="wizard-sidebar">
+          <h2 class="wizard-sidebar-title">
+            <span>✨</span>
+            <span>Cần lưu ý</span>
+          </h2>
+
+          <div id="sidebar-content-body">
+            <!-- Nội dung thay đổi tương ứng theo từng bước -->
+          </div>
+        </aside>
+      </div>
+    </main>
+
+    <script type="module">
+      import { api, layAccessToken } from '/assets/js/api.js';
+      import { ganChuQuyenBienDaoVietNam } from '/assets/js/ban-do-viet-nam.js';
+      import { luuPhienDangNhapDayDu, layNguoiDungHienTai } from '/assets/js/giao-dien.js';
+      import {
+        THU_TU_NHOM_MON_HOC,
+        layThongTinBoSungMonHoc,
+        timKiemMonHocThongMinh,
+      } from '/assets/js/mon-hoc-goi-y.js';
+
+      // 1. Quản lý trạng thái Wizard
+      let currentStep = 1;
+      const totalSteps = 5;
+
+      const wizardData = {
+        monHocId: '',
+        tenMonHoc: '',
+        dayTrucTuyen: true,
+        dayTrucTiep: true,
+        khuVuc: 'Cầu Giấy, Hà Nội',
+        banKinhPhucVuKm: 10,
+        viDoMo: 21.0362,
+        kinhDoMo: 105.7906,
+        tieuDe: '',
+        gioiThieu: '',
+        hocVanLoai: 'Cử nhân tốt nghiệp',
+        truongChuyenNganh: '',
+        hocVan: 'Cử nhân tốt nghiệp',
+        soNamKinhNghiem: 2,
+        giaMoiGio: 200000,
+        coHocThu: true,
+        avatarFile: null,
+        giayToFile: null
+      };
+
+      // 2. Nội dung "Cần lưu ý" theo từng bước
+      const sidebarTips = {
+        1: {
+          tip: 'Chọn môn học bạn tự tin và có chuyên môn sâu nhất. Học sinh tìm kiếm gia sư có định hướng rõ ràng sẽ dễ dàng tin tưởng hơn một gia sư nhận dạy mọi môn.',
+          dos: ['Chọn môn gắn liền với chuyên ngành đào tạo hoặc chứng chỉ quốc tế của bạn.', 'Khai báo đầy đủ kinh nghiệm giảng dạy và phương pháp sư phạm.'],
+          avoids: ['Tránh chọn các môn bạn chỉ mới nắm cơ bản hoặc chưa từng dạy kèm thực tế.']
+        },
+        2: {
+          tip: 'Kết hợp cả Học trực tuyến và Kèm tại nhà giúp bạn mở rộng tối đa lượng học sinh tiếp cận trên toàn quốc lẫn khu vực gần nhà.',
+          dos: ['Bật Dạy trực tuyến để nhận học sinh ở mọi tỉnh thành mà không tốn công di chuyển.', 'Thiết lập bán kính di chuyển hợp lý (dưới 15 km) để đảm bảo thể lực và đúng giờ.'],
+          avoids: ['Không đặt bán kính quá xa dẫn đến mệt mỏi và hủy lịch sát giờ.']
+        },
+        3: {
+          tip: 'Tiêu đề và phần giới thiệu là yếu tố quyết định 80% liệu học sinh có ấn nút Đặt lịch hay không. Hãy nêu bật thành tích học viên và phương pháp riêng của bạn.',
+          dos: ['Nêu rõ bằng cấp, số năm kinh nghiệm và mục tiêu điểm số giúp học sinh đạt được (Ví dụ: Luyện đề 9+ THPT, IELTS 7.5).', 'Mô tả ngắn gọn lộ trình và giáo trình sử dụng.'],
+          avoids: ['TUYỆT ĐỐI KHÔNG để lại số điện thoại, email, Facebook/Zalo cá nhân trong nội dung. Hệ thống sẽ tự động gán cờ vi phạm.']
+        },
+        4: {
+          tip: 'Định mức học phí hợp lý theo năng lực. Những học sinh đầu tiên sẽ mang lại đánh giá 5 sao quý giá giúp hồ sơ của bạn luôn đứng đầu danh sách tìm kiếm.',
+          dos: ['Mở ưu đãi buổi học thử Online miễn phí (60 phút) để xóa bỏ sự e ngại ban đầu của phụ huynh.', 'Đặt học phí chính thức theo khung thị trường để nhanh chóng có học viên đầu tiên.'],
+          avoids: ['Tránh đặt mức học phí quá cao khi chưa có đánh giá nào trên nền tảng.']
+        },
+        5: {
+          tip: 'Hồ sơ có ảnh đại diện gương mặt rõ nét và bằng cấp xác minh nhận được sự tin tưởng tuyệt đối từ phụ huynh.',
+          dos: ['Ảnh chụp chân dung chính diện, ánh sáng tự nhiên, trang phục lịch sự và mỉm cười.', 'Tải lên Bằng đại học hoặc Chứng chỉ (IELTS, Sư phạm...) để được cấp huy hiệu Đã xác minh.'],
+          avoids: ['Tránh dùng ảnh selfie mờ, ảnh chụp tập thể, ảnh đeo kính râm hoặc ảnh avatar hoạt hình.']
+        }
+      };
+
+      function capNhatSidebar(step) {
+        const data = sidebarTips[step];
+        const container = document.getElementById('sidebar-content-body');
+        if (!container || !data) return;
+
+        container.innerHTML = `
+          <div class="wizard-tip-box">${data.tip}</div>
+          <div class="wizard-tip-example">
+            <div class="tip-do">
+              <div style="font-weight: 700; margin-bottom: 0.25rem">✓ NÊN LÀM:</div>
+              <ul style="margin: 0; padding-left: 1.15rem">
+                ${data.dos.map((d) => `<li>${d}</li>`).join('')}
+              </ul>
+            </div>
+            <div class="tip-avoid">
+              <div style="font-weight: 700; margin-bottom: 0.25rem">✗ CẦN TRÁNH:</div>
+              <ul style="margin: 0; padding-left: 1.15rem">
+                ${data.avoids.map((a) => `<li>${a}</li>`).join('')}
+              </ul>
+            </div>
+          </div>
+        `;
+      }
+
+      // 3. Tải danh mục Môn học từ API (hỗ trợ tìm kiếm gần đúng không dấu & lọc theo nhóm)
+      let dsMonHocWizard = [];
+      let nhomMonDangChon = '';
+
+      function renderMonHocWizard() {
+        const container = document.getElementById('ds-mon-hoc-selector');
+        const elDaChon = document.getElementById('khung-mon-da-chon-wizard');
+        const tuKhoa = document.getElementById('inp-tim-mon-wizard')?.value?.trim() || '';
+        if (!container) return;
+
+        if (elDaChon && wizardData.tenMonHoc) {
+          elDaChon.textContent = `Môn đang chọn: ${wizardData.tenMonHoc}`;
+        }
+
+        let dsHienThi = [];
+        if (tuKhoa) {
+          dsHienThi = timKiemMonHocThongMinh(dsMonHocWizard, tuKhoa, 24);
+        } else if (nhomMonDangChon) {
+          dsHienThi = dsMonHocWizard
+            .filter((m) => layThongTinBoSungMonHoc(m).nhom === nhomMonDangChon)
+            .map((m) => ({ ...m, ...layThongTinBoSungMonHoc(m) }));
+        } else {
+          dsHienThi = timKiemMonHocThongMinh(dsMonHocWizard, '', 18);
+        }
+
+        if (dsHienThi.length === 0) {
+          container.innerHTML = `<div style="grid-column: 1 / -1; color: #64748b; font-size: 0.86rem">Không tìm thấy môn học khớp "${tuKhoa}". Hãy thử từ khóa ngắn hơn.</div>`;
+          return;
+        }
+
+        container.innerHTML = dsHienThi
+          .map(
+            (m) => `
+            <button type="button" class="subject-choice-pill ${m.id === wizardData.monHocId ? 'selected' : ''}" data-id="${m.id}" data-name="${m.ten}">
+              <span>${m.ten}</span>
+            </button>
+          `
+          )
+          .join('');
+
+        container.querySelectorAll('.subject-choice-pill').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            wizardData.monHocId = btn.dataset.id;
+            wizardData.tenMonHoc = btn.dataset.name;
+            renderMonHocWizard();
+            capNhatBenchmarkHocPhi();
+          });
+        });
+      }
+
+      async function taiDanhSachMonHoc() {
+        const container = document.getElementById('ds-mon-hoc-selector');
+        const elNhom = document.getElementById('ds-nhom-mon-wizard');
+        if (!container) return;
+        try {
+          const res = await api.get('/mon-hoc');
+          dsMonHocWizard = res?.duLieu || [];
+          if (dsMonHocWizard.length > 0) {
+            const macDinh = timKiemMonHocThongMinh(dsMonHocWizard, '', 1)[0] || dsMonHocWizard[0];
+            wizardData.monHocId = macDinh.id;
+            wizardData.tenMonHoc = macDinh.ten;
+
+            if (elNhom) {
+              const tatCaNhom = [{ id: '', ten: `Phổ biến (${dsMonHocWizard.length} môn)` }, ...THU_TU_NHOM_MON_HOC.map((n) => ({ id: n, ten: n }))];
+              elNhom.innerHTML = tatCaNhom
+                .map(
+                  (n) => `
+                  <button type="button" class="btn btn-sm ${n.id === nhomMonDangChon ? 'btn-primary' : 'btn-secondary'} btn-nhom-mon-wiz" data-nhom="${n.id}" style="font-size: 0.75rem; padding: 0.25rem 0.65rem; border-radius: 9999px">
+                    ${n.ten}
+                  </button>
+                `
+                )
+                .join('');
+
+              elNhom.querySelectorAll('.btn-nhom-mon-wiz').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                  nhomMonDangChon = btn.dataset.nhom || '';
+                  elNhom.querySelectorAll('.btn-nhom-mon-wiz').forEach((b) => {
+                    b.classList.toggle('btn-primary', (b.dataset.nhom || '') === nhomMonDangChon);
+                    b.classList.toggle('btn-secondary', (b.dataset.nhom || '') !== nhomMonDangChon);
+                  });
+                  renderMonHocWizard();
+                });
+              });
+            }
+
+            document.getElementById('inp-tim-mon-wizard')?.addEventListener('input', renderMonHocWizard);
+            renderMonHocWizard();
+            capNhatBenchmarkHocPhi();
+          }
+        } catch {
+          container.innerHTML = '<span style="color: #ef4444">Chưa thể tải danh sách môn học.</span>';
+        }
+      }
+
+      function capNhatBenchmarkHocPhi() {
+        const lbl = document.getElementById('lbl-benchmark-text');
+        if (!lbl) return;
+        const mon = wizardData.tenMonHoc || 'môn học này';
+        lbl.innerHTML = `Mức học phí trung bình môn <strong>${mon}</strong> tại khu vực của bạn dao động từ <strong>160.000 ₫ – 260.000 ₫/giờ</strong>. Gia sư có chứng chỉ chuyên môn cao thường nhận từ <strong>260.000 ₫ – 350.000 ₫/giờ</strong>.`;
+      }
+
+      // 4. Kiểm tra số từ trực tiếp (Word Counter)
+      function demSoTu(str = '') {
+        const clean = str.trim().replace(/\s+/g, ' ');
+        return clean ? clean.split(' ').length : 0;
+      }
+
+      const inpTieuDe = document.getElementById('inp-tieu-de-tin');
+      const badgeTieuDe = document.getElementById('badge-count-tieu-de');
+      const txtPhuongPhap = document.getElementById('txt-phuong-phap-day');
+      const badgePhuongPhap = document.getElementById('badge-count-phuong-phap');
+      const txtVeBan = document.getElementById('txt-ve-ban');
+      const badgeVeBan = document.getElementById('badge-count-ve-ban');
+      const btnNext = document.getElementById('btn-next');
+      const btnBack = document.getElementById('btn-back');
+
+      function kiemTraHopLeBuoc3() {
+        const wordsTieuDe = demSoTu(inpTieuDe?.value || '');
+        const wordsPhuongPhap = demSoTu(txtPhuongPhap?.value || '');
+        const wordsVeBan = demSoTu(txtVeBan?.value || '');
+
+        if (badgeTieuDe) {
+          badgeTieuDe.textContent = `${wordsTieuDe} / 10 từ`;
+          badgeTieuDe.classList.toggle('valid', wordsTieuDe >= 10);
+        }
+
+        if (badgePhuongPhap) {
+          badgePhuongPhap.textContent = `${wordsPhuongPhap} / 25 từ`;
+          badgePhuongPhap.classList.toggle('valid', wordsPhuongPhap >= 25);
+        }
+
+        if (badgeVeBan) {
+          badgeVeBan.textContent = `${wordsVeBan} / 25 từ`;
+          badgeVeBan.classList.toggle('valid', wordsVeBan >= 25);
+        }
+
+        if (currentStep === 3) {
+          btnNext.disabled = wordsTieuDe < 10 || wordsPhuongPhap < 25 || wordsVeBan < 25;
+        }
+      }
+
+      inpTieuDe?.addEventListener('input', kiemTraHopLeBuoc3);
+      txtPhuongPhap?.addEventListener('input', kiemTraHopLeBuoc3);
+      txtVeBan?.addEventListener('input', kiemTraHopLeBuoc3);
+
+      // Bước 2: Bản đồ tương tác Leaflet OpenStreetMap
+      let mapOnboarding = null;
+      let markerOnboarding = null;
+      let circleOnboarding = null;
+      let mapCoords = { lat: 21.0362, lng: 105.7906 };
+
+      function khoiTaoBanDoOnboarding() {
+        const mapContainer = document.getElementById('map-onboarding-gs');
+        if (!mapContainer || typeof L === 'undefined') return;
+
+        if (mapOnboarding) {
+          mapOnboarding.invalidateSize();
+          return;
+        }
+
+        mapOnboarding = L.map('map-onboarding-gs', {
+          center: [mapCoords.lat, mapCoords.lng],
+          zoom: 14,
+          minZoom: 5,
+          maxZoom: 18,
+          zoomControl: true,
+        });
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          minZoom: 5,
+          maxZoom: 18,
+          attribution: '&copy; Bản đồ khu vực hoạt động',
+        }).addTo(mapOnboarding);
+
+        ganChuQuyenBienDaoVietNam(mapOnboarding);
+
+        const customIcon = L.divIcon({
+          className: 'custom-blue-pin',
+          html: '<div style="background: #3b82f6; color: white; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; box-shadow: 0 4px 12px rgba(59,130,246,0.36); border: 2.5px solid white; cursor: grab">📍</div>',
+          iconSize: [34, 34],
+          iconAnchor: [17, 17],
+        });
+
+        markerOnboarding = L.marker([mapCoords.lat, mapCoords.lng], {
+          draggable: true,
+          icon: customIcon,
+        }).addTo(mapOnboarding);
+
+        const radiusMeters = (wizardData.banKinhPhucVuKm || 10) * 1000;
+        circleOnboarding = L.circle([mapCoords.lat, mapCoords.lng], {
+          radius: radiusMeters,
+          color: '#3b82f6',
+          fillColor: '#60a5fa',
+          fillOpacity: 0.14,
+          weight: 2,
+          dashArray: '5, 5',
+        }).addTo(mapOnboarding);
+
+        markerOnboarding.on('dragend', async (e) => {
+          const latlng = e.target.getLatLng();
+          mapCoords.lat = latlng.lat;
+          mapCoords.lng = latlng.lng;
+          wizardData.viDoMo = latlng.lat;
+          wizardData.kinhDoMo = latlng.lng;
+          circleOnboarding?.setLatLng(latlng);
+
+          try {
+            const revRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latlng.lat}&lon=${latlng.lng}&zoom=14&addressdetails=1`);
+            if (revRes.ok) {
+              const geoData = await revRes.json();
+              const district = geoData.address?.suburb || geoData.address?.county || geoData.address?.city_district || geoData.address?.city || '';
+              const city = geoData.address?.city || geoData.address?.state || '';
+              if (district || city) {
+                const newKhuVuc = [district, city].filter(Boolean).join(', ');
+                const inpKhuVuc = document.getElementById('inp-khu-vuc-gs');
+                if (inpKhuVuc) inpKhuVuc.value = newKhuVuc;
+                wizardData.khuVuc = newKhuVuc;
+              }
+            }
+          } catch {
+            // Giữ nguyên khu vực
+          }
+        });
+      }
+
+      // Nút GPS Lấy vị trí hiện tại
+      const btnGps = document.getElementById('btn-gps-current');
+      btnGps?.addEventListener('click', () => {
+        if (!navigator.geolocation) {
+          alert('Trình duyệt của bạn chưa hỗ trợ định vị vị trí.');
+          return;
+        }
+        btnGps.disabled = true;
+        btnGps.innerHTML = '<span>⏳</span> <span>Đang xác định vị trí...</span>';
+
+        navigator.geolocation.getCurrentPosition(
+          async (pos) => {
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+            mapCoords.lat = lat;
+            mapCoords.lng = lng;
+            wizardData.viDoMo = lat;
+            wizardData.kinhDoMo = lng;
+
+            if (mapOnboarding) {
+              mapOnboarding.setView([lat, lng], 13);
+              if (markerOnboarding) markerOnboarding.setLatLng([lat, lng]);
+              if (circleOnboarding) circleOnboarding.setLatLng([lat, lng]);
+            }
+
+            try {
+              const rev = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=14&addressdetails=1`);
+              if (rev.ok) {
+                const d = await rev.json();
+                const district = d.address?.suburb || d.address?.county || d.address?.city_district || d.address?.city || '';
+                const city = d.address?.city || d.address?.state || '';
+                const locStr = [district, city].filter(Boolean).join(', ') || 'Vị trí hiện tại';
+                const inpKhuVuc = document.getElementById('inp-khu-vuc-gs');
+                if (inpKhuVuc) inpKhuVuc.value = locStr;
+                wizardData.khuVuc = locStr;
+              }
+            } catch {
+              // Bỏ qua
+            }
+
+            btnGps.disabled = false;
+            btnGps.innerHTML = '<span>📍</span> <span>Lấy vị trí hiện tại của tôi</span>';
+          },
+          (err) => {
+            btnGps.disabled = false;
+            btnGps.innerHTML = '<span>📍</span> <span>Lấy vị trí hiện tại của tôi</span>';
+            alert('Không thể xác định vị trí: ' + (err.message || 'Quyền truy cập vị trí chưa được cấp.'));
+          },
+          { timeout: 8000 }
+        );
+      });
+
+      // Chọn nhanh thành phố
+      document.querySelectorAll('.quick-city-pill').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const lat = parseFloat(btn.dataset.lat);
+          const lng = parseFloat(btn.dataset.lng);
+          const city = btn.dataset.city;
+          const inpKhuVuc = document.getElementById('inp-khu-vuc-gs');
+          if (inpKhuVuc) inpKhuVuc.value = city;
+          wizardData.khuVuc = city;
+          mapCoords.lat = lat;
+          mapCoords.lng = lng;
+          wizardData.viDoMo = lat;
+          wizardData.kinhDoMo = lng;
+
+          if (mapOnboarding) {
+            mapOnboarding.setView([lat, lng], 12);
+            if (markerOnboarding) markerOnboarding.setLatLng([lat, lng]);
+            if (circleOnboarding) circleOnboarding.setLatLng([lat, lng]);
+          }
+        });
+      });
+
+      // Bán kính trượt
+      const rngBanKinh = document.getElementById('rng-ban-kinh');
+      const lblBanKinh = document.getElementById('lbl-ban-kinh');
+      rngBanKinh?.addEventListener('input', (e) => {
+        const km = parseInt(e.target.value, 10);
+        if (lblBanKinh) lblBanKinh.textContent = `${km} km`;
+        wizardData.banKinhPhucVuKm = km;
+        if (circleOnboarding) {
+          circleOnboarding.setRadius(km * 1000);
+        }
+      });
+
+      // Bật/tắt hình thức dạy
+      const chkOnline = document.getElementById('chk-day-truc-tuyen');
+      const chkOffline = document.getElementById('chk-day-truc-tiep');
+      const cardOnline = document.getElementById('card-mode-online');
+      const cardOffline = document.getElementById('card-mode-offline');
+      const khungOffline = document.getElementById('khung-dia-diem-offline');
+
+      function dongBoHinhThucDay() {
+        wizardData.dayTrucTuyen = chkOnline?.checked || false;
+        wizardData.dayTrucTiep = chkOffline?.checked || false;
+        cardOnline?.classList.toggle('selected', wizardData.dayTrucTuyen);
+        cardOffline?.classList.toggle('selected', wizardData.dayTrucTiep);
+        if (khungOffline) {
+          khungOffline.style.display = wizardData.dayTrucTiep ? 'block' : 'none';
+        }
+        if (!wizardData.dayTrucTuyen && !wizardData.dayTrucTiep) {
+          chkOnline.checked = true;
+          dongBoHinhThucDay();
+        }
+      }
+      chkOnline?.addEventListener('change', dongBoHinhThucDay);
+      chkOffline?.addEventListener('change', dongBoHinhThucDay);
+
+      // Avatar upload preview
+      const btnDropAvatar = document.getElementById('btn-drop-avatar');
+      const inpAvatarFile = document.getElementById('inp-avatar-file');
+      const imgAvatarPreview = document.getElementById('img-avatar-preview');
+      const avatarPlaceholder = document.getElementById('avatar-placeholder-view');
+
+      btnDropAvatar?.addEventListener('click', () => inpAvatarFile?.click());
+      inpAvatarFile?.addEventListener('change', (e) => {
+        const file = e.target.files?.[0];
+        if (file) {
+          wizardData.avatarFile = file;
+          const reader = new FileReader();
+          reader.onload = (re) => {
+            if (imgAvatarPreview) {
+              imgAvatarPreview.src = re.target.result;
+              imgAvatarPreview.style.display = 'block';
+            }
+            if (avatarPlaceholder) avatarPlaceholder.style.display = 'none';
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+
+      // Giấy tờ upload
+      const inpGiayToFile = document.getElementById('inp-giay-to-file');
+      inpGiayToFile?.addEventListener('change', (e) => {
+        if (e.target.files?.[0]) {
+          wizardData.giayToFile = e.target.files[0];
+        }
+      });
+
+      // 5. Điều hướng Bước (Next / Back)
+      function chuyenBuoc(step) {
+        currentStep = Math.max(1, Math.min(step, totalSteps));
+
+        // Ẩn hiện các panel
+        for (let i = 1; i <= totalSteps; i++) {
+          const panel = document.getElementById(`step-panel-${i}`);
+          if (panel) panel.style.display = i === currentStep ? 'block' : 'none';
+
+          const bullet = document.querySelector(`.wizard-step-bullet[data-step="${i}"]`);
+          if (bullet) {
+            bullet.classList.toggle('active', i === currentStep);
+            bullet.classList.toggle('completed', i < currentStep);
+          }
+        }
+
+        // Nếu chuyển sang bước 2 (Bản đồ) -> render lại Leaflet map
+        if (currentStep === 2) {
+          setTimeout(khoiTaoBanDoOnboarding, 100);
+        }
+
+        // Cập nhật nút Back
+        if (btnBack) {
+          btnBack.style.visibility = currentStep > 1 ? 'visible' : 'hidden';
+        }
+
+        // Cập nhật nút Next
+        if (btnNext) {
+          if (currentStep === totalSteps) {
+            btnNext.innerHTML = '<span>Hoàn tất &amp; Gửi duyệt hồ sơ</span> <span>✓</span>';
+            btnNext.disabled = false;
+          } else {
+            btnNext.innerHTML = '<span>Tiếp tục</span> <span>→</span>';
+            if (currentStep === 3) {
+              kiemTraHopLeBuoc3();
+            } else {
+              btnNext.disabled = false;
+            }
+          }
+        }
+
+        // Cập nhật sidebar tips
+        capNhatSidebar(currentStep);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      btnBack?.addEventListener('click', () => chuyenBuoc(currentStep - 1));
+
+      btnNext?.addEventListener('click', async () => {
+        if (currentStep < totalSteps) {
+          // Lưu dữ liệu bước hiện tại
+          if (currentStep === 2) {
+            wizardData.khuVuc = document.getElementById('inp-khu-vuc-gs')?.value?.trim() || 'Cầu Giấy, Hà Nội';
+          } else if (currentStep === 3) {
+            const tieuDeVal = inpTieuDe?.value?.trim() || '';
+            const ppVal = txtPhuongPhap?.value?.trim() || '';
+            const vbVal = txtVeBan?.value?.trim() || '';
+            wizardData.tieuDe = tieuDeVal;
+            wizardData.gioiThieu = `${ppVal}\n\n${vbVal}`.trim();
+            // Trích xuất thông tin học vấn từ phần "Về bạn" hoặc tiêu đề để luôn thỏa mãn backend validation >= 2 ký tự
+            wizardData.hocVan = vbVal.length >= 2 ? vbVal.slice(0, 300) : (tieuDeVal.length >= 2 ? tieuDeVal : 'Gia sư chuyên môn');
+            wizardData.soNamKinhNghiem = 2;
+          } else if (currentStep === 4) {
+            wizardData.giaMoiGio = parseInt(document.getElementById('inp-gia-moi-gio')?.value || '200000', 10);
+            const coHocThu = Boolean(document.getElementById('chk-hoc-thu')?.checked) && wizardData.dayTrucTuyen;
+            wizardData.coHocThu = coHocThu;
+          }
+
+          chuyenBuoc(currentStep + 1);
+        } else {
+          // Bước 5: Submit hoàn tất hồ sơ
+          await thucHienDangKyGiaSu();
+        }
+      });
+
+      // 6. Xử lý Hoàn tất Đăng ký & Gửi duyệt hồ sơ
+      async function thucHienDangKyGiaSu() {
+        const elLoi = document.getElementById('hop-thong-bao-loi');
+        if (elLoi) elLoi.style.display = 'none';
+
+        btnNext.disabled = true;
+        btnNext.innerHTML = '<span>Đang khởi tạo hồ sơ...</span>';
+
+        try {
+          let user = layNguoiDungHienTai();
+
+          // A. Nếu là Khách: Đăng ký tài khoản Gia sư mới
+          if (!user || user.vaiTro !== 'GIA_SU') {
+            const hoTen = document.getElementById('inp-ho-ten')?.value?.trim();
+            const email = document.getElementById('inp-email')?.value?.trim();
+            const soDienThoai = document.getElementById('inp-sdt')?.value?.trim();
+            const matKhau = document.getElementById('inp-mat-khau')?.value;
+
+            if (!hoTen || !email || !matKhau) {
+              throw new Error('Vui lòng điền đầy đủ Họ tên, Email và Mật khẩu.');
+            }
+
+            const regRes = await api.post('/xac-thuc/dang-ky', {
+              hoTen,
+              email,
+              soDienThoai: soDienThoai || null,
+              matKhau,
+              khuVuc: wizardData.khuVuc,
+              vaiTro: 'GIA_SU'
+            });
+
+            if (regRes?.duLieu) {
+              luuPhienDangNhapDayDu(regRes.duLieu);
+              user = regRes.duLieu.nguoiDung;
+            }
+          }
+
+          // B. Cập nhật Hồ sơ Gia sư (PUT /api/gia-su/toi)
+          const hinhThucDayArr = [];
+          if (wizardData.dayTrucTuyen) hinhThucDayArr.push('TRUC_TUYEN');
+          if (wizardData.dayTrucTiep) hinhThucDayArr.push('TRUC_TIEP');
+
+          await api.put('/gia-su/toi', {
+            tieuDe: wizardData.tieuDe || 'Giáo viên chuyên bồi dưỡng học sinh giỏi và luyện thi',
+            gioiThieu: wizardData.gioiThieu || 'Phương pháp trực quan, nhiệt tình, theo sát từng bài học của học sinh.',
+            hocVan: wizardData.hocVan || 'Cử nhân Sư phạm',
+            soNamKinhNghiem: wizardData.soNamKinhNghiem || 3,
+            hinhThucDay: hinhThucDayArr,
+            coHocThu: Boolean(wizardData.coHocThu) && wizardData.dayTrucTuyen,
+            banKinhPhucVuKm: wizardData.banKinhPhucVuKm
+          });
+
+          // C. Cập nhật Môn dạy & Học phí (PUT /api/gia-su/toi/mon-hoc)
+          if (wizardData.monHocId) {
+            await api.put('/gia-su/toi/mon-hoc', {
+              dsMonDay: [
+                {
+                  monHocId: wizardData.monHocId,
+                  giaMoiGio: wizardData.giaMoiGio || 200000
+                }
+              ]
+            });
+          }
+
+          // D. Tải lên Ảnh đại diện (nếu có)
+          if (wizardData.avatarFile) {
+            try {
+              const fdAvatar = new FormData();
+              fdAvatar.append('tep', wizardData.avatarFile);
+              await api.post('/xac-thuc/anh-dai-dien', fdAvatar);
+            } catch (err) {
+              console.warn('Lỗi tải ảnh đại diện:', err);
+            }
+          }
+
+          // E. Tải lên Giấy tờ xác minh bằng cấp (nếu có)
+          if (wizardData.giayToFile) {
+            try {
+              const fdGiayTo = new FormData();
+              fdGiayTo.append('loai', 'BANG_CAP');
+              fdGiayTo.append('tep', wizardData.giayToFile);
+              await api.post('/gia-su/toi/giay-to', fdGiayTo);
+            } catch (err) {
+              console.warn('Lỗi tải giấy tờ:', err);
+            }
+          }
+
+          // F. Gửi duyệt hồ sơ tự động
+          try {
+            await api.post('/gia-su/toi/gui-duyet', {});
+          } catch (err) {
+            console.log('Chờ bổ sung giấy tờ để duyệt:', err.message);
+          }
+
+          // G. Chuyển hướng thành công vào Cổng Quản lý Gia sư
+          window.location.href = '/pages/quan-ly-gia-su.html?onboardingThanhCong=true';
+        } catch (err) {
+          btnNext.disabled = false;
+          btnNext.innerHTML = '<span>Hoàn tất &amp; Gửi duyệt hồ sơ</span> <span>✓</span>';
+          if (elLoi) {
+            elLoi.innerHTML = `<div class="alert alert-danger" style="margin: 0">${err.message || 'Đã có lỗi xảy ra khi tạo hồ sơ.'}</div>`;
+            elLoi.style.display = 'block';
+          }
+        }
+      }
+
+      // Khởi tạo ban đầu
+      const userHienTai = layNguoiDungHienTai();
+      if (userHienTai && userHienTai.vaiTro === 'GIA_SU') {
+        const khungTk = document.getElementById('khung-thong-tin-tai-khoan');
+        if (khungTk) {
+          khungTk.innerHTML = `
+            <div class="alert alert-info" style="margin: 0.5rem 0 1rem">
+              Bạn đang hoàn thiện hồ sơ với tài khoản Gia sư <strong>${userHienTai.hoTen} (${userHienTai.email})</strong>.
+            </div>
+          `;
+        }
+      }
+
+      // Nhận email từ Landing Page /pages/tro-thanh-gia-su.html nếu có
+      const params = new URLSearchParams(window.location.search);
+      const emailTruyenSang = params.get('email');
+      if (emailTruyenSang) {
+        const inpEmail = document.getElementById('inp-email');
+        if (inpEmail) inpEmail.value = emailTruyenSang;
+      }
+
+      taiDanhSachMonHoc();
+      capNhatSidebar(1);
+    </script>
+  </body>
+</html>

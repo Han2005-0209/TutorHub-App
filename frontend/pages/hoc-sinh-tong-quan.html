@@ -1,0 +1,1800 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/assets/img/icon-192.svg" />
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <title>Cổng Học sinh — Không gian học tập &amp; Khám phá Gia sư | TutorHub</title>
+  </head>
+  <body class="portal-body">
+    <div class="app-shell portal-hoc-sinh" id="khung-app-hoc-sinh">
+      <div class="app-sidebar-backdrop" id="backdrop-sidebar-hs"></div>
+      <!-- TASKBAR TRÁI: Sidebar chuyên biệt cho Học sinh (Tất cả mục đều mở thống nhất ở khung bên phải) -->
+      <aside class="app-sidebar" aria-label="Điều hướng Cổng Học sinh">
+        <div>
+          <!-- Logo & Portal Chip -->
+          <div class="studio-brand-box" style="margin-bottom: 0.85rem">
+            <a class="thuong-hieu" href="/index.html" title="Về trang chủ TutorHub" style="color: #1e293b; text-decoration: none">
+              <img src="/assets/img/icon-192.svg" alt="TutorHub" width="28" height="28" />
+              <span>TutorHub</span>
+            </a>
+            <span class="portal-chip hoc-sinh">Cổng Học sinh</span>
+          </div>
+
+          <!-- Menu điều hướng Taskbar trái: 100% mở sang khung bên phải -->
+          <nav class="studio-nav" aria-label="Điều hướng Học sinh">
+            <button type="button" class="studio-nav-btn active" data-tab="tab-tong-quan" id="btn-nav-tong-quan" title="Không gian học tập">
+              <span class="studio-nav-btn-left">
+                <span class="studio-nav-ico" id="ico-nav-dashboard"></span>
+                <span>Không gian học tập</span>
+              </span>
+            </button>
+            <button type="button" class="studio-nav-btn" data-tab="tab-kham-pha" id="btn-nav-kham-pha" title="Khám phá &amp; Tìm gia sư">
+              <span class="studio-nav-btn-left">
+                <span class="studio-nav-ico" id="ico-nav-search"></span>
+                <span>Khám phá gia sư</span>
+              </span>
+              <span class="badge badge-warning" style="font-size: 0.68rem; padding: 0.15rem 0.45rem">Gợi ý</span>
+            </button>
+            <button type="button" class="studio-nav-btn" data-tab="tab-lich-hoc" id="btn-nav-lich-hoc" title="Lịch học của tôi">
+              <span class="studio-nav-btn-left">
+                <span class="studio-nav-ico" id="ico-nav-calendar"></span>
+                <span>Lịch học của tôi</span>
+              </span>
+            </button>
+            <button type="button" class="studio-nav-btn" data-tab="tab-yeu-thich" id="btn-nav-yeu-thich" title="Gia sư đã lưu">
+              <span class="studio-nav-btn-left">
+                <span class="studio-nav-ico" id="ico-nav-heart"></span>
+                <span>Gia sư đã lưu</span>
+              </span>
+              <span id="badge-sb-yeu-thich" class="badge badge-neutral" style="font-size: 0.68rem; padding: 0.15rem 0.45rem">0</span>
+            </button>
+            <button type="button" class="studio-nav-btn" data-tab="tab-tin-nhan" id="btn-nav-tin-nhan" title="Tin nhắn">
+              <span class="studio-nav-btn-left">
+                <span class="studio-nav-ico" id="ico-nav-chat"></span>
+                <span>Tin nhắn</span>
+              </span>
+            </button>
+            <button type="button" class="studio-nav-btn" data-tab="tab-tai-khoan" id="btn-nav-tai-khoan" title="Tài khoản &amp; Bảo mật">
+              <span class="studio-nav-btn-left">
+                <span class="studio-nav-ico" id="ico-nav-account"></span>
+                <span>Tài khoản &amp; Ví</span>
+              </span>
+            </button>
+          </nav>
+        </div>
+
+        <!-- Chân Taskbar trái: Pill Tài khoản & Popover thông minh phong cách Claude / AI Agent -->
+        <div class="sidebar-user-pill-wrap">
+          <!-- Popover bay lên phía trên khi click vào tài khoản -->
+          <div class="sidebar-user-popover" id="hs-user-popover" role="menu" aria-label="Menu tài khoản học sinh">
+            <div class="sidebar-popover-header">
+              <div class="sidebar-popover-email" id="pop-hs-email">Đang tải tài khoản...</div>
+              <div class="sidebar-popover-name" id="pop-hs-ten">Học sinh TutorHub</div>
+              <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 0.3rem; margin-top: 0.4rem">
+                <span class="sidebar-popover-badge" style="white-space: nowrap">
+                  <span id="ico-pop-shield"></span>
+                  <span>Học viên chính thức</span>
+                </span>
+                <span id="pop-hs-khu-vuc" style="font-size: 0.72rem; color: var(--th-text-muted)"></span>
+              </div>
+            </div>
+
+            <div class="sidebar-popover-list">
+              <button type="button" class="sidebar-popover-item" id="btn-pop-cai-dat">
+                <span style="display: flex; align-items: center; gap: 0.55rem; white-space: nowrap">
+                  <span id="ico-pop-settings"></span>
+                  <span>Cài đặt tài khoản</span>
+                </span>
+              </button>
+
+              <button type="button" class="sidebar-popover-item" id="btn-pop-vi">
+                <span style="display: flex; align-items: center; gap: 0.55rem; white-space: nowrap">
+                  <span id="ico-pop-wallet"></span>
+                  <span>Ví học tập</span>
+                </span>
+                <span id="pop-hs-vi" style="font-size: 0.74rem; font-weight: 700; color: #15803d; white-space: nowrap; flex-shrink: 0">0 ₫</span>
+              </button>
+
+              <a href="/pages/tro-thanh-gia-su.html" class="sidebar-popover-item">
+                <span style="display: flex; align-items: center; gap: 0.55rem; white-space: nowrap">
+                  <span id="ico-pop-grad"></span>
+                  <span>Làm Gia sư</span>
+                </span>
+                <span style="font-size: 0.68rem; font-weight: 700; padding: 0.14rem 0.48rem; border-radius: 9999px; background: #ebf3ff; color: #2563eb; white-space: nowrap; flex-shrink: 0">Nhận dạy</span>
+              </a>
+
+              <a href="/index.html" class="sidebar-popover-item">
+                <span style="display: flex; align-items: center; gap: 0.55rem; white-space: nowrap">
+                  <span id="ico-pop-home"></span>
+                  <span>Trang chủ TutorHub ↗</span>
+                </span>
+              </a>
+
+              <div class="sidebar-popover-divider"></div>
+
+              <button type="button" class="sidebar-popover-item danger" id="btn-dang-xuat-sidebar">
+                <span style="display: flex; align-items: center; gap: 0.6rem">
+                  <span id="ico-pop-logout"></span>
+                  <span>Đăng xuất</span>
+                </span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Nút Pill hiển thị tài khoản học sinh ở góc dưới (như Claude.ai) -->
+          <button
+            type="button"
+            class="sidebar-user-pill"
+            id="btn-sidebar-user-pill"
+            title="Tùy chọn tài khoản"
+            aria-haspopup="true"
+            aria-expanded="false"
+          >
+            <div class="sidebar-user-pill-left">
+              <div id="hs-sb-avatar" class="sidebar-user-avatar">
+                HS
+              </div>
+              <div class="sidebar-user-info">
+                <div id="hs-sb-ten" class="sidebar-user-name">Đang tải...</div>
+                <div id="hs-sb-vi" class="sidebar-user-role">Học viên chính thức</div>
+              </div>
+            </div>
+            <span class="sidebar-user-chevron" id="ico-sb-chevron"></span>
+          </button>
+        </div>
+      </aside>
+
+      <!-- CỘT PHẢI: App Content Column (Top bar nhỏ gọn + Các Tab nội dung mở ngay bên phải) -->
+      <div class="app-content-col">
+        <header class="app-topbar" style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0 1.5rem">
+          <div style="min-width: 0; display: flex; align-items: center; gap: 0.75rem">
+            <button type="button" class="btn-sidebar-toggle" id="btn-toggle-sidebar-hs" title="Thu gọn / Mở rộng bảng điều khiển" aria-label="Thu gọn hoặc mở rộng bảng điều khiển"></button>
+            <div style="min-width: 0">
+              <div style="font-size: 0.72rem; font-weight: 700; color: var(--th-blush-text); letter-spacing: 0.03em; text-transform: uppercase">
+                Cổng Học sinh · Không gian học tập cá nhân
+              </div>
+              <h1 id="loi-chao-hs" style="margin: 0; font-size: 1.15rem; font-weight: 800; color: var(--th-text)">
+                Không gian học tập
+              </h1>
+            </div>
+          </div>
+
+          <!-- Thanh tìm kiếm nhanh trên Topbar + Các nút hành động -->
+          <div style="display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap">
+            <form id="form-tim-topbar" style="display: flex; align-items: center; position: relative">
+              <span id="ico-topbar-search" style="position: absolute; left: 0.75rem; color: var(--th-text-muted); display: inline-flex"></span>
+              <input
+                id="inp-tim-topbar"
+                type="text"
+                placeholder="Tìm môn học, gia sư..."
+                style="height: 36px; padding-left: 2.2rem; padding-right: 0.85rem; border-radius: 9999px; border: 1px solid var(--th-border); font-size: 0.83rem; width: 210px; transition: all 0.2s ease"
+              />
+            </form>
+            <a href="/index.html" class="btn btn-secondary btn-sm" style="height: 36px; border-radius: 9999px; font-size: 0.79rem">
+              Trang chủ ↗
+            </a>
+            <!-- Nút Chuông Thông báo Topbar có chấm đỏ & dropdown -->
+            <div style="position: relative">
+              <button
+                type="button"
+                class="btn-topbar-bell"
+                id="btn-topbar-thong-bao"
+                title="Thông báo mới"
+                aria-label="Thông báo"
+                aria-expanded="false"
+              >
+                <span id="ico-topbar-bell"></span>
+                <span class="topbar-bell-badge" id="badge-thong-bao">2</span>
+              </button>
+              <div class="topbar-bell-dropdown" id="dropdown-thong-bao" role="menu">
+                <div class="bell-dropdown-header">
+                  <span>Thông báo</span>
+                  <span style="font-size: 0.74rem; color: var(--th-blush-text); font-weight: 600; cursor: pointer" id="btn-doc-tat-ca-tb">Đánh dấu đã đọc</span>
+                </div>
+                <div class="bell-dropdown-list" id="hs-ds-thong-bao">
+                  <div style="padding: 1rem; text-align: center; font-size: 0.8rem; color: #94a3b8">Đang tải thông báo...</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <!-- Main Canvas: Tất cả Tab đều hiển thị ngay tại khung bên phải -->
+        <main class="app-canvas" style="padding: 1.5rem 1.75rem 3.5rem; display: flex; flex-direction: column; gap: 1.5rem">
+          <div id="hop-thong-bao" style="display: none"></div>
+
+          <!-- TAB 0: KHÔNG GIAN HỌC TẬP (TỔNG QUAN) -->
+          <div id="tab-tong-quan" class="tab-panel" style="display: flex; flex-direction: column; gap: 1.55rem">
+          <!-- Khối trọng tâm: Buổi học sắp tới (Khung kích thước cố định chống giật) -->
+          <section id="khung-buoi-sap-toi" aria-label="Buổi học sắp tới">
+            <div class="sk-up-next" aria-hidden="true">
+              <div style="flex: 1">
+                <span class="sk-line" style="height: 22px; width: 220px; border-radius: 9999px"></span>
+                <span class="sk-line" style="height: 26px; width: 65%; margin-top: 12px"></span>
+                <span class="sk-line" style="height: 15px; width: 52%; margin-top: 10px"></span>
+              </div>
+              <span class="sk-block" style="width: 152px; height: 40px; border-radius: 8px"></span>
+            </div>
+          </section>
+
+          <!-- 3 chỉ số học tập cá nhân -->
+          <section class="kpi-grid-3" id="khung-kpi-hs" aria-label="Chỉ số học tập">
+            <div class="kpi-card">
+              <div class="kpi-top">
+                <span class="kpi-label">Số dư Ví học tập</span>
+                <span class="kpi-icon blue" id="ico-kpi-vi"></span>
+              </div>
+              <div class="kpi-value" id="kpi-so-du-vi"><span class="sk-line" style="height: 24px; width: 120px"></span></div>
+              <div class="kpi-sub">Dùng thanh toán nhanh &amp; nhận hoàn tiền tự động</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-top">
+                <span class="kpi-label">Buổi học sắp tới / Đã xong</span>
+                <span class="kpi-icon emerald" id="ico-kpi-buoi"></span>
+              </div>
+              <div class="kpi-value" id="kpi-buoi-hoc"><span class="sk-line" style="height: 24px; width: 150px"></span></div>
+              <div class="kpi-sub" id="kpi-buoi-hoc-sub">Đang đồng bộ từ lịch học của bạn</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-top">
+                <span class="kpi-label">Gia sư đã lưu</span>
+                <span class="kpi-icon rose" id="ico-kpi-luu"></span>
+              </div>
+              <div class="kpi-value" id="kpi-yeu-thich"><span class="sk-line" style="height: 24px; width: 96px"></span></div>
+              <div class="kpi-sub">
+                <button type="button" id="btn-kpi-mo-yeu-thich" style="background: none; border: none; padding: 0; font-family: inherit; font-size: inherit; color: var(--th-blush-text); font-weight: 600; cursor: pointer">
+                  Mở danh sách yêu thích →
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <!-- Khung tìm kiếm nhanh & Môn học thịnh hành ngay trên Cổng Học sinh -->
+          <section class="card" style="padding: 1.35rem 1.6rem; background: #ffffff; border: 1px solid #f1f5f9; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); border-radius: 20px" aria-label="Tìm kiếm gia sư nhanh">
+            <form id="form-tim-kiem-dashboard" style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center">
+              <div style="flex: 2; min-width: 240px; position: relative">
+                <span style="position: absolute; left: 1.15rem; top: 50%; transform: translateY(-50%); color: var(--th-text-muted); display: inline-flex" id="ico-search-input"></span>
+                <input
+                  id="inp-tu-khoa-dashboard"
+                  type="text"
+                  class="form-control"
+                  style="padding-left: 2.85rem; height: 48px; border-radius: 9999px; font-size: 0.93rem; border: 1px solid #e2e8f0; background: #f8fafc"
+                  placeholder="Bạn muốn tìm gia sư môn gì? (Toán, Tiếng Anh, IELTS, Hóa,...)"
+                  autocomplete="off"
+                />
+              </div>
+              <div style="flex: 1; min-width: 175px">
+                <select id="sel-hinh-thuc-dashboard" class="form-control" style="height: 48px; border-radius: 9999px; font-size: 0.9rem; font-weight: 500; border: 1px solid #e2e8f0; background: #f8fafc">
+                  <option value="">Tất cả hình thức</option>
+                  <option value="TRUC_TUYEN">Học trực tuyến (Online)</option>
+                  <option value="TRUC_TIEP">Học trực tiếp tại nhà</option>
+                </select>
+              </div>
+              <button type="submit" class="btn" style="height: 48px; padding: 0 1.6rem; border-radius: 9999px; font-weight: 700; display: inline-flex; align-items: center; gap: 0.45rem; background: var(--th-blush); color: #ffffff; border: none; box-shadow: 0 4px 12px rgba(240, 101, 109, 0.24); cursor: pointer">
+                <span id="ico-search-btn"></span>
+                <span>Tìm gia sư</span>
+              </button>
+            </form>
+
+            <!-- Dải môn học phổ biến dạng chip nhanh -->
+            <div style="margin-top: 0.95rem; padding-top: 0.85rem; border-top: 1px dashed #f1f5f9; display: flex; align-items: center; gap: 0.55rem; flex-wrap: wrap">
+              <span style="font-size: 0.78rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.04em">Môn phổ biến:</span>
+              <a href="/pages/tim-kiem-gia-su.html?tuKhoa=Toán%20học" class="tag-subject" style="padding: 0.35rem 0.8rem; border-radius: 9999px; text-decoration: none; font-weight: 600; font-size: 0.82rem; background: #f8fafc; color: #334155; border: 1px solid #e2e8f0">Toán học</a>
+              <a href="/pages/tim-kiem-gia-su.html?tuKhoa=Tiếng%20Anh" class="tag-subject" style="padding: 0.35rem 0.8rem; border-radius: 9999px; text-decoration: none; font-weight: 600; font-size: 0.82rem; background: var(--th-blush-soft); color: var(--th-blush-text); border: 1px solid var(--th-blush-border)">Tiếng Anh</a>
+              <a href="/pages/tim-kiem-gia-su.html?tuKhoa=Luyện%20thi%20IELTS" class="tag-subject" style="padding: 0.35rem 0.8rem; border-radius: 9999px; text-decoration: none; font-weight: 600; font-size: 0.82rem; background: var(--th-blush-soft); color: var(--th-blush-text); border: 1px solid var(--th-blush-border)">Luyện thi IELTS</a>
+              <a href="/pages/tim-kiem-gia-su.html?tuKhoa=Vật%20lý" class="tag-subject" style="padding: 0.35rem 0.8rem; border-radius: 9999px; text-decoration: none; font-weight: 600; font-size: 0.82rem; background: #f8fafc; color: #334155; border: 1px solid #e2e8f0">Vật lý</a>
+              <a href="/pages/tim-kiem-gia-su.html?tuKhoa=Hóa%20học" class="tag-subject" style="padding: 0.35rem 0.8rem; border-radius: 9999px; text-decoration: none; font-weight: 600; font-size: 0.82rem; background: #f8fafc; color: #334155; border: 1px solid #e2e8f0">Hóa học</a>
+              <a href="/pages/tim-kiem-gia-su.html?tuKhoa=Ngữ%20văn" class="tag-subject" style="padding: 0.35rem 0.8rem; border-radius: 9999px; text-decoration: none; font-weight: 600; font-size: 0.82rem; background: #f8fafc; color: #334155; border: 1px solid #e2e8f0">Ngữ văn</a>
+              <a href="/pages/tim-kiem-gia-su.html?tuKhoa=Lập%20trình" class="tag-subject" style="padding: 0.35rem 0.8rem; border-radius: 9999px; text-decoration: none; font-weight: 600; font-size: 0.82rem; background: #f8fafc; color: #334155; border: 1px solid #e2e8f0">Lập trình CNTT</a>
+            </div>
+          </section>
+
+          <!-- MỤC GỢI Ý GIA SƯ DÀNH RIÊNG CHO BẠN (Tích hợp AI & Đánh giá cao) -->
+          <section id="khung-goi-y-gia-su" aria-label="Gợi ý gia sư dành riêng cho bạn">
+            <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 1.15rem; gap: 0.75rem; flex-wrap: wrap">
+              <div>
+                <div style="display: flex; align-items: center; gap: 0.5rem">
+                  <span style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 8px; background: #fffbeb; color: var(--th-amber); font-weight: 800; font-size: 1rem">★</span>
+                  <h2 style="margin: 0; font-size: 1.28rem; font-weight: 800; letter-spacing: -0.02em">
+                    Gợi ý gia sư dành riêng cho bạn
+                  </h2>
+                </div>
+                <p id="sub-goi-y-gia-su" style="margin: 0.3rem 0 0; font-size: 0.86rem; color: var(--th-text-muted)">
+                  Được đề xuất dựa trên đánh giá cao và mức độ sẵn sàng giảng dạy trực tuyến &amp; tại khu vực của bạn.
+                </p>
+              </div>
+              <button type="button" class="link-more" id="btn-xem-tat-ca-goi-y" style="background: none; border: none; padding: 0; font-family: inherit; font-weight: 700; font-size: 0.88rem; cursor: pointer">
+                Xem tất cả gia sư →
+              </button>
+            </div>
+
+            <!-- Lưới card gia sư gợi ý (Skeleton khi đang tải) -->
+            <div id="ds-gia-su-goi-y" class="grid-3" style="gap: 1.5rem">
+              <div class="sk-sp-tutor-card" aria-hidden="true">
+                <div class="sk-block sk-sp-tutor-media"></div>
+                <div class="sk-sp-tutor-body">
+                  <span class="sk-line" style="height: 15px; width: 55%"></span>
+                  <span class="sk-line" style="height: 14px; width: 92%"></span>
+                  <span class="sk-line" style="height: 18px; width: 45%"></span>
+                </div>
+              </div>
+              <div class="sk-sp-tutor-card" aria-hidden="true">
+                <div class="sk-block sk-sp-tutor-media"></div>
+                <div class="sk-sp-tutor-body">
+                  <span class="sk-line" style="height: 15px; width: 55%"></span>
+                  <span class="sk-line" style="height: 14px; width: 92%"></span>
+                  <span class="sk-line" style="height: 18px; width: 45%"></span>
+                </div>
+              </div>
+              <div class="sk-sp-tutor-card" aria-hidden="true">
+                <div class="sk-block sk-sp-tutor-media"></div>
+                <div class="sk-sp-tutor-body">
+                  <span class="sk-line" style="height: 15px; width: 55%"></span>
+                  <span class="sk-line" style="height: 14px; width: 92%"></span>
+                  <span class="sk-line" style="height: 18px; width: 45%"></span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Banner Trợ lý AI Matchmaker & Trang chủ -->
+          <section class="card" style="padding: 1.4rem 1.6rem; background: #ffffff; border: 1px solid #f1f5f9; display: flex; align-items: center; justify-content: space-between; gap: 1.25rem; flex-wrap: wrap; border-radius: 20px; box-shadow: 0 4px 18px rgba(0, 0, 0, 0.03)">
+            <div style="display: flex; align-items: center; gap: 1rem; min-width: 260px; flex: 1">
+              <div style="width: 44px; height: 44px; border-radius: 12px; background: var(--th-blush-soft); color: var(--th-blush); border: 1px solid var(--th-blush-border); display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0">
+                ✦
+              </div>
+              <div>
+                <h3 style="margin: 0; font-size: 1.05rem; font-weight: 800; color: #0f172a">Bạn chưa biết nên chọn gia sư nào?</h3>
+                <p style="margin: 0.25rem 0 0; font-size: 0.85rem; color: #64748b">
+                  Trợ lý AI Matchmaker sẽ lắng nghe mục tiêu học tập và đề xuất danh sách gia sư phù hợp nhất chỉ sau 30 giây.
+                </p>
+              </div>
+            </div>
+            <div style="display: flex; gap: 0.6rem; flex-wrap: wrap">
+              <a href="/index.html?moAi=1" class="btn btn-sm" style="background: var(--th-blush); color: #ffffff; border: none; font-weight: 700; border-radius: 9999px; padding: 0.55rem 1.25rem; box-shadow: 0 3px 10px rgba(240, 101, 109, 0.22)">
+                ✦ Trải nghiệm AI Matchmaker
+              </a>
+              <a href="/index.html" class="btn btn-secondary btn-sm" style="background: #f8fafc; border: 1px solid #e2e8f0; color: #334155; font-weight: 600; border-radius: 9999px; padding: 0.55rem 1.2rem">
+                Khám phá Trang chủ TutorHub →
+              </a>
+            </div>
+          </section>
+
+          <!-- Chia 2 cột: Lịch học gần đây + Cột phải (Yêu thích & Chọn hình thức học) -->
+          <section id="khung-lich-hoc-don" class="dashboard-split">
+            <div class="card" style="padding: 1.4rem">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; gap: 0.75rem; flex-wrap: wrap">
+                <div>
+                  <h2 style="margin: 0; font-size: 1.08rem; font-weight: 700">Lịch học &amp; Đơn đặt lịch gần đây</h2>
+                  <p style="margin: 0.2rem 0 0; font-size: 0.81rem; color: var(--th-text-muted)">
+                    Hiển thị rõ hình thức học trực tuyến hay tại nhà cùng trạng thái bảo vệ học phí
+                  </p>
+                </div>
+                <button type="button" class="link-more" id="btn-xem-tat-ca-lich-nhanh" style="background: none; border: none; padding: 0; font-family: inherit; cursor: pointer">Quản lý lịch học →</button>
+              </div>
+              <div id="ds-don-gan-day">
+                <div class="sk-lesson-row" aria-hidden="true"></div>
+                <div class="sk-lesson-row" aria-hidden="true"></div>
+                <div class="sk-lesson-row" aria-hidden="true"></div>
+              </div>
+            </div>
+
+            <aside style="display: flex; flex-direction: column; gap: 1.15rem">
+              <div class="card" style="padding: 1.3rem">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.85rem">
+                  <h2 style="margin: 0; font-size: 1.02rem; font-weight: 700">Gia sư bạn đã lưu</h2>
+                  <button type="button" class="link-more" id="btn-xem-tat-ca-yt-nhanh" style="background: none; border: none; padding: 0; font-family: inherit; font-size: 0.8rem; cursor: pointer">Xem tất cả →</button>
+                </div>
+                <div id="ds-yeu-thich-nhanh" style="display: flex; flex-direction: column; gap: 0.65rem">
+                  <div class="sk-fav-row" aria-hidden="true"></div>
+                  <div class="sk-fav-row" aria-hidden="true"></div>
+                </div>
+              </div>
+
+              <div class="card" style="padding: 1.3rem">
+                <h2 style="margin: 0 0 0.75rem; font-size: 1.02rem; font-weight: 700">Chọn nhanh hình thức học</h2>
+                <div style="display: flex; flex-direction: column; gap: 0.65rem">
+                  <a
+                    href="/pages/tim-kiem-gia-su.html?hinhThuc=TRUC_TUYEN"
+                    class="hero-mode-tile online"
+                    style="padding: 0.9rem 1rem"
+                  >
+                    <div style="display: flex; align-items: center; gap: 0.55rem; font-weight: 700; font-size: 0.9rem; color: var(--th-blush-text)">
+                      <span id="ico-hs-online"></span>
+                      <span>Học trực tuyến (Online)</span>
+                    </div>
+                    <p style="margin: 0.3rem 0 0; font-size: 0.79rem; color: var(--th-text-muted)">
+                      Học 1-1 qua phòng học video HD với gia sư giỏi trên toàn quốc, không giới hạn khoảng cách.
+                    </p>
+                  </a>
+                  <a
+                    href="/pages/tim-kiem-gia-su.html?hinhThuc=TRUC_TIEP"
+                    class="hero-mode-tile offline"
+                    style="padding: 0.9rem 1rem"
+                  >
+                    <div style="display: flex; align-items: center; gap: 0.55rem; font-weight: 700; font-size: 0.9rem; color: #1e293b">
+                      <span id="ico-hs-offline" style="color: var(--th-blush)"></span>
+                      <span>Học trực tiếp tại nhà</span>
+                    </div>
+                    <p style="margin: 0.3rem 0 0; font-size: 0.79rem; color: var(--th-text-muted)">
+                      Gia sư đến kèm sát tại nhà theo khu vực &amp; bán kính phục vụ gần nơi ở của bạn.
+                    </p>
+                  </a>
+                </div>
+              </div>
+            </aside>
+          </section>
+          </div>
+
+          <!-- TAB 1: KHÁM PHÁ & TÌM GIA SƯ (MỞ TRỰC TIẾP BÊN PHẢI) -->
+          <section id="tab-kham-pha" class="tab-panel" style="display: none; flex-direction: column; gap: 1.25rem">
+            <div class="card" style="padding: 1.25rem 1.4rem; border-radius: 20px">
+              <form id="form-loc-kham-pha-portal" style="display: flex; flex-wrap: wrap; gap: 0.7rem; align-items: center">
+                <input id="kp-tu-khoa" type="text" list="ds-mon-hoc-kp-goi-y" autocomplete="off" class="form-control" style="flex: 2; min-width: 200px; height: 42px; border-radius: 9999px" placeholder="Gõ vài ký tự môn học, IELTS, Python, Piano, tên gia sư..." />
+                <datalist id="ds-mon-hoc-kp-goi-y"></datalist>
+                <select id="kp-mon-hoc" class="form-control" style="flex: 1; min-width: 150px; height: 42px; border-radius: 9999px">
+                  <option value="">Tất cả môn học</option>
+                </select>
+                <select id="kp-hinh-thuc" class="form-control" style="flex: 1; min-width: 155px; height: 42px; border-radius: 9999px">
+                  <option value="">Tất cả hình thức</option>
+                  <option value="TRUC_TUYEN">Online toàn quốc</option>
+                  <option value="TRUC_TIEP">Trực tiếp tại nhà</option>
+                </select>
+                <label style="display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.82rem; font-weight: 600; color: #334155; cursor: pointer; padding: 0 0.4rem">
+                  <input id="kp-hoc-thu" type="checkbox" style="accent-color: var(--th-blush)" />
+                  <span>Miễn phí buổi đầu</span>
+                </label>
+                <button type="submit" class="btn btn-primary btn-sm" style="height: 42px; padding: 0 1.25rem; border-radius: 9999px">Lọc gia sư</button>
+                <a href="/pages/tim-kiem-gia-su.html" class="btn btn-secondary btn-sm" style="height: 42px; border-radius: 9999px">Bản đồ lớn ↗</a>
+              </form>
+            </div>
+            <div id="ds-kham-pha-portal" class="grid-3" style="gap: 1.4rem"></div>
+          </section>
+
+          <!-- TAB 2: LỊCH HỌC CỦA TÔI (MỞ TRỰC TIẾP BÊN PHẢI) -->
+          <section id="tab-lich-hoc" class="tab-panel" style="display: none; flex-direction: column; gap: 1.15rem">
+            <div class="card" style="padding: 1.1rem 1.35rem; border-radius: 18px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem">
+              <div class="bk-pill-group" id="nhom-loc-trang-thai-don">
+                <button type="button" class="bk-pill active" data-tt="">Tất cả</button>
+                <button type="button" class="bk-pill" data-tt="CHO_XAC_NHAN">Chờ xác nhận</button>
+                <button type="button" class="bk-pill" data-tt="DA_XAC_NHAN">Sắp diễn ra</button>
+                <button type="button" class="bk-pill" data-tt="HOAN_THANH">Đã hoàn thành</button>
+                <button type="button" class="bk-pill" data-tt="DA_HUY">Đã hủy / Từ chối</button>
+              </div>
+              <button type="button" class="btn btn-primary btn-sm" id="btn-dat-them-lich-tab" style="border-radius: 9999px">+ Đặt buổi học mới</button>
+            </div>
+            <div id="ds-tat-ca-don-hs" class="card" style="padding: 1.35rem; border-radius: 20px">
+              <div style="font-size: 0.85rem; color: var(--th-text-muted)">Đang tải lịch học của bạn...</div>
+            </div>
+          </section>
+
+          <!-- TAB 3: GIA SƯ ĐÃ LƯU (MỞ TRỰC TIẾP BÊN PHẢI) -->
+          <section id="tab-yeu-thich" class="tab-panel" style="display: none; flex-direction: column; gap: 1.15rem">
+            <div id="ds-yeu-thich-day-du" class="grid-3" style="gap: 1.4rem">
+              <div style="font-size: 0.85rem; color: var(--th-text-muted)">Đang tải danh sách gia sư đã lưu...</div>
+            </div>
+          </section>
+
+          <!-- TAB 4: TIN NHẮN (MỞ TRỰC TIẾP BÊN PHẢI) -->
+          <section id="tab-tin-nhan" class="tab-panel" style="display: none">
+            <div class="portal-inbox-grid">
+              <div class="portal-conv-sidebar">
+                <div class="portal-conv-head">
+                  <span>Hội thoại với Gia sư</span>
+                  <button type="button" id="btn-lam-moi-chat-hs" class="btn btn-ghost btn-sm" style="height: 28px; padding: 0 0.5rem; font-size: 0.75rem">Làm mới</button>
+                </div>
+                <div id="hs-ds-hoi-thoai" class="portal-conv-list">
+                  <div style="padding: 1rem; font-size: 0.82rem; color: var(--th-text-muted)">Đang tải hội thoại...</div>
+                </div>
+              </div>
+
+              <div class="portal-chat-pane">
+                <div id="hs-chat-head" class="portal-chat-head">
+                  <div style="font-weight: 800; font-size: 0.94rem; color: #1e293b">Chọn một gia sư bên trái</div>
+                </div>
+                <div id="hs-chat-messages" class="portal-chat-messages">
+                  <div style="margin: auto; text-align: center; color: var(--th-text-muted); font-size: 0.85rem; max-width: 280px">
+                    Chọn một cuộc trò chuyện ở danh sách bên trái hoặc bấm <strong>Nhắn tin</strong> trên trang hồ sơ gia sư.
+                  </div>
+                </div>
+                <form id="form-chat-portal-hs" class="portal-chat-composer" style="display: none">
+                  <input id="inp-chat-portal-hs" type="text" class="form-control" maxlength="2000" autocomplete="off" placeholder="Nhập tin nhắn trao đổi với gia sư..." required />
+                  <button type="submit" id="btn-gui-chat-portal-hs" class="btn btn-primary" style="height: 40px; padding: 0 1.15rem">Gửi</button>
+                </form>
+              </div>
+            </div>
+          </section>
+
+          <!-- TAB 5: TÀI KHOẢN & VÍ HỌC TẬP (MỞ TRỰC TIẾP BÊN PHẢI) -->
+          <section id="tab-tai-khoan" class="tab-panel" style="display: none">
+            <div class="card" style="padding: 1.35rem 1.5rem; border-radius: 20px; margin-bottom: 1.25rem; background: #f8fbff; border: 1px solid #dbeafe; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem">
+              <div>
+                <div style="font-size: 0.76rem; font-weight: 700; color: #1d4ed8; text-transform: uppercase">Ví học tập của bạn</div>
+                <div id="hs-tab-so-du-vi" style="font-size: 1.55rem; font-weight: 800; color: #0f172a; margin-top: 0.15rem">0 ₫</div>
+                <div style="font-size: 0.81rem; color: #475569; margin-top: 0.2rem">
+                  Dùng thanh toán giữ chỗ nhanh và tự động nhận hoàn tiền 100% khi hủy trước giờ học, gia sư từ chối hoặc giải quyết khiếu nại.
+                </div>
+              </div>
+              <button type="button" class="btn btn-primary btn-sm" id="btn-vi-mo-lich-hoc" style="border-radius: 9999px">
+                Quản lý đơn &amp; Thanh toán →
+              </button>
+            </div>
+            <div class="grid-2" style="gap: 1.25rem; align-items: start">
+              <div class="card" style="padding: 1.5rem; border-radius: 20px">
+                <h2 style="margin: 0 0 0.85rem; font-size: 1.06rem; font-weight: 700">Thông tin cá nhân</h2>
+                <form id="form-cap-nhat-tk-hs">
+                  <div class="form-group">
+                    <label class="form-label" for="hs-tk-ho-ten">Họ và tên</label>
+                    <input id="hs-tk-ho-ten" type="text" required class="form-control" />
+                  </div>
+                  <div class="grid-2" style="gap: 0.8rem">
+                    <div class="form-group">
+                      <label class="form-label" for="hs-tk-sdt">Số điện thoại</label>
+                      <input id="hs-tk-sdt" type="tel" class="form-control" placeholder="090xxxxxxx" />
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label" for="hs-tk-khu-vuc">Khu vực (Quận, Tỉnh/Thành)</label>
+                      <input id="hs-tk-khu-vuc" type="text" class="form-control" placeholder="Ninh Kiều, Cần Thơ" />
+                    </div>
+                  </div>
+                  <button type="submit" class="btn btn-primary btn-sm">Lưu thông tin</button>
+                </form>
+              </div>
+
+              <div class="card" style="padding: 1.5rem; border-radius: 20px">
+                <h2 style="margin: 0 0 0.85rem; font-size: 1.06rem; font-weight: 700">Đổi mật khẩu</h2>
+                <form id="form-doi-mk-hs">
+                  <div class="form-group">
+                    <label class="form-label" for="hs-mk-cu">Mật khẩu hiện tại</label>
+                    <input id="hs-mk-cu" type="password" required class="form-control" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="hs-mk-moi">Mật khẩu mới (≥ 8 ký tự, gồm chữ và số)</label>
+                    <input id="hs-mk-moi" type="password" required class="form-control" />
+                  </div>
+                  <button type="submit" class="btn btn-secondary btn-sm">Cập nhật mật khẩu</button>
+                </form>
+              </div>
+            </div>
+          </section>
+
+          <!-- Modal Thanh toán đơn đặt lịch (Học sinh) -->
+          <div id="modal-tt-hs" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55); z-index: 1050; align-items: center; justify-content: center; padding: 1rem" role="dialog" aria-modal="true">
+            <div class="card" style="max-width: 450px; width: 100%; padding: 1.4rem; border-radius: 18px">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.8rem">
+                <h3 style="margin: 0; font-size: 1.05rem; font-weight: 800">Thanh toán giữ chỗ buổi học</h3>
+                <button type="button" id="btn-dong-modal-tt-hs" class="btn btn-ghost btn-sm" style="font-size: 1.2rem">×</button>
+              </div>
+              <div id="tt-hs-tom-tat" style="padding: 0.75rem 0.9rem; border-radius: 12px; background: #f8fbff; border: 1px solid #dbeafe; font-size: 0.83rem; margin-bottom: 0.85rem"></div>
+              <div id="tt-hs-loi" style="display: none; margin-bottom: 0.75rem"></div>
+              <form id="form-tt-hs">
+                <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem; font-size: 0.84rem">
+                  <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.55rem 0.7rem; border-radius: 10px; border: 1px solid #e2e8f0; cursor: pointer">
+                    <input type="radio" name="hsPhuongThucTt" value="VI_NOI_BO" checked style="accent-color: var(--th-blush)" />
+                    <span><strong>Ví học tập</strong> (<span id="tt-hs-so-du-vi">0 ₫</span>)</span>
+                  </label>
+                  <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.55rem 0.7rem; border-radius: 10px; border: 1px solid #e2e8f0; cursor: pointer">
+                    <input type="radio" name="hsPhuongThucTt" value="GIA_LAP" style="accent-color: var(--th-blush)" />
+                    <span><strong>Thanh toán nhanh (Thử nghiệm)</strong></span>
+                  </label>
+                  <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.55rem 0.7rem; border-radius: 10px; border: 1px solid #e2e8f0; cursor: pointer">
+                    <input type="radio" name="hsPhuongThucTt" value="VNPAY" style="accent-color: var(--th-blush)" />
+                    <span><strong>Cổng thanh toán VNPay</strong></span>
+                  </label>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 0.5rem">
+                  <button type="button" id="btn-huy-modal-tt-hs" class="btn btn-secondary btn-sm">Hủy</button>
+                  <button type="submit" id="btn-submit-tt-hs" class="btn btn-primary btn-sm">Xác nhận thanh toán</button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <!-- Modal Mở khiếu nại tài chính (chỉ đơn có phí đang tạm giữ trong 24h sau buổi học) -->
+          <div id="modal-kn-hs" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55); z-index: 1050; align-items: center; justify-content: center; padding: 1rem" role="dialog" aria-modal="true">
+            <div class="card" style="max-width: 480px; width: 100%; padding: 1.4rem; border-radius: 18px">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.8rem">
+                <h3 style="margin: 0; font-size: 1.05rem; font-weight: 800">Gửi khiếu nại buổi học</h3>
+                <button type="button" id="btn-dong-modal-kn-hs" class="btn btn-ghost btn-sm" style="font-size: 1.2rem">×</button>
+              </div>
+              <div id="kn-hs-tom-tat" style="padding: 0.7rem 0.85rem; border-radius: 12px; background: #fffbeb; border: 1px solid #fde68a; font-size: 0.81rem; color: #92400e; margin-bottom: 0.85rem"></div>
+              <div id="kn-hs-loi" style="display: none; margin-bottom: 0.75rem"></div>
+              <form id="form-kn-hs">
+                <div class="form-group">
+                  <label class="form-label" for="kn-hs-danh-muc">Danh mục vấn đề *</label>
+                  <select id="kn-hs-danh-muc" class="form-control" required>
+                    <option value="GIA_SU_VANG_MAT">Gia sư vắng mặt</option>
+                    <option value="CHAT_LUONG">Chất lượng giảng dạy / thiếu thời lượng</option>
+                    <option value="THANH_TOAN">Thanh toán &amp; học phí</option>
+                    <option value="KHAC">Vấn đề khác</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="kn-hs-mo-ta">Mô tả chi tiết sự việc (tối thiểu 10 ký tự) *</label>
+                  <textarea id="kn-hs-mo-ta" class="form-control" rows="4" minlength="10" maxlength="2000" required placeholder="Trình bày cụ thể vấn đề gặp phải để quản trị viên xác minh và hoàn tiền phù hợp..."></textarea>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="kn-hs-tep-bang-chung">Đính kèm ảnh / PDF bằng chứng (tùy chọn · tối đa 5 MB)</label>
+                  <input id="kn-hs-tep-bang-chung" type="file" accept=".jpg,.jpeg,.png,.webp,.pdf" class="form-control" />
+                  <div style="margin-top: 0.28rem; font-size: 0.74rem; color: #64748b">
+                    Gia sư sẽ nhận được thông báo để gửi giải trình đối chất. Mọi hoàn tiền luôn tính theo đúng số tiền lịch sử bạn đã thanh toán.
+                  </div>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 0.5rem">
+                  <button type="button" id="btn-huy-modal-kn-hs" class="btn btn-secondary btn-sm">Hủy</button>
+                  <button type="submit" id="btn-submit-kn-hs" class="btn btn-danger btn-sm">Gửi khiếu nại &amp; Đóng băng học phí</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <script type="module">
+      import { api, layAccessToken } from '/assets/js/api.js';
+      import { dinhDangNgayGioVn, dinhDangTienVnd } from '/assets/js/dinh-dang.js';
+      import { icons } from '/assets/js/icons.js';
+      import { taoOptionsNhomMonHocHtml } from '/assets/js/mon-hoc-goi-y.js';
+      import {
+        dangXuatHeThong,
+        dongBoNguoiDungTuApi,
+        escapeHtml,
+        layChuCaiDau,
+        layNguoiDungHienTai,
+        layTrangChinhTheoVaiTro,
+        renderCardGiaSu,
+        taoSkeletonCardGiaSu,
+      } from '/assets/js/giao-dien.js';
+      import {
+        layNhanTrangThaiDonDatLich,
+        layNhanTrangThaiThanhToan,
+      } from '/assets/js/trang-thai.js';
+
+      if (!layAccessToken()) {
+        window.location.href = '/pages/dang-nhap.html';
+      }
+
+      // Khởi tạo các biểu tượng SVG giao diện & Nút thu gọn Sidebar
+      const btnToggleSbHs = document.getElementById('btn-toggle-sidebar-hs');
+      const khungAppHs = document.getElementById('khung-app-hoc-sinh');
+      const backdropSbHs = document.getElementById('backdrop-sidebar-hs');
+      if (btnToggleSbHs) btnToggleSbHs.innerHTML = icons.list(17);
+
+      btnToggleSbHs?.addEventListener('click', () => {
+        if (window.innerWidth <= 960) {
+          khungAppHs?.classList.toggle('sidebar-mobile-open');
+        } else {
+          khungAppHs?.classList.toggle('sidebar-collapsed');
+        }
+      });
+      backdropSbHs?.addEventListener('click', () => {
+        khungAppHs?.classList.remove('sidebar-mobile-open');
+      });
+
+      document.getElementById('ico-nav-dashboard').innerHTML = icons.layoutDashboard(15);
+      document.getElementById('ico-nav-search').innerHTML = icons.search(15);
+      document.getElementById('ico-nav-calendar').innerHTML = icons.calendar(15);
+      document.getElementById('ico-nav-heart').innerHTML = icons.heart(15, false);
+      const elIcoNavChat = document.getElementById('ico-nav-chat');
+      if (elIcoNavChat) elIcoNavChat.innerHTML = icons.messageCircle(15);
+      const elIcoNavAcc = document.getElementById('ico-nav-account');
+      if (elIcoNavAcc) elIcoNavAcc.innerHTML = icons.user(15);
+
+      // Biểu tượng cho Pill tài khoản & Popover menu (phong cách Claude / Cursor)
+      const elIcoChevron = document.getElementById('ico-sb-chevron');
+      if (elIcoChevron) elIcoChevron.innerHTML = icons.chevronsUpDown ? icons.chevronsUpDown(14) : icons.chevronDown(14);
+      const elIcoShield = document.getElementById('ico-pop-shield');
+      if (elIcoShield) elIcoShield.innerHTML = icons.shieldCheck(12);
+      const elIcoPopSettings = document.getElementById('ico-pop-settings');
+      if (elIcoPopSettings) elIcoPopSettings.innerHTML = icons.settings(15);
+      const elIcoPopWallet = document.getElementById('ico-pop-wallet');
+      if (elIcoPopWallet) elIcoPopWallet.innerHTML = icons.wallet(15);
+      const elIcoPopGrad = document.getElementById('ico-pop-grad');
+      if (elIcoPopGrad) elIcoPopGrad.innerHTML = icons.graduationCap(15);
+      const elIcoPopHome = document.getElementById('ico-pop-home');
+      if (elIcoPopHome) elIcoPopHome.innerHTML = icons.home(15);
+      const elIcoPopLogout = document.getElementById('ico-pop-logout');
+      if (elIcoPopLogout) elIcoPopLogout.innerHTML = icons.logout(15);
+
+      // Xử lý bật/tắt popover tài khoản ở góc dưới sidebar
+      const btnUserPill = document.getElementById('btn-sidebar-user-pill');
+      const popoverUser = document.getElementById('hs-user-popover');
+      btnUserPill?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        dropdownBell?.classList.remove('show');
+        const isOpen = popoverUser?.classList.toggle('show');
+        btnUserPill?.classList.toggle('active', isOpen);
+        btnUserPill?.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!popoverUser?.contains(e.target) && !btnUserPill?.contains(e.target)) {
+          popoverUser?.classList.remove('show');
+          btnUserPill?.classList.remove('active');
+          btnUserPill?.setAttribute('aria-expanded', 'false');
+        }
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && popoverUser?.classList.contains('show')) {
+          popoverUser.classList.remove('show');
+          btnUserPill?.classList.remove('active');
+          btnUserPill?.setAttribute('aria-expanded', 'false');
+        }
+      });
+
+      document.getElementById('ico-topbar-search').innerHTML = icons.search(14);
+      const elIcoTbBell = document.getElementById('ico-topbar-bell');
+      if (elIcoTbBell) elIcoTbBell.innerHTML = icons.bell(18);
+
+      const btnBell = document.getElementById('btn-topbar-thong-bao');
+      const dropdownBell = document.getElementById('dropdown-thong-bao');
+      const badgeBellHs = document.getElementById('badge-thong-bao');
+      const listBellHs = document.getElementById('hs-ds-thong-bao');
+      let dsThongBaoHs = [];
+      let dsKhieuNaiHs = [];
+
+      function parseUtcMs(iso) {
+        if (!iso) return 0;
+        const s = String(iso).trim();
+        if (/[zZ]|[+-]\d{2}:?\d{2}$/.test(s)) return new Date(s).getTime();
+        return new Date(`${s}Z`).getTime();
+      }
+
+      function renderThongBaoHs() {
+        if (!listBellHs || !badgeBellHs) return;
+        const soChuaDoc = dsThongBaoHs.filter((t) => !t.docLuc).length;
+        if (soChuaDoc > 0) {
+          badgeBellHs.style.display = 'flex';
+          badgeBellHs.textContent = soChuaDoc > 9 ? '9+' : String(soChuaDoc);
+        } else {
+          badgeBellHs.style.display = 'none';
+        }
+        if (dsThongBaoHs.length === 0) {
+          listBellHs.innerHTML = '<div style="padding: 1rem; text-align: center; font-size: 0.82rem; color: #64748b">Chưa có thông báo mới.</div>';
+          return;
+        }
+        listBellHs.innerHTML = dsThongBaoHs
+          .map((t) => {
+            const mauDot = t.docLuc ? '#cbd5e1' : t.loai === 'KHIEU_NAI' ? '#ef4444' : '#e11d48';
+            return `
+              <button type="button" class="bell-dropdown-item bell-dropdown-item-btn btn-tb-hs-item" data-id="${escapeHtml(t.id)}" data-loai="${escapeHtml(t.loai)}">
+                <span class="bell-item-dot" style="background: ${mauDot}"></span>
+                <span class="bell-item-content">
+                  <span class="bell-item-title" style="display: block; ${t.docLuc ? 'font-weight: 500; color: #64748b' : ''}">${escapeHtml(t.tieuDe)}</span>
+                  <span style="display: block; font-size: 0.76rem; color: #475569; margin-top: 2px; line-height: 1.4">${escapeHtml(t.noiDung)}</span>
+                  <span class="bell-item-time" style="display: block">${dinhDangNgayGioVn(t.taoLuc)}</span>
+                </span>
+              </button>
+            `;
+          })
+          .join('');
+        listBellHs.querySelectorAll('.btn-tb-hs-item').forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            dropdownBell?.classList.remove('show');
+            try {
+              await api.post(`/thong-bao/${btn.dataset.id}/da-doc`, {});
+              const item = dsThongBaoHs.find((x) => x.id === btn.dataset.id);
+              if (item) item.docLuc = new Date().toISOString();
+              renderThongBaoHs();
+            } catch {
+              // Bỏ qua
+            }
+            chuyenTabHs('tab-lich-hoc');
+          });
+        });
+      }
+
+      async function taiThongBaoVaKhieuNaiHs() {
+        const [resTb, resKn] = await Promise.all([
+          api.get('/thong-bao/toi?gioiHan=20').catch(() => null),
+          api.get('/khieu-nai/toi').catch(() => null),
+        ]);
+        dsThongBaoHs = resTb?.duLieu || [];
+        dsKhieuNaiHs = resKn?.duLieu || [];
+        renderThongBaoHs();
+      }
+
+      btnBell?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        dropdownBell?.classList.toggle('show');
+      });
+
+      document.getElementById('btn-doc-tat-ca-tb')?.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        try {
+          await api.post('/thong-bao/doc-tat-ca', {});
+          dsThongBaoHs = dsThongBaoHs.map((t) => ({ ...t, docLuc: t.docLuc || new Date().toISOString() }));
+          renderThongBaoHs();
+        } catch {
+          // Bỏ qua
+        }
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!dropdownBell?.contains(e.target) && e.target !== btnBell) {
+          dropdownBell?.classList.remove('show');
+        }
+      });
+
+      document.getElementById('ico-kpi-vi').innerHTML = icons.wallet(17);
+      document.getElementById('ico-kpi-buoi').innerHTML = icons.calendar(17);
+      document.getElementById('ico-kpi-luu').innerHTML = icons.heart(17, true);
+      document.getElementById('ico-hs-online').innerHTML = icons.video(16);
+      document.getElementById('ico-hs-offline').innerHTML = icons.home(16);
+      document.getElementById('ico-search-input').innerHTML = icons.search(16);
+      document.getElementById('ico-search-btn').innerHTML = icons.search(14);
+
+      // Đăng xuất từ sidebar
+      document.getElementById('btn-dang-xuat-sidebar')?.addEventListener('click', dangXuatHeThong);
+
+      // =========================================================================
+      // ĐIỀU HƯỚNG TAB THỐNG NHẤT: MỌI LỰA CHỌN TRÊN BẢNG ĐIỀU KHIỂN ĐỀU MỞ BÊN PHẢI
+      // =========================================================================
+      let tenHocSinhHienTai = '';
+      let dsTatCaDonHs = [];
+      let boLocTrangThaiDon = '';
+      let hsHoiThoaiDangChonId = new URLSearchParams(window.location.search).get('hoiThoaiId') || null;
+      let daNapMonHocKhamPha = false;
+      let soDuViHocSinhHienTai = 0;
+      let donDangThanhToanHs = null;
+      let donDangKhieuNaiHs = null;
+
+      const tieuDeTabHs = {
+        'tab-tong-quan': 'Không gian học tập',
+        'tab-kham-pha': 'Khám phá & Tìm kiếm gia sư',
+        'tab-lich-hoc': 'Lịch học & Đơn đặt lịch của tôi',
+        'tab-yeu-thich': 'Danh sách Gia sư đã lưu',
+        'tab-tin-nhan': 'Tin nhắn trao đổi với Gia sư',
+        'tab-tai-khoan': 'Tài khoản, Ví học tập & Bảo mật',
+      };
+
+      function chuyenTabHs(tabId) {
+        if (!tieuDeTabHs[tabId]) tabId = 'tab-tong-quan';
+        if (hopThongBao) hopThongBao.style.display = 'none';
+        khungAppHs?.classList.remove('sidebar-mobile-open');
+        popoverUser?.classList.remove('show');
+        btnUserPill?.classList.remove('active');
+
+        document.querySelectorAll('.studio-nav-btn[data-tab]').forEach((b) => {
+          b.classList.toggle('active', b.dataset.tab === tabId);
+        });
+        document.querySelectorAll('.tab-panel').forEach((p) => {
+          p.style.display = p.id === tabId ? (tabId === 'tab-tin-nhan' || tabId === 'tab-tai-khoan' ? 'block' : 'flex') : 'none';
+        });
+
+        const elTieuDe = document.getElementById('loi-chao-hs');
+        if (elTieuDe) {
+          elTieuDe.textContent =
+            tabId === 'tab-tong-quan' && tenHocSinhHienTai
+              ? `Xin chào, ${tenHocSinhHienTai} 👋`
+              : tieuDeTabHs[tabId];
+        }
+
+        if (tabId === 'tab-kham-pha') taiKhamPhaPortal();
+        if (tabId === 'tab-lich-hoc') taiTatCaDonHs();
+        if (tabId === 'tab-yeu-thich') taiYeuThichDayDu();
+        if (tabId === 'tab-tin-nhan') taiDsHoiThoaiHs();
+
+        try {
+          const url = new URL(window.location.href);
+          url.searchParams.set('tab', tabId);
+          window.history.replaceState({}, '', url.toString());
+        } catch {
+          // Bỏ qua
+        }
+      }
+
+      document.querySelectorAll('.studio-nav-btn[data-tab]').forEach((btn) => {
+        btn.addEventListener('click', () => chuyenTabHs(btn.dataset.tab));
+      });
+      document.getElementById('btn-pop-cai-dat')?.addEventListener('click', () => chuyenTabHs('tab-tai-khoan'));
+      document.getElementById('btn-pop-vi')?.addEventListener('click', () => chuyenTabHs('tab-tai-khoan'));
+      document.getElementById('btn-kpi-mo-yeu-thich')?.addEventListener('click', () => chuyenTabHs('tab-yeu-thich'));
+      document.getElementById('btn-dat-them-lich-tab')?.addEventListener('click', () => chuyenTabHs('tab-kham-pha'));
+      document.getElementById('btn-xem-tat-ca-goi-y')?.addEventListener('click', () => chuyenTabHs('tab-kham-pha'));
+      document.getElementById('btn-xem-tat-ca-lich-nhanh')?.addEventListener('click', () => chuyenTabHs('tab-lich-hoc'));
+      document.getElementById('btn-xem-tat-ca-yt-nhanh')?.addEventListener('click', () => chuyenTabHs('tab-yeu-thich'));
+
+      // Form tìm kiếm nhanh trên Dashboard -> Chuyển mượt sang Tab Khám phá ngay bên phải
+      const formTimDashboard = document.getElementById('form-tim-kiem-dashboard');
+      formTimDashboard?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const tuKhoa = document.getElementById('inp-tu-khoa-dashboard')?.value?.trim() || '';
+        const hinhThuc = document.getElementById('sel-hinh-thuc-dashboard')?.value || '';
+        const inpKpTk = document.getElementById('kp-tu-khoa');
+        const selKpHt = document.getElementById('kp-hinh-thuc');
+        if (inpKpTk) inpKpTk.value = tuKhoa;
+        if (selKpHt) selKpHt.value = hinhThuc;
+        chuyenTabHs('tab-kham-pha');
+      });
+
+      // Form tìm kiếm trên topbar -> Chuyển mượt sang Tab Khám phá ngay bên phải
+      const formTimTopbar = document.getElementById('form-tim-topbar');
+      formTimTopbar?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const tuKhoa = document.getElementById('inp-tim-topbar')?.value?.trim() || '';
+        const inpKpTk = document.getElementById('kp-tu-khoa');
+        if (inpKpTk) inpKpTk.value = tuKhoa;
+        chuyenTabHs('tab-kham-pha');
+      });
+
+      const hopThongBao = document.getElementById('hop-thong-bao');
+      const user = await dongBoNguoiDungTuApi();
+
+      if (user?.email) {
+        const elPopEmail = document.getElementById('pop-hs-email');
+        if (elPopEmail) elPopEmail.textContent = user.email;
+      }
+
+      if (user && user.vaiTro !== 'HOC_SINH') {
+        hopThongBao.style.display = 'block';
+        hopThongBao.className = 'alert alert-warning';
+        hopThongBao.innerHTML = `Cổng Học sinh dành riêng cho tài khoản Học sinh. <a href="${layTrangChinhTheoVaiTro(user.vaiTro)}" style="font-weight: 700; text-decoration: underline">Chuyển về bảng điều khiển của bạn →</a>`;
+      } else {
+        await Promise.all([taiTongQuanHocSinh(), taiGiaSuGoiY(), taiYeuThichNhanh()]);
+      }
+
+      async function taiTongQuanHocSinh() {
+        try {
+          const [res] = await Promise.all([api.get('/hoc-sinh/toi/tong-quan'), taiThongBaoVaKhieuNaiHs()]);
+          const d = res?.duLieu;
+          if (!d) return;
+
+          // Cập nhật thông tin trên Sidebar trái & Popover tài khoản
+          document.getElementById('hs-sb-avatar').textContent = layChuCaiDau(d.hoTen);
+          document.getElementById('hs-sb-ten').textContent = d.hoTen;
+          const elSbVi = document.getElementById('hs-sb-vi');
+          if (elSbVi) elSbVi.textContent = 'Học viên chính thức';
+
+          const elPopTen = document.getElementById('pop-hs-ten');
+          if (elPopTen) elPopTen.textContent = d.hoTen;
+          const elPopVi = document.getElementById('pop-hs-vi');
+          if (elPopVi) elPopVi.textContent = dinhDangTienVnd(d.soDuVi);
+          if (d.khuVuc) {
+            const elPopKv = document.getElementById('pop-hs-khu-vuc');
+            if (elPopKv) elPopKv.textContent = `📍 ${d.khuVuc}`;
+          }
+          document.getElementById('badge-sb-yeu-thich').textContent = d.soGiaSuYeuThich || '0';
+
+          // Cập nhật topbar & KPIs & Form Tài khoản
+          tenHocSinhHienTai = d.hoTen || '';
+          const tabDangMo = document.querySelector('.studio-nav-btn[data-tab].active')?.dataset?.tab || 'tab-tong-quan';
+          if (tabDangMo === 'tab-tong-quan') {
+            document.getElementById('loi-chao-hs').textContent = `Xin chào, ${d.hoTen} 👋`;
+          }
+          const inpTkTen = document.getElementById('hs-tk-ho-ten');
+          const inpTkSdt = document.getElementById('hs-tk-sdt');
+          const inpTkKv = document.getElementById('hs-tk-khu-vuc');
+          if (inpTkTen) inpTkTen.value = d.hoTen || user?.hoTen || '';
+          if (inpTkSdt) inpTkSdt.value = user?.soDienThoai || '';
+          if (inpTkKv) inpTkKv.value = d.khuVuc || user?.khuVuc || '';
+          const elTbVi = document.getElementById('txt-topbar-so-du-vi');
+          if (elTbVi) elTbVi.textContent = dinhDangTienVnd(d.soDuVi);
+
+          if (d.khuVuc) {
+            document.getElementById('sub-goi-y-gia-su').textContent =
+              `Được đề xuất dựa trên đánh giá cao và mức độ sẵn sàng giảng dạy trực tuyến & tại ${d.khuVuc}.`;
+          }
+
+          document.getElementById('kpi-so-du-vi').textContent = dinhDangTienVnd(d.soDuVi);
+          const elTabVi = document.getElementById('hs-tab-so-du-vi');
+          if (elTabVi) elTabVi.textContent = dinhDangTienVnd(d.soDuVi);
+          soDuViHocSinhHienTai = Number(d.soDuVi || 0);
+          document.getElementById('kpi-buoi-hoc').textContent = `${d.soBuoiSapToi} sắp tới · ${d.soBuoiHoanThanh} hoàn thành`;
+          document.getElementById('kpi-buoi-hoc-sub').textContent =
+            d.soBuoiSapToi > 0
+              ? 'Bạn có buổi học đang chờ diễn ra trong lịch'
+              : 'Chưa có lịch sắp tới — bạn có thể tìm và đặt lịch bất kỳ lúc nào';
+          document.getElementById('kpi-yeu-thich').textContent = `${d.soGiaSuYeuThich} gia sư`;
+
+          renderBuoiHocSapToi(d.buoiHocSapToiGanNhat);
+          renderDsDonGanDay(d.dsDonDatLichGanDay || []);
+        } catch (err) {
+          hopThongBao.style.display = 'block';
+          hopThongBao.className = 'alert alert-danger';
+          hopThongBao.textContent = err.message || 'Không thể tải dữ liệu tổng quan học tập.';
+        }
+      }
+
+      // Tải gợi ý gia sư dành riêng cho học sinh
+      async function taiGiaSuGoiY() {
+        const khungKq = document.getElementById('ds-gia-su-goi-y');
+        try {
+          const res = await api.get('/gia-su/goi-y?soLuong=3');
+          let ds = res?.duLieu || [];
+
+          if (ds.length === 0) {
+            const fallback = await api.get('/gia-su?sapXep=danh_gia_cao&kichThuocTrang=3');
+            ds = fallback?.duLieu || [];
+          }
+
+          if (ds.length === 0) {
+            khungKq.innerHTML = `
+              <div class="card" style="grid-column: 1 / -1; text-align: center; padding: 2rem">
+                <div style="font-weight: 700; font-size: 0.95rem">Đang cập nhật danh sách gia sư gợi ý</div>
+                <p style="margin: 0.3rem 0 0; font-size: 0.85rem; color: var(--th-text-muted)">
+                  Bạn có thể duyệt toàn bộ danh mục gia sư tại trang Tìm kiếm.
+                </p>
+                <a class="btn btn-primary btn-sm" href="/pages/tim-kiem-gia-su.html" style="margin-top: 0.75rem">Khám phá gia sư</a>
+              </div>
+            `;
+            return;
+          }
+
+          khungKq.innerHTML = ds.map((gs) => renderCardGiaSu(gs, true)).join('');
+          ganSuKienYeuThich(khungKq);
+        } catch (err) {
+          khungKq.innerHTML = `
+            <div class="alert alert-warning" style="grid-column: 1 / -1; font-size: 0.86rem">
+              Tạm thời chưa tải được danh sách gợi ý gia sư. <a href="/pages/tim-kiem-gia-su.html" style="font-weight: 700; text-decoration: underline">Mở trang tìm kiếm →</a>
+            </div>
+          `;
+        }
+      }
+
+      function ganSuKienYeuThich(container) {
+        container.querySelectorAll('.btn-yeu-thich').forEach((btn) => {
+          btn.addEventListener('click', async (ev) => {
+            ev.preventDefault();
+            ev.stopPropagation();
+            const currUser = layNguoiDungHienTai();
+            if (!currUser) {
+              window.location.href = '/pages/dang-nhap.html';
+              return;
+            }
+            if (currUser.vaiTro !== 'HOC_SINH') {
+              alert('Chỉ tài khoản Học sinh mới có thể lưu gia sư yêu thích.');
+              return;
+            }
+            const giaSuId = btn.dataset.giaSuId;
+            const daYeuThich = btn.dataset.daYeuThich === 'true';
+            try {
+              if (daYeuThich) {
+                await api.delete(`/muc-yeu-thich/${giaSuId}`);
+                btn.dataset.daYeuThich = 'false';
+                btn.innerHTML = icons.heart(17, false);
+              } else {
+                await api.post(`/muc-yeu-thich/${giaSuId}`, {});
+                btn.dataset.daYeuThich = 'true';
+                btn.innerHTML = icons.heart(17, true);
+              }
+              await taiYeuThichNhanh();
+              const res = await api.get('/hoc-sinh/toi/tong-quan');
+              if (res?.duLieu) {
+                document.getElementById('kpi-yeu-thich').textContent = `${res.duLieu.soGiaSuYeuThich} gia sư`;
+                document.getElementById('badge-sb-yeu-thich').textContent = res.duLieu.soGiaSuYeuThich || '0';
+              }
+            } catch (err) {
+              alert(err.message || 'Không thể cập nhật yêu thích');
+            }
+          });
+        });
+      }
+
+      function renderBuoiHocSapToi(don) {
+        const el = document.getElementById('khung-buoi-sap-toi');
+        if (!don) {
+          el.innerHTML = `
+            <div class="up-next-card">
+              <div>
+                <div style="font-size: 0.76rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--th-blush-text)">
+                  Bắt đầu lịch học 1-1 mới
+                </div>
+                <h2 style="margin: 0.35rem 0 0; font-size: 1.35rem; font-weight: 800; color: #0f172a">Bạn chưa có buổi học nào sắp tới</h2>
+                <p style="margin: 0.35rem 0 0; font-size: 0.88rem; color: #64748b; max-width: 560px">
+                  Khám phá đội ngũ gia sư đã xác minh bằng cấp — linh hoạt chọn học trực tuyến toàn quốc hoặc học kèm trực tiếp tại nhà.
+                </p>
+              </div>
+              <a class="btn" href="/pages/tim-kiem-gia-su.html" style="background: var(--th-blush); color: #ffffff; font-weight: 700; border-radius: 9999px; padding: 0.6rem 1.4rem; box-shadow: 0 4px 12px rgba(240, 101, 109, 0.24); border: none">
+                ${icons.search(15)}
+                <span>Khám phá gia sư ngay</span>
+              </a>
+            </div>
+          `;
+          return;
+        }
+
+        const laOnline = don.hinhThuc === 'TRUC_TUYEN';
+        const ttDon = layNhanTrangThaiDonDatLich(don.trangThai);
+        const ttTien = don.trangThaiThanhToan ? layNhanTrangThaiThanhToan(don.trangThaiThanhToan) : null;
+        const ktSapToiMs = parseUtcMs(don.ketThucLuc);
+        const daKetThucSapToi = ktSapToiMs > 0 && Date.now() >= ktSapToiMs;
+
+        el.innerHTML = `
+          <div class="up-next-card">
+            <div style="min-width: 0; flex: 1">
+              <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap">
+                <span style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.25rem 0.75rem; border-radius: 9999px; background: var(--th-blush-soft); color: var(--th-blush-text); border: 1px solid var(--th-blush-border); font-size: 0.76rem; font-weight: 700">
+                  ${laOnline ? icons.video(13) : icons.home(13)}
+                  <span>${laOnline ? 'Buổi học trực tuyến sắp tới' : 'Buổi học trực tiếp tại nhà sắp tới'}</span>
+                </span>
+                <span style="font-size: 0.76rem; color: #64748b; font-weight: 600">Mã đơn: ${escapeHtml(don.maDon)}</span>
+              </div>
+              <h2 style="margin: 0.55rem 0 0; font-size: 1.4rem; font-weight: 800; color: #0f172a">
+                ${escapeHtml(don.tenMonHoc)} · ${escapeHtml(don.tenDoiTac)}
+              </h2>
+              <div style="margin-top: 0.55rem; display: flex; flex-wrap: wrap; gap: 0.6rem 1.25rem; font-size: 0.86rem; color: #475569">
+                <span style="display: inline-flex; align-items: center; gap: 0.35rem">${icons.clock(14)} ${dinhDangNgayGioVn(don.batDauLuc)}</span>
+                <span style="display: inline-flex; align-items: center; gap: 0.35rem">${icons.shieldCheck(14)} ${escapeHtml(ttDon.nhan)}${ttTien ? ` · ${escapeHtml(ttTien.nhan)}` : ''}</span>
+                <span style="font-weight: 700; color: #0f172a">Học phí: ${dinhDangTienVnd(don.tongTien)}</span>
+              </div>
+            </div>
+            <div style="display: flex; gap: 0.65rem; flex-wrap: wrap; align-items: center">
+              ${
+                laOnline && !daKetThucSapToi
+                  ? `<a class="btn" href="/pages/phong-hoc.html?donId=${encodeURIComponent(don.id)}" style="background: var(--th-blush); color: #ffffff; font-weight: 700; border-radius: 9999px; padding: 0.6rem 1.4rem; box-shadow: 0 4px 12px rgba(240, 101, 109, 0.24); border: none">
+                      ${icons.video(15)}
+                      <span>Vào phòng học</span>
+                    </a>`
+                  : daKetThucSapToi
+                    ? `<span class="badge" style="background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; padding: 0.35rem 0.75rem; font-size: 0.78rem">Đã kết thúc</span>`
+                    : ''
+              }
+              <a href="/pages/ho-so-gia-su.html?id=${don.doiTacId}" style="display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.6rem 1.25rem; border-radius: 9999px; background: #f8fafc; color: #334155; border: 1px solid #e2e8f0; font-weight: 600; font-size: 0.88rem; text-decoration: none">
+                <span>Xem hồ sơ gia sư</span>
+                ${icons.arrowRight(14)}
+              </a>
+            </div>
+          </div>
+        `;
+      }
+
+      function renderDsDonGanDay(ds) {
+        const el = document.getElementById('ds-don-gan-day');
+        if (ds.length === 0) {
+          el.innerHTML = `
+            <div style="text-align: center; padding: 2rem 1rem; color: var(--th-text-muted)">
+              <div style="font-weight: 700; color: var(--th-text)">Chưa có lịch học nào</div>
+              <p style="margin: 0.3rem 0 1rem; font-size: 0.84rem">Khi bạn đặt lịch với gia sư, mọi buổi học sẽ hiển thị tại đây.</p>
+              <a class="btn btn-primary btn-sm" href="/pages/tim-kiem-gia-su.html">Tìm gia sư ngay</a>
+            </div>
+          `;
+          return;
+        }
+
+        const nowMs = Date.now();
+        el.innerHTML = ds
+          .map((d) => {
+            const laOnline = d.hinhThuc === 'TRUC_TUYEN';
+            const tt = layNhanTrangThaiDonDatLich(d.trangThai);
+            const ttTien = d.trangThaiThanhToan ? layNhanTrangThaiThanhToan(d.trangThaiThanhToan) : null;
+            const ktMs = parseUtcMs(d.ketThucLuc);
+            const daKetThuc = ktMs > 0 && nowMs >= ktMs;
+            return `
+              <div class="lesson-list-item">
+                <div style="min-width: 0; flex: 1">
+                  <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap">
+                    <strong style="font-size: 0.93rem; color: var(--th-text)">${escapeHtml(d.tenMonHoc)}</strong>
+                    <span class="tag-mode ${laOnline ? 'online' : 'offline'}">
+                      ${laOnline ? icons.video(12) : icons.home(12)}
+                      <span>${laOnline ? 'Trực tuyến' : 'Tại nhà'}</span>
+                    </span>
+                    <span class="badge ${tt.lopBadge}">${escapeHtml(tt.nhan)}</span>
+                    ${d.trangThai === 'DA_XAC_NHAN' && daKetThuc ? '<span class="badge" style="background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; font-size: 0.68rem">Đã kết thúc</span>' : ''}
+                  </div>
+                  <div style="margin-top: 0.35rem; font-size: 0.81rem; color: var(--th-text-muted); display: flex; flex-wrap: wrap; gap: 0.35rem 1rem">
+                    <span>Gia sư: <strong style="color: var(--th-text-secondary)">${escapeHtml(d.tenDoiTac)}</strong></span>
+                    <span>Thời gian: ${dinhDangNgayGioVn(d.batDauLuc)}</span>
+                    <span>Mã: ${escapeHtml(d.maDon)}</span>
+                  </div>
+                </div>
+                <div style="text-align: right; flex-shrink: 0">
+                  <div style="font-weight: 700; font-size: 0.92rem; color: var(--th-text)">${dinhDangTienVnd(d.tongTien)}</div>
+                  ${
+                    ttTien
+                      ? `<div style="margin-top: 0.2rem"><span class="badge ${ttTien.lopBadge}" style="font-size: 0.68rem">${escapeHtml(ttTien.nhan)}</span></div>`
+                      : ''
+                  }
+                </div>
+              </div>
+            `;
+          })
+          .join('');
+      }
+
+      async function taiYeuThichNhanh() {
+        const el = document.getElementById('ds-yeu-thich-nhanh');
+        try {
+          const res = await api.get('/muc-yeu-thich');
+          const ds = res?.duLieu || [];
+          if (ds.length === 0) {
+            el.innerHTML = `
+              <p style="margin: 0; font-size: 0.83rem; color: var(--th-text-muted)">
+                Chưa có gia sư nào được lưu. Nhấn nút Lưu khi tìm kiếm để so sánh nhanh tại đây.
+              </p>
+            `;
+            return;
+          }
+          el.innerHTML = ds
+            .slice(0, 4)
+            .map(({ giaSu: gs }) => {
+              const coOnline = gs.coDayTrucTuyen ?? (gs.hinhThucDay || []).includes('TRUC_TUYEN');
+              const coOffline = gs.coDayTrucTiep ?? (gs.hinhThucDay || []).includes('TRUC_TIEP');
+              return `
+                <a
+                  href="/pages/ho-so-gia-su.html?id=${gs.id}"
+                  style="display: flex; align-items: center; justify-content: space-between; gap: 0.7rem; padding: 0.65rem 0.75rem; border: 1px solid var(--th-border); border-radius: 10px; text-decoration: none; background: #f8fafc"
+                >
+                  <div style="display: flex; align-items: center; gap: 0.65rem; min-width: 0">
+                    <span class="avatar-circle" style="width: 38px; height: 38px; font-size: 0.82rem">${escapeHtml(layChuCaiDau(gs.hoTen))}</span>
+                    <div style="min-width: 0">
+                      <div style="font-weight: 700; font-size: 0.86rem; color: var(--th-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap">${escapeHtml(gs.hoTen)}</div>
+                      <div style="font-size: 0.75rem; color: var(--th-text-muted)">
+                        ${coOnline && coOffline ? 'Trực tuyến &amp; Tại nhà' : coOnline ? 'Trực tuyến toàn quốc' : 'Trực tiếp tại nhà'} · ${dinhDangTienVnd(gs.giaThapNhat)}/giờ
+                      </div>
+                    </div>
+                  </div>
+                  <span style="color: var(--th-blush-text)">${icons.arrowRight(14)}</span>
+                </a>
+              `;
+            })
+            .join('');
+          } catch {
+          el.innerHTML = '<div style="font-size: 0.82rem; color: var(--th-text-muted)">Tạm thời chưa tải được danh sách yêu thích.</div>';
+        }
+      }
+
+      // =========================================================================
+      // DỮ LIỆU CÁC TAB TRONG BẢNG ĐIỀU KHIỂN BÊN PHẢI (KHÁM PHÁ, LỊCH HỌC, ĐÃ LƯU, TIN NHẮN, TÀI KHOẢN)
+      // =========================================================================
+      function hienThongBaoHs(msg, loai = 'success') {
+        if (!hopThongBao) return;
+        hopThongBao.style.display = 'block';
+        hopThongBao.className = `alert alert-${loai}`;
+        hopThongBao.textContent = msg;
+      }
+
+      async function taiKhamPhaPortal() {
+        const elGrid = document.getElementById('ds-kham-pha-portal');
+        const selMon = document.getElementById('kp-mon-hoc');
+        if (!elGrid) return;
+        elGrid.innerHTML = taoSkeletonCardGiaSu(3);
+
+        if (!daNapMonHocKhamPha && selMon) {
+          try {
+            const resMon = await api.get('/mon-hoc');
+            const dsMon = resMon?.duLieu || [];
+            selMon.innerHTML = taoOptionsNhomMonHocHtml(dsMon, '', `Tất cả môn học (${dsMon.length})`, escapeHtml);
+            const dlKp = document.getElementById('ds-mon-hoc-kp-goi-y');
+            if (dlKp) {
+              dlKp.innerHTML = dsMon.map((m) => `<option value="${escapeHtml(m.ten)}"></option>`).join('');
+            }
+            daNapMonHocKhamPha = true;
+          } catch {
+            // Bỏ qua
+          }
+        }
+
+        const qs = new URLSearchParams({ kichThuocTrang: '9' });
+        const tk = document.getElementById('kp-tu-khoa')?.value?.trim();
+        const monId = selMon?.value;
+        const ht = document.getElementById('kp-hinh-thuc')?.value;
+        const hocThu = document.getElementById('kp-hoc-thu')?.checked;
+        if (tk) qs.set('tuKhoa', tk);
+        if (monId) qs.set('monHocId', monId);
+        if (ht) qs.set('hinhThuc', ht);
+        if (hocThu) qs.set('coHocThu', 'true');
+
+        try {
+          const res = await api.get(`/gia-su?${qs.toString()}`);
+          const ds = res?.duLieu || [];
+          if (ds.length === 0) {
+            elGrid.innerHTML = `
+              <div class="card" style="grid-column: 1 / -1; text-align: center; padding: 2.2rem">
+                <div style="font-weight: 700">Không tìm thấy gia sư khớp bộ lọc hiện tại</div>
+                <p style="margin: 0.35rem 0 0; font-size: 0.84rem; color: var(--th-text-muted)">Hãy thử xóa bớt điều kiện lọc hoặc chọn tất cả môn học.</p>
+              </div>
+            `;
+            return;
+          }
+          elGrid.innerHTML = ds.map((gs) => renderCardGiaSu(gs)).join('');
+          ganSuKienYeuThich(elGrid);
+        } catch (err) {
+          elGrid.innerHTML = `<div class="alert alert-danger" style="grid-column: 1 / -1">${escapeHtml(err.message)}</div>`;
+        }
+      }
+
+      document.getElementById('form-loc-kham-pha-portal')?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        taiKhamPhaPortal();
+      });
+
+      async function taiTatCaDonHs() {
+        const el = document.getElementById('ds-tat-ca-don-hs');
+        if (!el) return;
+        try {
+          const [res] = await Promise.all([api.get('/don-dat-lich/toi'), taiThongBaoVaKhieuNaiHs()]);
+          dsTatCaDonHs = res?.duLieu || [];
+          renderTatCaDonHs();
+        } catch (err) {
+          el.innerHTML = `<div class="alert alert-danger">${escapeHtml(err.message)}</div>`;
+        }
+      }
+
+      document.getElementById('btn-vi-mo-lich-hoc')?.addEventListener('click', () => chuyenTabHs('tab-lich-hoc'));
+
+      function renderTatCaDonHs() {
+        const el = document.getElementById('ds-tat-ca-don-hs');
+        if (!el) return;
+        const dsLoc = dsTatCaDonHs.filter((d) => {
+          if (!boLocTrangThaiDon) return true;
+          if (boLocTrangThaiDon === 'DA_HUY') {
+            return d.trangThai === 'DA_HUY' || d.trangThai === 'BI_TU_CHOI' || d.trangThai === 'HET_HAN';
+          }
+          return d.trangThai === boLocTrangThaiDon;
+        });
+
+        if (dsLoc.length === 0) {
+          el.innerHTML = `
+            <div style="text-align: center; padding: 2rem 1rem; color: var(--th-text-muted)">
+              <div style="font-weight: 700; color: var(--th-text)">Chưa có buổi học nào trong mục này</div>
+              <p style="margin: 0.3rem 0 1rem; font-size: 0.84rem">Bạn có thể khám phá gia sư và đặt buổi học đầu tiên ngay trong bảng điều khiển.</p>
+              <button type="button" class="btn btn-primary btn-sm" id="btn-trong-lich-kham-pha">Khám phá gia sư ngay</button>
+            </div>
+          `;
+          document.getElementById('btn-trong-lich-kham-pha')?.addEventListener('click', () => chuyenTabHs('tab-kham-pha'));
+          return;
+        }
+
+        const nowMs = Date.now();
+        el.innerHTML = dsLoc
+          .map((d) => {
+            const laOnline = d.hinhThuc === 'TRUC_TUYEN';
+            const tt = layNhanTrangThaiDonDatLich(d.trangThai);
+            const ttTien = d.trangThaiThanhToan ? layNhanTrangThaiThanhToan(d.trangThaiThanhToan) : null;
+            const bdMs = parseUtcMs(d.batDauLuc);
+            const ktMs = parseUtcMs(d.ketThucLuc);
+            const chuaDenGio = nowMs < bdMs;
+            const daBatDau = nowMs >= bdMs;
+            const daKetThuc = ktMs > 0 && nowMs >= ktMs;
+            const trongCuaSo24h = daBatDau && nowMs < ktMs + 24 * 3600 * 1000;
+
+            const canThanhToan =
+              Number(d.tongTien || 0) > 0 &&
+              (d.trangThai === 'CHO_XAC_NHAN' || d.trangThai === 'DA_XAC_NHAN') &&
+              chuaDenGio &&
+              !['DANG_GIU', 'DA_GIAI_NGAN', 'DA_HOAN'].includes(d.trangThaiThanhToan || '');
+
+            const coTheHuy = (d.trangThai === 'CHO_XAC_NHAN' || d.trangThai === 'DA_XAC_NHAN') && chuaDenGio;
+            const coTheHoanThanhSom = d.trangThai === 'DA_XAC_NHAN' && daBatDau;
+            const coTheKhieuNai =
+              d.trangThai === 'DA_XAC_NHAN' &&
+              d.trangThaiThanhToan === 'DANG_GIU' &&
+              Number(d.tongTien || 0) > 0 &&
+              trongCuaSo24h;
+            const choMoKhieuNai =
+              d.trangThai === 'DA_XAC_NHAN' &&
+              d.trangThaiThanhToan === 'DANG_GIU' &&
+              Number(d.tongTien || 0) > 0 &&
+              chuaDenGio;
+            const knDon = dsKhieuNaiHs.find((k) => k.donDatLichId === d.id || k.maDon === d.maDon);
+
+            return `
+              <div class="lesson-list-item" style="align-items: center; gap: 1rem; flex-wrap: wrap">
+                <div style="min-width: 220px; flex: 1">
+                  <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap">
+                    <strong style="font-size: 0.96rem; color: var(--th-text)">${escapeHtml(d.tenMonHoc)}</strong>
+                    <span class="tag-mode ${laOnline ? 'online' : 'offline'}">
+                      ${laOnline ? icons.video(12) : icons.home(12)}
+                      <span>${laOnline ? 'Online' : 'Tại nhà'}</span>
+                    </span>
+                    ${d.laBuoiHocThu ? '<span class="badge" style="background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0">Học thử Online 0 ₫</span>' : ''}
+                    <span class="badge ${tt.lopBadge}">${escapeHtml(tt.nhan)}</span>
+                    ${d.trangThai === 'DA_XAC_NHAN' && daKetThuc ? '<span class="badge" style="background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; font-size: 0.69rem">Đã kết thúc</span>' : ''}
+                    ${ttTien ? `<span class="badge ${ttTien.lopBadge}" style="font-size: 0.69rem">${escapeHtml(ttTien.nhan)}</span>` : canThanhToan ? '<span class="badge badge-warning" style="font-size: 0.69rem">Chờ thanh toán</span>' : ''}
+                  </div>
+                  <div style="margin-top: 0.38rem; font-size: 0.82rem; color: var(--th-text-muted); display: flex; flex-wrap: wrap; gap: 0.35rem 1.1rem">
+                    <span>Gia sư: <strong style="color: var(--th-text-secondary)">${escapeHtml(d.tenGiaSu)}</strong></span>
+                    <span>Thời gian: ${dinhDangNgayGioVn(d.batDauLuc)}</span>
+                    <span>Mã đơn: ${escapeHtml(d.maDon)}</span>
+                  </div>
+                  ${d.diaChiHocSinh ? `<div style="margin-top: 0.25rem; font-size: 0.78rem; color: #64748b">Địa chỉ: ${escapeHtml(d.diaChiHocSinh)}</div>` : ''}
+                  ${
+                    knDon
+                      ? `<div style="margin-top: 0.45rem; padding: 0.5rem 0.7rem; border-radius: 9px; background: #fffbeb; border: 1px solid #fde68a; font-size: 0.78rem; color: #78350f">
+                           <strong>Khiếu nại của bạn:</strong> ${escapeHtml(knDon.moTa)}
+                           ${knDon.phanHoiGiaSu ? `<div style="margin-top: 0.25rem; color: #1e40af"><strong>Phản biện của gia sư:</strong> ${escapeHtml(knDon.phanHoiGiaSu)}</div>` : '<div style="margin-top: 0.2rem; color: #92400e">Đang chờ gia sư gửi phản biện / quản trị viên phân xử.</div>'}
+                           ${knDon.ghiChuGiaiQuyet ? `<div style="margin-top: 0.25rem; color: #15803d"><strong>Kết luận quản trị:</strong> ${escapeHtml(knDon.ghiChuGiaiQuyet)} (Hoàn: ${dinhDangTienVnd(knDon.tienDaHoan || 0)})</div>` : ''}
+                         </div>`
+                      : ''
+                  }
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap">
+                  <strong style="font-size: 0.94rem; color: #1e293b; margin-right: 0.3rem">${d.tongTien === 0 ? 'Miễn phí (0 ₫)' : dinhDangTienVnd(d.tongTien)}</strong>
+                  ${
+                    canThanhToan
+                      ? `<button type="button" class="btn btn-primary btn-sm btn-thanh-toan-don-hs" data-don-id="${d.id}">Thanh toán giữ chỗ</button>`
+                      : ''
+                  }
+                  ${
+                    laOnline && d.trangThai === 'DA_XAC_NHAN' && !daKetThuc
+                      ? `<a class="btn btn-primary btn-sm" href="/pages/phong-hoc.html?donId=${encodeURIComponent(d.id)}">Vào phòng học</a>`
+                      : ''
+                  }
+                  ${
+                    coTheHoanThanhSom
+                      ? `<button type="button" class="btn btn-emerald btn-sm btn-hoan-thanh-som-hs" data-don-id="${d.id}" data-ma-don="${escapeHtml(d.maDon)}">Xác nhận hoàn thành</button>`
+                      : ''
+                  }
+                  ${
+                    coTheKhieuNai
+                      ? `<button type="button" class="btn btn-secondary btn-sm btn-mo-khieu-nai-hs" data-don-id="${d.id}" style="color: #b91c1c; border-color: #fecaca; font-weight: 700">Khiếu nại</button>`
+                      : choMoKhieuNai
+                        ? `<button type="button" class="btn btn-secondary btn-sm" disabled title="Nút Khiếu nại chỉ mở khi buổi học đã bắt đầu (trong vòng 24 giờ sau khi kết thúc). Trước giờ học bạn có thể bấm Hủy lịch để hoàn 100%." style="opacity: 0.55; cursor: not-allowed">Khiếu nại</button>`
+                        : ''
+                  }
+                  <button type="button" class="btn btn-secondary btn-sm btn-nhan-tin-don-hs" data-gs-id="${d.giaSuId}">Nhắn tin</button>
+                  <a class="btn btn-ghost btn-sm" href="/pages/ho-so-gia-su.html?id=${d.giaSuId}">Hồ sơ</a>
+                  ${
+                    coTheHuy
+                      ? `<button type="button" class="btn btn-danger btn-sm btn-huy-don-hs" data-don-id="${d.id}" data-dang-giu="${d.trangThaiThanhToan === 'DANG_GIU' ? '1' : '0'}">Hủy lịch</button>`
+                      : ''
+                  }
+                </div>
+              </div>
+            `;
+          })
+          .join('');
+
+        el.querySelectorAll('.btn-thanh-toan-don-hs').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const don = dsTatCaDonHs.find((x) => x.id === btn.dataset.donId);
+            if (!don) return;
+            donDangThanhToanHs = don;
+            const elTomTat = document.getElementById('tt-hs-tom-tat');
+            const elSoDu = document.getElementById('tt-hs-so-du-vi');
+            const elLoi = document.getElementById('tt-hs-loi');
+            if (elLoi) elLoi.style.display = 'none';
+            if (elSoDu) elSoDu.textContent = dinhDangTienVnd(soDuViHocSinhHienTai);
+            if (elTomTat) {
+              elTomTat.innerHTML = `
+                <div><strong>${escapeHtml(don.tenMonHoc)}</strong> · Gia sư ${escapeHtml(don.tenGiaSu)}</div>
+                <div style="margin-top: 0.2rem">Mã đơn: <strong>${escapeHtml(don.maDon)}</strong> · Học phí: <strong style="color: #1d4ed8">${dinhDangTienVnd(don.tongTien)}</strong></div>
+              `;
+            }
+            const modal = document.getElementById('modal-tt-hs');
+            if (modal) modal.style.display = 'flex';
+          });
+        });
+
+        el.querySelectorAll('.btn-hoan-thanh-som-hs').forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            const ok = confirm(
+              `Xác nhận buổi học ${btn.dataset.maDon} đã hoàn thành?\n\nLưu ý: Sau khi xác nhận, học phí sẽ được giải ngân ngay cho gia sư và bạn sẽ không thể mở khiếu nại cho buổi học này.`
+            );
+            if (!ok) return;
+            btn.disabled = true;
+            try {
+              await api.post(`/don-dat-lich/${btn.dataset.donId}/hoan-thanh`, {});
+              hienThongBaoHs('Đã xác nhận hoàn thành buổi học và giải ngân học phí cho gia sư!');
+              await Promise.all([taiTatCaDonHs(), taiTongQuanHocSinh()]);
+            } catch (err) {
+              hienThongBaoHs(err.message, 'danger');
+              btn.disabled = false;
+            }
+          });
+        });
+
+        el.querySelectorAll('.btn-mo-khieu-nai-hs').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const don = dsTatCaDonHs.find((x) => x.id === btn.dataset.donId);
+            if (!don) return;
+            donDangKhieuNaiHs = don;
+            const elTomTat = document.getElementById('kn-hs-tom-tat');
+            const elLoi = document.getElementById('kn-hs-loi');
+            if (elLoi) elLoi.style.display = 'none';
+            if (elTomTat) {
+              elTomTat.innerHTML = `Đơn <strong>${escapeHtml(don.maDon)}</strong> (${escapeHtml(don.tenMonHoc)} · ${dinhDangTienVnd(don.tongTien)}). Khi gửi khiếu nại, học phí sẽ được đóng băng tạm giữ cho tới khi quản trị viên phân xử.`;
+            }
+            const inpMoTa = document.getElementById('kn-hs-mo-ta');
+            if (inpMoTa) inpMoTa.value = '';
+            const modal = document.getElementById('modal-kn-hs');
+            if (modal) modal.style.display = 'flex';
+          });
+        });
+
+        el.querySelectorAll('.btn-nhan-tin-don-hs').forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            try {
+              const resHt = await api.post('/hoi-thoai', { giaSuId: btn.dataset.gsId });
+              if (resHt?.duLieu?.id) {
+                hsHoiThoaiDangChonId = resHt.duLieu.id;
+              }
+            } catch {
+              // Bỏ qua
+            }
+            chuyenTabHs('tab-tin-nhan');
+          });
+        });
+
+        el.querySelectorAll('.btn-huy-don-hs').forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            const dangGiu = btn.dataset.dangGiu === '1';
+            const lyDo = prompt(
+              dangGiu
+                ? 'Nhập lý do hủy buổi học (học phí tạm giữ sẽ hoàn 100% về Ví học tập của bạn):'
+                : 'Nhập lý do hủy buổi học này:',
+              'Bận lịch đột xuất, xin phép đổi sang buổi khác'
+            );
+            if (!lyDo || lyDo.trim().length < 3) return;
+            try {
+              await api.post(`/don-dat-lich/${btn.dataset.donId}/huy`, { lyDo: lyDo.trim() });
+              hienThongBaoHs(
+                dangGiu
+                  ? 'Đã hủy buổi học và hoàn 100% học phí về Ví học tập của bạn!'
+                  : 'Đã hủy buổi học thành công.'
+              );
+              await Promise.all([taiTatCaDonHs(), taiTongQuanHocSinh()]);
+            } catch (err) {
+              hienThongBaoHs(err.message, 'danger');
+            }
+          });
+        });
+      }
+
+      // Sự kiện đóng / submit Modal Thanh toán & Modal Khiếu nại (Học sinh)
+      const dongModalTtHs = () => {
+        const m = document.getElementById('modal-tt-hs');
+        if (m) m.style.display = 'none';
+      };
+      document.getElementById('btn-dong-modal-tt-hs')?.addEventListener('click', dongModalTtHs);
+      document.getElementById('btn-huy-modal-tt-hs')?.addEventListener('click', dongModalTtHs);
+
+      document.getElementById('form-tt-hs')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!donDangThanhToanHs) return;
+        const pt = document.querySelector('input[name="hsPhuongThucTt"]:checked')?.value || 'VI_NOI_BO';
+        const elLoi = document.getElementById('tt-hs-loi');
+        const btnSub = document.getElementById('btn-submit-tt-hs');
+        if (elLoi) elLoi.style.display = 'none';
+        if (btnSub) btnSub.disabled = true;
+        try {
+          const res = await api.post(`/don-dat-lich/${donDangThanhToanHs.id}/thanh-toan`, { phuongThuc: pt });
+          dongModalTtHs();
+          const ttKq = res?.duLieu;
+          hienThongBaoHs(
+            ttKq?.trangThai === 'DANG_GIU'
+              ? `Thanh toán thành công ${dinhDangTienVnd(ttKq.soTien)}! Học phí đã được tạm giữ an toàn.`
+              : 'Đã khởi tạo giao dịch thanh toán VNPay cho đơn đặt lịch.'
+          );
+          await Promise.all([taiTatCaDonHs(), taiTongQuanHocSinh()]);
+        } catch (err) {
+          if (elLoi) {
+            elLoi.style.display = 'block';
+            elLoi.className = 'alert alert-danger';
+            elLoi.textContent = err.message || 'Không thể thanh toán đơn này.';
+          }
+        } finally {
+          if (btnSub) btnSub.disabled = false;
+        }
+      });
+
+      const dongModalKnHs = () => {
+        const m = document.getElementById('modal-kn-hs');
+        if (m) m.style.display = 'none';
+      };
+      document.getElementById('btn-dong-modal-kn-hs')?.addEventListener('click', dongModalKnHs);
+      document.getElementById('btn-huy-modal-kn-hs')?.addEventListener('click', dongModalKnHs);
+
+      document.getElementById('form-kn-hs')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!donDangKhieuNaiHs) return;
+        const danhMuc = document.getElementById('kn-hs-danh-muc')?.value || 'CHAT_LUONG';
+        const moTa = (document.getElementById('kn-hs-mo-ta')?.value || '').trim();
+        const elLoi = document.getElementById('kn-hs-loi');
+        const btnSub = document.getElementById('btn-submit-kn-hs');
+        if (elLoi) elLoi.style.display = 'none';
+        if (moTa.length < 10) {
+          if (elLoi) {
+            elLoi.style.display = 'block';
+            elLoi.className = 'alert alert-danger';
+            elLoi.textContent = 'Vui lòng mô tả chi tiết khiếu nại tối thiểu 10 ký tự.';
+          }
+          return;
+        }
+        const fileBangChung = document.getElementById('kn-hs-tep-bang-chung')?.files?.[0] || null;
+        if (btnSub) btnSub.disabled = true;
+        try {
+          let bangChungUrl = null;
+          if (fileBangChung) {
+            const fd = new FormData();
+            fd.append('tep', fileBangChung);
+            const upRes = await api.post('/khieu-nai/tep-bang-chung', fd);
+            bangChungUrl = upRes?.duLieu?.duongDanTep || null;
+          }
+          await api.post(`/don-dat-lich/${donDangKhieuNaiHs.id}/khieu-nai`, { danhMuc, moTa, bangChungUrl });
+          const inpTep = document.getElementById('kn-hs-tep-bang-chung');
+          if (inpTep) inpTep.value = '';
+          dongModalKnHs();
+          hienThongBaoHs('Đã gửi khiếu nại và thông báo cho gia sư đối chất! Học phí lịch sử đang được tạm giữ chờ quản trị viên phân xử.', 'warning');
+          await Promise.all([taiTatCaDonHs(), taiTongQuanHocSinh()]);
+        } catch (err) {
+          if (elLoi) {
+            elLoi.style.display = 'block';
+            elLoi.className = 'alert alert-danger';
+            elLoi.textContent = err.message || 'Không thể gửi khiếu nại.';
+          }
+        } finally {
+          if (btnSub) btnSub.disabled = false;
+        }
+      });
+
+      document.querySelectorAll('#nhom-loc-trang-thai-don .bk-pill').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          boLocTrangThaiDon = btn.dataset.tt || '';
+          document.querySelectorAll('#nhom-loc-trang-thai-don .bk-pill').forEach((x) => {
+            x.classList.toggle('active', (x.dataset.tt || '') === boLocTrangThaiDon);
+          });
+          renderTatCaDonHs();
+        });
+      });
+
+      async function taiYeuThichDayDu() {
+        const el = document.getElementById('ds-yeu-thich-day-du');
+        if (!el) return;
+        el.innerHTML = taoSkeletonCardGiaSu(3);
+        try {
+          const res = await api.get('/muc-yeu-thich');
+          const ds = res?.duLieu || [];
+          if (ds.length === 0) {
+            el.innerHTML = `
+              <div class="card" style="grid-column: 1 / -1; text-align: center; padding: 2.4rem">
+                <div style="font-weight: 700; font-size: 1rem">Bạn chưa lưu gia sư yêu thích nào</div>
+                <p style="margin: 0.35rem 0 1rem; font-size: 0.85rem; color: var(--th-text-muted)">
+                  Nhấn biểu tượng trái tim trên thẻ gia sư để lưu lại và so sánh nhanh tại đây.
+                </p>
+                <button type="button" class="btn btn-primary btn-sm" id="btn-yt-sang-kham-pha">Khám phá gia sư ngay</button>
+              </div>
+            `;
+            document.getElementById('btn-yt-sang-kham-pha')?.addEventListener('click', () => chuyenTabHs('tab-kham-pha'));
+            return;
+          }
+          el.innerHTML = ds.map(({ giaSu }) => renderCardGiaSu({ ...giaSu, daYeuThich: true })).join('');
+          ganSuKienYeuThich(el);
+        } catch (err) {
+          el.innerHTML = `<div class="alert alert-danger" style="grid-column: 1 / -1">${escapeHtml(err.message)}</div>`;
+        }
+      }
+
+      async function taiDsHoiThoaiHs() {
+        const elList = document.getElementById('hs-ds-hoi-thoai');
+        if (!elList) return;
+        try {
+          const res = await api.get('/hoi-thoai');
+          const ds = res?.duLieu || [];
+          if (ds.length === 0) {
+            elList.innerHTML = '<div style="padding: 1.1rem; font-size: 0.82rem; color: var(--th-text-muted)">Chưa có hội thoại nào. Hãy bấm Nhắn tin trên hồ sơ gia sư để bắt đầu.</div>';
+            return;
+          }
+          if (!hsHoiThoaiDangChonId || !ds.some((x) => x.id === hsHoiThoaiDangChonId)) {
+            hsHoiThoaiDangChonId = ds[0].id;
+          }
+          elList.innerHTML = ds
+            .map(
+              (h) => `
+              <button type="button" class="portal-conv-item ${h.id === hsHoiThoaiDangChonId ? 'active' : ''}" data-ht-id="${h.id}">
+                <span class="avatar-circle" style="width: 36px; height: 36px; font-size: 0.78rem; background: var(--th-blush-soft); color: var(--th-blush-text)">${escapeHtml(layChuCaiDau(h.tenDoiTac))}</span>
+                <div style="min-width: 0; flex: 1">
+                  <div style="font-weight: 700; font-size: 0.85rem; color: #1e293b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">${escapeHtml(h.tenDoiTac)}</div>
+                  <div style="font-size: 0.75rem; color: #64748b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">${escapeHtml(h.tinNhanCuoi || 'Bắt đầu trò chuyện')}</div>
+                </div>
+              </button>
+            `
+            )
+            .join('');
+          elList.querySelectorAll('.portal-conv-item').forEach((btn) => {
+            btn.addEventListener('click', () => moChiTietHoiThoaiHs(btn.dataset.htId));
+          });
+          if (hsHoiThoaiDangChonId) await moChiTietHoiThoaiHs(hsHoiThoaiDangChonId);
+        } catch (err) {
+          elList.innerHTML = `<div style="padding: 1rem; font-size: 0.8rem; color: #b91c1c">${escapeHtml(err.message)}</div>`;
+        }
+      }
+
+      async function moChiTietHoiThoaiHs(htId) {
+        hsHoiThoaiDangChonId = htId;
+        document.querySelectorAll('#hs-ds-hoi-thoai .portal-conv-item').forEach((b) => {
+          b.classList.toggle('active', b.dataset.htId === htId);
+        });
+        const elHead = document.getElementById('hs-chat-head');
+        const elMsgs = document.getElementById('hs-chat-messages');
+        const formChat = document.getElementById('form-chat-portal-hs');
+        try {
+          const res = await api.get(`/hoi-thoai/${htId}`);
+          const ht = res?.duLieu;
+          if (!ht) return;
+          if (elHead) {
+            elHead.innerHTML = `
+              <div style="display: flex; align-items: center; gap: 0.65rem">
+                <span class="avatar-circle" style="width: 34px; height: 34px; font-size: 0.76rem; background: var(--th-blush-soft); color: var(--th-blush-text)">${escapeHtml(layChuCaiDau(ht.tenDoiTac))}</span>
+                <div>
+                  <div style="font-weight: 800; font-size: 0.92rem; color: #1e293b">${escapeHtml(ht.tenDoiTac)}</div>
+                  <div style="font-size: 0.72rem; color: var(--th-text-muted)">Gia sư TutorHub</div>
+                </div>
+              </div>
+              <a class="btn btn-secondary btn-sm" href="/pages/ho-so-gia-su.html?id=${ht.doiTacId}" style="height: 32px; font-size: 0.76rem">Xem hồ sơ &amp; Đặt lịch →</a>
+            `;
+          }
+          if (formChat) formChat.style.display = 'flex';
+          const dsTin = ht.dsTinNhan || [];
+          if (dsTin.length === 0) {
+            elMsgs.innerHTML = '<div style="margin: auto; font-size: 0.83rem; color: var(--th-text-muted)">Hãy gửi lời chào đầu tiên tới gia sư nhé!</div>';
+          } else {
+            elMsgs.innerHTML = dsTin
+              .map(
+                (t) => `
+                <div class="th-chat-bubble ${t.laCuaToi ? 'mine' : 'theirs'}">
+                  <div>${escapeHtml(t.noiDung)}</div>
+                  ${t.biGanCo ? '<div class="th-chat-flag">Thông tin liên hệ ngoài nền tảng đã được ẩn tự động.</div>' : ''}
+                  <div class="th-chat-time">${dinhDangNgayGioVn(t.taoLuc)}</div>
+                </div>
+              `
+              )
+              .join('');
+            elMsgs.scrollTop = elMsgs.scrollHeight;
+          }
+        } catch (err) {
+          if (elMsgs) elMsgs.innerHTML = `<div class="alert alert-danger">${escapeHtml(err.message)}</div>`;
+        }
+      }
+
+      document.getElementById('btn-lam-moi-chat-hs')?.addEventListener('click', taiDsHoiThoaiHs);
+      document.getElementById('form-chat-portal-hs')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const inp = document.getElementById('inp-chat-portal-hs');
+        const noiDung = inp?.value?.trim();
+        if (!noiDung || !hsHoiThoaiDangChonId) return;
+        inp.disabled = true;
+        try {
+          await api.post(`/hoi-thoai/${hsHoiThoaiDangChonId}/tin-nhan`, { noiDung });
+          inp.value = '';
+          await Promise.all([moChiTietHoiThoaiHs(hsHoiThoaiDangChonId), taiDsHoiThoaiHs()]);
+        } catch (err) {
+          hienThongBaoHs(err.message, 'danger');
+        } finally {
+          inp.disabled = false;
+          inp.focus();
+        }
+      });
+
+      document.getElementById('form-cap-nhat-tk-hs')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        try {
+          await api.patch('/nguoi-dung/toi', {
+            hoTen: document.getElementById('hs-tk-ho-ten').value.trim(),
+            soDienThoai: document.getElementById('hs-tk-sdt').value.trim() || null,
+            khuVuc: document.getElementById('hs-tk-khu-vuc').value.trim() || null,
+          });
+          await dongBoNguoiDungTuApi();
+          await taiTongQuanHocSinh();
+          hienThongBaoHs('Đã lưu thông tin cá nhân thành công!');
+        } catch (err) {
+          hienThongBaoHs(err.message, 'danger');
+        }
+      });
+
+      document.getElementById('form-doi-mk-hs')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        try {
+          await api.post('/nguoi-dung/toi/doi-mat-khau', {
+            matKhauCu: document.getElementById('hs-mk-cu').value,
+            matKhauMoi: document.getElementById('hs-mk-moi').value,
+          });
+          document.getElementById('form-doi-mk-hs').reset();
+          hienThongBaoHs('Đã cập nhật mật khẩu thành công!');
+        } catch (err) {
+          hienThongBaoHs(err.message, 'danger');
+        }
+      });
+
+      const tabUrlBanDau = new URLSearchParams(window.location.search).get('tab');
+      if (tabUrlBanDau && tieuDeTabHs[tabUrlBanDau]) {
+        chuyenTabHs(tabUrlBanDau);
+      }
+    </script>
+  </body>
+</html>
