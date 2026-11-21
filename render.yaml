@@ -35,7 +35,7 @@ services:
   - type: web
     name: tutorhub-web
     runtime: static
-    buildCommand: node -e 'const fs = require("fs"); const h = (process.env.API_PUBLIC_HOST || "").trim(); const val = h ? "https://" + h + "/api" : ""; fs.writeFileSync("frontend/assets/js/runtime-config.js", "export const RUNTIME_API_BASE_URL = " + JSON.stringify(val) + ";\n");'
+    buildCommand: node frontend/build-render.mjs
     staticPublishPath: ./frontend
     envVars:
       - key: API_PUBLIC_HOST
