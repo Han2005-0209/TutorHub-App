@@ -117,49 +117,25 @@
         </div>
       </div>
 
-      <!-- Bản đồ khu vực & Vòng tròn bán kính quét quanh bạn -->
-      <section id="khung-ban-do" class="card" style="display: none; margin-bottom: 1.25rem; padding: 1.15rem">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.65rem">
-          <div>
-            <div style="font-weight: 700; font-size: 0.96rem; color: var(--th-text)">Bản đồ &amp; Quét gia sư trong bán kính quanh bạn</div>
-            <div id="chu-thich-ban-do" style="font-size: 0.8rem; color: var(--th-text-muted); margin-top: 0.15rem">
-              Chọn bán kính bạn mong muốn để quét và tìm tất cả gia sư có thể đến tận nơi dạy kèm.
-            </div>
+      <!-- Bản đồ khu vực tinh gọn (1 thanh điều khiển duy nhất + Khung bản đồ) -->
+      <section id="khung-ban-do" class="card" style="display: none; margin-bottom: 1.25rem; padding: 0.9rem 1rem">
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.65rem">
+          <div id="txt-ban-kinh-hien-tai" style="font-size: 0.85rem; font-weight: 700; color: #334155">
+            📍 Bản đồ toàn hệ thống · Bấm vào cụm tỉnh/thành để phóng to
           </div>
-          <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap">
-            <button type="button" class="btn btn-primary btn-sm" id="btn-tim-quanh-day" title="Lấy vị trí của bạn và tìm gia sư quanh đây" style="display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 700">
-              <span id="ico-locate-btn"></span>
-              <span>Vị trí của tôi · Tìm quanh đây</span>
+          <div style="display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap">
+            <button type="button" class="btn btn-primary btn-sm" id="btn-mo-rong-ban-kinh" style="font-weight: 700">
+              📍 Tìm gần vị trí của tôi (4 km)
             </button>
-            <button type="button" class="btn btn-secondary btn-sm" id="btn-xem-toan-canh-ban-do" title="Thu phóng bản đồ bao trọn tất cả gia sư trên trang" style="font-weight: 600">
-              Xem toàn cảnh
+            <button type="button" class="btn btn-ghost btn-sm" id="btn-thu-hep-ban-kinh" style="display: none; font-weight: 600">
+              ↺ Đặt lại 4 km
             </button>
-            <span class="badge" style="font-size: 0.74rem; background: var(--th-blush-soft); color: var(--th-blush-text); border: 1px solid var(--th-blush-border)">Vòng tròn bán kính quét</span>
           </div>
         </div>
 
-        <!-- Thanh mở rộng phạm vi tìm kiếm tuần tự (Tìm gần -> Chưa thấy ai ổn bấm Tìm thêm tự tăng phạm vi -> Cảnh báo từ 15km+) -->
-        <div id="khung-ban-kinh-quet" style="display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 0.75rem; padding: 0.7rem 0.95rem; background: #fdfbfc; border: 1px solid var(--th-blush-border); border-radius: 12px">
-          <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.6rem">
-            <div style="display: flex; align-items: center; gap: 0.45rem; font-size: 0.86rem; font-weight: 700; color: #334155">
-              <span>🎯 Phạm vi tìm kiếm quanh bạn:</span>
-              <span id="txt-ban-kinh-hien-tai" style="color: var(--th-blush-text); font-weight: 800; background: #fff1f2; padding: 0.15rem 0.55rem; border-radius: 999px; border: 1px solid var(--th-blush-border)">4 km gần bạn nhất</span>
-            </div>
-            <div style="display: flex; gap: 0.45rem; align-items: center; flex-wrap: wrap">
-              <button type="button" class="btn btn-primary btn-sm" id="btn-mo-rong-ban-kinh" style="font-weight: 700">
-                🔍 Chưa thấy ai ổn? Tìm thêm ở xa hơn (Mở rộng lên 8 km) →
-              </button>
-              <button type="button" class="btn btn-ghost btn-sm" id="btn-thu-hep-ban-kinh" style="display: none; font-weight: 600">
-                ↺ Thu hẹp về gần tôi (4 km)
-              </button>
-            </div>
-          </div>
-
-          <!-- Hộp cảnh báo học sinh khi phạm vi mở rộng từ 15km trở lên (vẫn cho phép học sinh bấm tìm thêm) -->
-          <div id="canh-bao-khoang-cach-xa" style="display: none; padding: 0.65rem 0.85rem; background: #fffbeb; border: 1px solid #fcd34d; border-radius: 10px; color: #92400e; font-size: 0.82rem; line-height: 1.45">
-            <strong>⚠️ Lưu ý phạm vi tìm kiếm đã khá xa (<span id="txt-muc-canh-bao-km">15 km</span>):</strong>
-            Phạm vi tìm kiếm hiện đã khá lớn so với vị trí của bạn — <strong>rất có thể gia sư sẽ không đồng ý di chuyển trực tiếp với quãng đường quá lớn</strong> (hoặc vượt ngoài bán kính nhận dạy của gia sư). Bạn vẫn có thể tiếp tục bấm <em>"Tìm thêm"</em> nếu muốn mở rộng thêm, hoặc cân nhắc chọn học Trực tuyến 1-1.
-          </div>
+        <!-- Cảnh báo ngắn gọn chỉ hiện khi học sinh mở rộng phạm vi từ 15km trở lên -->
+        <div id="canh-bao-khoang-cach-xa" style="display: none; margin-bottom: 0.65rem; padding: 0.5rem 0.75rem; background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; color: #92400e; font-size: 0.8rem">
+          ⚠️ <strong>Phạm vi tìm kiếm đã khá xa (<span id="txt-muc-canh-bao-km">15 km</span>):</strong> Rất có thể gia sư sẽ không đồng ý di chuyển với quãng đường quá lớn (bạn vẫn có thể tìm thêm hoặc chọn học Trực tuyến).
         </div>
 
         <div id="ban-do-gia-su" style="height: 460px; width: 100%; border-radius: var(--th-radius-md); z-index: 1"></div>
@@ -192,9 +168,6 @@
           </div>
         </div>
       </div>
-
-      <!-- Hộp gợi ý "Tìm thêm gia sư ở xa hơn" ngay dưới danh sách kết quả -->
-      <div id="khung-tim-them-cuoi-trang" style="display: none; margin-top: 1.35rem; padding: 1rem 1.2rem; background: #fff9fa; border: 1px dashed var(--th-blush-border); border-radius: 14px; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem"></div>
 
       <!-- Phân trang -->
       <div id="khung-phan-trang" style="display: flex; justify-content: center; gap: 0.5rem; margin-top: 1.75rem"></div>
@@ -278,16 +251,18 @@
         return `${km} km quanh bạn`;
       }
 
-      function capNhatGiaoDienPhamViQuet(tongTimThay = null) {
+      function capNhatGiaoDienPhamViQuet() {
         const txtBk = document.getElementById('txt-ban-kinh-hien-tai');
         const btnMoRong = document.getElementById('btn-mo-rong-ban-kinh');
         const btnThuHep = document.getElementById('btn-thu-hep-ban-kinh');
         const hopCanhBao = document.getElementById('canh-bao-khoang-cach-xa');
         const txtMucCanhBao = document.getElementById('txt-muc-canh-bao-km');
-        const khungCuoiTrang = document.getElementById('khung-tim-them-cuoi-trang');
 
         if (txtBk) {
-          txtBk.textContent = viTriHienTaiToaDo ? dinhDangNhanPhamVi(banKinhQuetKm) : 'Chưa bật định vị (Toàn hệ thống)';
+          const kv = document.getElementById('loc-khu-vuc')?.value?.trim() || 'Cần Thơ';
+          txtBk.textContent = viTriHienTaiToaDo
+            ? `📍 Tâm quét: ${kv} · Phạm vi ${dinhDangNhanPhamVi(banKinhQuetKm)}`
+            : '📍 Bản đồ toàn hệ thống · Bấm vào cụm tỉnh/thành để phóng to';
         }
 
         const buocTiep = layBuocPhamViTiepTheo(banKinhQuetKm);
@@ -296,7 +271,7 @@
         if (hopCanhBao) {
           hopCanhBao.style.display = laPhamViXa ? 'block' : 'none';
           if (txtMucCanhBao) {
-            txtMucCanhBao.textContent = banKinhQuetKm === 0 ? 'Toàn khu vực / >25 km' : `${banKinhQuetKm} km`;
+            txtMucCanhBao.textContent = banKinhQuetKm === 0 ? 'Toàn khu vực' : `${banKinhQuetKm} km`;
           }
         }
 
@@ -307,64 +282,13 @@
         if (btnMoRong) {
           if (!viTriHienTaiToaDo) {
             btnMoRong.style.display = 'inline-flex';
-            btnMoRong.textContent = '📍 Bấm để tìm gia sư gần vị trí của tôi (4 km) →';
+            btnMoRong.textContent = '📍 Tìm gần vị trí của tôi (4 km)';
           } else if (buocTiep === null) {
             btnMoRong.style.display = 'none';
           } else {
             btnMoRong.style.display = 'inline-flex';
             const nhanBuocTiep = buocTiep === 0 ? 'Toàn khu vực' : `${buocTiep} km`;
-            btnMoRong.textContent = laPhamViXa
-              ? `🔍 Vẫn chưa thấy ai phù hợp? Tiếp tục tìm thêm ở xa hơn (${nhanBuocTiep}) →`
-              : `🔍 Chưa thấy ai ổn? Tìm thêm gia sư ở xa hơn (Mở rộng lên ${nhanBuocTiep}) →`;
-          }
-        }
-
-        // Hộp gợi ý mở rộng phạm vi ở cuối danh sách thẻ gia sư
-        if (khungCuoiTrang) {
-          const hinhThuc = document.getElementById('loc-hinh-thuc')?.value || '';
-          if (hinhThuc === 'TRUC_TUYEN') {
-            khungCuoiTrang.style.display = 'none';
-          } else if (!viTriHienTaiToaDo) {
-            khungCuoiTrang.style.display = 'flex';
-            khungCuoiTrang.innerHTML = `
-              <div style="font-size: 0.86rem; color: #334155">
-                <strong>📍 Bạn muốn tìm gia sư dạy kèm trực tiếp gần nhà mình?</strong>
-                <div style="font-size: 0.8rem; color: var(--th-text-muted); margin-top: 2px">Hệ thống sẽ ưu tiên quét từ bán kính 4 km gần bạn nhất trước, nếu chưa thấy ai phù hợp bạn có thể bấm mở rộng dần.</div>
-              </div>
-              <button type="button" class="btn btn-primary btn-sm" id="btn-tim-gan-cuoi-trang" style="font-weight: 700">
-                📍 Quét gia sư gần vị trí của tôi →
-              </button>
-            `;
-            document.getElementById('btn-tim-gan-cuoi-trang')?.addEventListener('click', kichHoatTimQuanhDay);
-          } else if (buocTiep !== null) {
-            const nhanBuocTiep = buocTiep === 0 ? 'Toàn khu vực' : `${buocTiep} km`;
-            const txtSoLuong = typeof tongTimThay === 'number' ? `Hiện có <strong>${tongTimThay} gia sư</strong> trong phạm vi <strong>${banKinhQuetKm} km</strong>.` : '';
-            khungCuoiTrang.style.display = 'flex';
-            khungCuoiTrang.innerHTML = `
-              <div style="font-size: 0.86rem; color: #334155; max-width: 680px">
-                <div>${txtSoLuong} <strong>Chưa thấy gia sư nào thật sự phù hợp với bạn?</strong></div>
-                <div style="font-size: 0.8rem; color: ${laPhamViXa ? '#b45309' : 'var(--th-text-muted)'}; margin-top: 2px">
-                  ${laPhamViXa
-                    ? '⚠️ Lưu ý: Phạm vi tìm kiếm hiện đã khá xa (15 km+), rất có thể gia sư sẽ không đồng ý di chuyển với quãng đường quá lớn. Tuy nhiên bạn vẫn có thể bấm tìm thêm bên dưới.'
-                    : `Bấm để hệ thống tự động mở rộng phạm vi tìm kiếm lên ${nhanBuocTiep} quanh bạn.`}
-                </div>
-              </div>
-              <button type="button" class="btn btn-primary btn-sm" id="btn-mo-rong-cuoi-trang" style="font-weight: 700">
-                🔍 Tìm thêm gia sư ở xa hơn (Mở rộng lên ${nhanBuocTiep}) →
-              </button>
-            `;
-            document.getElementById('btn-mo-rong-cuoi-trang')?.addEventListener('click', moRongPhamViTimKiem);
-          } else {
-            khungCuoiTrang.style.display = 'flex';
-            khungCuoiTrang.innerHTML = `
-              <div style="font-size: 0.85rem; color: #92400e">
-                <strong>⚠️ Đang hiển thị phạm vi tối đa (Toàn khu vực):</strong> Nhiều gia sư ở xa có thể không nhận di chuyển trực tiếp quãng đường lớn — bạn có thể nhắn tin hỏi trước hoặc đăng ký học Trực tuyến 1-1.
-              </div>
-              <button type="button" class="btn btn-secondary btn-sm" id="btn-thu-hep-cuoi-trang">
-                ↺ Quay về phạm vi 4 km gần tôi
-              </button>
-            `;
-            document.getElementById('btn-thu-hep-cuoi-trang')?.addEventListener('click', thuHepVeGanToi);
+            btnMoRong.textContent = `+ Tìm thêm ở xa hơn (${nhanBuocTiep})`;
           }
         }
       }
@@ -431,34 +355,6 @@
         }).addTo(banDo);
         lopMarker = window.L.layerGroup().addTo(banDo);
         lopViTriBanThan = window.L.layerGroup().addTo(banDo);
-
-        // Nút GPS nổi trên góc bản đồ
-        const LocateControl = window.L.Control.extend({
-          options: { position: 'topleft' },
-          onAdd: function () {
-            const container = window.L.DomUtil.create('div', 'leaflet-bar leaflet-control');
-            const a = window.L.DomUtil.create('a', 'leaflet-control-locate', container);
-            a.href = '#';
-            a.title = 'Vị trí của tôi (Tìm gia sư quanh đây)';
-            a.setAttribute('role', 'button');
-            a.innerHTML = icons.locate(16);
-            a.style.display = 'flex';
-            a.style.alignItems = 'center';
-            a.style.justifyContent = 'center';
-            a.style.width = '34px';
-            a.style.height = '34px';
-            a.style.background = '#ffffff';
-            a.style.color = '#c24752';
-            a.style.cursor = 'pointer';
-            window.L.DomEvent.disableClickPropagation(container);
-            window.L.DomEvent.on(a, 'click', (e) => {
-              window.L.DomEvent.preventDefault(e);
-              kichHoatTimQuanhDay();
-            });
-            return container;
-          },
-        });
-        banDo.addControl(new LocateControl());
         ganChuQuyenBienDaoVietNam(banDo);
 
         // Tự động vẽ lại lớp ghim theo mức zoom:
