@@ -29,6 +29,12 @@ public interface ILuuTruTepService
         string duongDanTep,
         long expUnix,
         string sig);
+
+    Task<(byte[] NoiDung, string ContentType)?> XacThucVaTaiTepRiengTuAsync(
+        string duongDanTep,
+        long expUnix,
+        string sig,
+        CancellationToken cancellationToken = default);
 }
 
 /// <summary>

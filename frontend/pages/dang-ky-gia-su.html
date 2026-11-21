@@ -1436,7 +1436,7 @@
             try {
               const fdAvatar = new FormData();
               fdAvatar.append('tep', wizardData.avatarFile);
-              await api.post('/xac-thuc/anh-dai-dien', fdAvatar);
+              await api.post('/nguoi-dung/toi/anh-dai-dien', fdAvatar);
             } catch (err) {
               console.warn('Lỗi tải ảnh đại diện:', err);
             }

@@ -166,6 +166,16 @@ if (args.Contains("--migrate", StringComparer.OrdinalIgnoreCase))
     return;
 }
 
+// Hỗ trợ làm mới dữ liệu (xóa toàn bộ người dùng trừ Admin + seed bộ dữ liệu bản đầy đủ): `--reseed-full`
+if (args.Contains("--reseed-full", StringComparer.OrdinalIgnoreCase))
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await db.Database.MigrateAsync();
+    await DuLieuMauSeeder.LamMoiVaSeedBanDayDuAsync(db);
+    return;
+}
+
 var autoMigrateOnStartup = builder.Configuration.GetValue<bool>("Database:AutoMigrateOnStartup");
 var autoSeedOnStartup = builder.Configuration.GetValue<bool>("Database:AutoSeedOnStartup");
 

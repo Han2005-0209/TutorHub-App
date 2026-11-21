@@ -30,6 +30,12 @@ services:
         value: gia_lap
       - key: Swagger__Enabled
         value: "true"
+      - key: Cloudinary__CloudName
+        sync: false
+      - key: Cloudinary__ApiKey
+        sync: false
+      - key: Cloudinary__ApiSecret
+        sync: false
 
   # 2. Frontend Site tĩnh HTML/CSS/JS thuần (tự nối sang URL công khai của tutorhub-api)
   - type: web

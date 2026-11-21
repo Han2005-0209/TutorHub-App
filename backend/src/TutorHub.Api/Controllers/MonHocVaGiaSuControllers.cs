@@ -346,12 +346,13 @@ public sealed class GiayToController : ControllerBase
 
     [HttpGet("xem-tep")]
     [AllowAnonymous]
-    public IActionResult XemTepDaKy(
+    public async Task<IActionResult> XemTepDaKy(
         [FromQuery] string tep,
         [FromQuery] long exp,
-        [FromQuery] string sig)
+        [FromQuery] string sig,
+        CancellationToken cancellationToken)
     {
-        var ketQua = _luuTruTep.XacThucVaLayTepRiengTu(tep, exp, sig);
+        var ketQua = await _luuTruTep.XacThucVaTaiTepRiengTuAsync(tep, exp, sig, cancellationToken);
         if (ketQua is null)
         {
             return StatusCode(StatusCodes.Status403Forbidden, new
@@ -364,7 +365,7 @@ public sealed class GiayToController : ControllerBase
             });
         }
 
-        return PhysicalFile(ketQua.Value.DuongDanVatLy, ketQua.Value.ContentType);
+        return File(ketQua.Value.NoiDung, ketQua.Value.ContentType);
     }
 }
 
