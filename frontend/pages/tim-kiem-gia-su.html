@@ -131,6 +131,9 @@
               <span id="ico-locate-btn"></span>
               <span>Vị trí của tôi · Tìm quanh đây</span>
             </button>
+            <button type="button" class="btn btn-secondary btn-sm" id="btn-xem-toan-canh-ban-do" title="Thu phóng bản đồ bao trọn tất cả gia sư trên trang" style="font-weight: 600">
+              Xem toàn cảnh
+            </button>
             <span class="badge" style="font-size: 0.74rem; background: var(--th-blush-soft); color: var(--th-blush-text); border: 1px solid var(--th-blush-border)">Vòng tròn bán kính quét</span>
           </div>
         </div>
@@ -150,7 +153,7 @@
           </div>
         </div>
 
-        <div id="ban-do-gia-su" style="height: 380px; width: 100%; border-radius: var(--th-radius-md); z-index: 1"></div>
+        <div id="ban-do-gia-su" style="height: 460px; width: 100%; border-radius: var(--th-radius-md); z-index: 1"></div>
       </section>
 
       <!-- Danh sách kết quả (Khung Skeleton 3 cột cố định khớp thẻ ảnh 372px chống giật trang) -->
@@ -472,18 +475,42 @@
       }
 
       let vongTronGiaSuDangChon = null;
+      let dsDiemHienTaiTrenBanDo = [];
+
+      function canKhungToanBoGiaSu() {
+        if (!banDo) return;
+        banDo.closePopup();
+        if (viTriHienTaiToaDo && dsDiemHienTaiTrenBanDo.length > 0) {
+          const diemBaoGomBan = [[viTriHienTaiToaDo.lat, viTriHienTaiToaDo.lng], ...dsDiemHienTaiTrenBanDo];
+          banDo.fitBounds(diemBaoGomBan, { padding: [56, 56], maxZoom: 14, animate: true });
+        } else if (dsDiemHienTaiTrenBanDo.length === 1) {
+          banDo.setView(dsDiemHienTaiTrenBanDo[0], 13, { animate: true });
+        } else if (dsDiemHienTaiTrenBanDo.length > 1) {
+          banDo.fitBounds(dsDiemHienTaiTrenBanDo, { padding: [52, 52], maxZoom: 13, animate: true });
+        }
+      }
+
+      function canGiuaMarkerKemPopup(lat, lng) {
+        if (!banDo) return;
+        // Thu phóng tối thiểu mức 14 để tách rõ ghim đang xem và dịch tâm lên trên ~95px để toàn bộ hộp thông tin (popup) nằm trọn chính giữa bản đồ
+        const targetZoom = Math.max(banDo.getZoom() || 13, 14);
+        const diemPx = banDo.project([lat, lng], targetZoom);
+        diemPx.y -= 95;
+        const tamMoi = banDo.unproject(diemPx, targetZoom);
+        banDo.setView(tamMoi, targetZoom, { animate: true, duration: 0.45 });
+      }
 
       function tachToaDoChongDe(latGoc, lngGoc, dsDaDat) {
         let lat = latGoc;
         let lng = lngGoc;
-        const khoangCachToiThieuDo = 0.0052; // ~550m để các avatar 60x72px không bao giờ đè lên nhau
+        const khoangCachToiThieuDo = 0.0072; // ~780m để các avatar 60x72px tách thoáng, dễ bấm từng người
         let buoc = 1;
         while (
           buoc <= 36 &&
           dsDaDat.some((p) => Math.hypot(p[0] - lat, p[1] - lng) < khoangCachToiThieuDo)
         ) {
           const gocRad = buoc * 2.399963229728653; // Golden angle ~137.508 độ
-          const banKinhDo = 0.0046 * Math.sqrt(buoc);
+          const banKinhDo = 0.0062 * Math.sqrt(buoc);
           lat = Number((latGoc + Math.sin(gocRad) * banKinhDo).toFixed(4));
           lng = Number((lngGoc + Math.cos(gocRad) * banKinhDo).toFixed(4));
           buoc += 1;
@@ -567,8 +594,8 @@
 
             const markerGs = window.L.marker([viDoHienThi, kinhDoHienThi], { icon: iconGiaSu })
               .bindPopup(
-                `<div style="display: flex; gap: 0.65rem; align-items: center; min-width: 220px">
-                   <img src="${escapeHtml(anhUrl)}" style="width: 46px; height: 46px; border-radius: 50%; object-fit: cover; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.15)" alt="${escapeHtml(gs.hoTen)}" />
+                `<div style="display: flex; gap: 0.65rem; align-items: center; min-width: 230px">
+                   <img src="${escapeHtml(anhUrl)}" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.15)" alt="${escapeHtml(gs.hoTen)}" />
                    <div>
                      <div style="font-weight: 700; font-size: 0.95rem; color: #1e293b">${escapeHtml(gs.hoTen)}</div>
                      <div style="font-size: 0.8rem; color: #64748b; margin-top: 1px">${escapeHtml(gs.khuVuc || '')} · Bán kính ${gs.banKinhPhucVuKm} km</div>
@@ -576,12 +603,14 @@
                  </div>
                  ${textKhoangCach}
                  <div style="font-size: 0.84rem; font-weight: 700; color: #c24752; margin-top: 5px">Học phí: ${dinhDangTienVnd(gs.giaThapNhat)}/giờ</div>
-                 <div style="margin-top: 6px"><a href="/pages/ho-so-gia-su.html?id=${gs.id}" style="color: #c24752; font-weight: 700; text-decoration: underline">Xem hồ sơ chi tiết →</a></div>`,
-                { autoPan: false }
+                 <div style="margin-top: 6px; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem">
+                   <a href="/pages/ho-so-gia-su.html?id=${gs.id}" style="color: #c24752; font-weight: 700; text-decoration: underline">Xem hồ sơ chi tiết →</a>
+                 </div>`,
+                { autoPan: false, closeButton: true }
               )
               .addTo(lopMarker);
 
-            // Chỉ hiển thị vòng tròn bán kính phục vụ của RIÊNG gia sư đang được rê chuột hoặc bấm chọn (tránh vẽ 12 vòng tròn chồng chất gây rối bản đồ)
+            // Chỉ hiển thị vòng tròn bán kính phục vụ của RIÊNG gia sư đang được rê chuột hoặc bấm chọn
             const hienVongTronGiaSu = () => {
               if (vongTronGiaSuDangChon) {
                 lopMarker.removeLayer(vongTronGiaSuDangChon);
@@ -610,8 +639,13 @@
 
             markerGs.on('mouseover', hienVongTronGiaSu);
             markerGs.on('mouseout', anVongTronGiaSu);
-            markerGs.on('popupopen', hienVongTronGiaSu);
+            markerGs.on('popupopen', () => {
+              markerGs.setZIndexOffset(2500);
+              hienVongTronGiaSu();
+              canGiuaMarkerKemPopup(viDoHienThi, kinhDoHienThi);
+            });
             markerGs.on('popupclose', () => {
+              markerGs.setZIndexOffset(0);
               if (vongTronGiaSuDangChon) {
                 lopMarker.removeLayer(vongTronGiaSuDangChon);
                 vongTronGiaSuDangChon = null;
@@ -619,6 +653,8 @@
             });
           }
         });
+
+        dsDiemHienTaiTrenBanDo = diem;
 
         const chuThich = document.getElementById('chu-thich-ban-do');
         if (chuThich) {
@@ -927,13 +963,15 @@
             txtBk.textContent = banKinhQuetKm > 0 ? `${banKinhQuetKm} km` : 'Toàn khu vực';
           }
           if (viTriHienTaiToaDo) {
-            veViTriCuaBan(viTriHienTaiToaDo.lat, viTriHienTaiToaDo.lng, banKinhQuetKm, document.getElementById('loc-khu-vuc')?.value || 'Cần Thơ');
+            veViTriCuaBan(viTriHienTaiToaDo.lat, viTriHienTaiToaDo.lng, banKinhQuetKm, document.getElementById('loc-khu-vuc')?.value || 'Cần Thơ', false);
             timKiem(1);
           } else {
             kichHoatTimQuanhDay();
           }
         });
       });
+
+      document.getElementById('btn-xem-toan-canh-ban-do')?.addEventListener('click', canKhungToanBoGiaSu);
 
       document.getElementById('btn-dat-lai')?.addEventListener('click', () => {
         document.getElementById('form-bo-loc').reset();
