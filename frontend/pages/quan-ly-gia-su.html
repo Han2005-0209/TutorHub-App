@@ -837,9 +837,9 @@
               <div class="card" style="padding: 1.35rem 1.5rem">
                 <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem">
                   <div>
-                    <h2 style="margin: 0; font-size: 1.12rem; font-weight: 800; color: #0f172a">Ví gia sư &amp; Sổ cái tra soát giao dịch</h2>
+                    <h2 style="margin: 0; font-size: 1.12rem; font-weight: 800; color: #0f172a">Ví gia sư &amp; Lịch sử giao dịch</h2>
                     <p style="margin: 0.2rem 0 0; font-size: 0.82rem; color: var(--th-text-muted)">
-                      Mọi bút toán thu nhập giải ngân và chi trả rút tiền đều được ghi nhận bất biến theo thứ tự tuần tự (chỉ-đọc).
+                      Mọi khoản thu nhập buổi dạy và rút tiền về ngân hàng đều được lưu lại đầy đủ, minh bạch theo thời gian.
                     </p>
                   </div>
                   <button type="button" class="btn btn-primary" id="btn-mo-modal-rut-tien" style="height: 40px; padding: 0 1.25rem; font-weight: 700">
@@ -916,20 +916,20 @@
                 </form>
 
                 <div style="margin-top: 1.1rem; overflow-x: auto">
-                  <table class="th-table" aria-label="Bảng sổ cái giao dịch ví gia sư">
+                  <table class="th-table" aria-label="Bảng lịch sử giao dịch ví gia sư">
                     <thead>
                       <tr>
                         <th>STT</th>
                         <th>Thời gian</th>
                         <th>Loại</th>
                         <th style="text-align: right">Số tiền</th>
-                        <th style="text-align: right">Số dư sổ sách sau GD</th>
+                        <th style="text-align: right">Số dư sau GD</th>
                         <th>Tham chiếu</th>
                       </tr>
                     </thead>
                     <tbody id="tbody-so-cai-gd">
                       <tr>
-                        <td colspan="6" style="padding: 1.5rem; text-align: center; color: var(--th-text-muted)">Đang tải sổ cái giao dịch...</td>
+                        <td colspan="6" style="padding: 1.5rem; text-align: center; color: var(--th-text-muted)">Đang tải lịch sử giao dịch...</td>
                       </tr>
                     </tbody>
                   </table>
@@ -1121,7 +1121,7 @@
             <div class="tx-drawer-panel">
               <div class="tx-drawer-head">
                 <div>
-                  <div style="font-size: 0.72rem; font-weight: 700; color: #2563eb; text-transform: uppercase">Phiếu tra soát sổ cái (Chỉ-đọc)</div>
+                  <div style="font-size: 0.72rem; font-weight: 700; color: #2563eb; text-transform: uppercase">Chi tiết giao dịch ví</div>
                   <h3 id="tieu-de-drawer-gd" style="margin: 0.15rem 0 0; font-size: 1.05rem; font-weight: 800; color: #0f172a">Chi tiết giao dịch</h3>
                 </div>
                 <button type="button" id="btn-dong-drawer-gd" class="btn btn-ghost btn-sm" style="font-size: 1.25rem" aria-label="Đóng">×</button>
@@ -1136,7 +1136,7 @@
               <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.85rem">
                 <div>
                   <h3 id="tieu-de-modal-rut-tien" style="margin: 0; font-size: 1.08rem; font-weight: 800">Tạo yêu cầu rút tiền về ngân hàng</h3>
-                  <div style="font-size: 0.76rem; color: var(--th-text-muted); margin-top: 2px">Miễn phí rút · Đối soát Maker–Checker trong 24h làm việc</div>
+                  <div style="font-size: 0.76rem; color: var(--th-text-muted); margin-top: 2px">Miễn phí rút · Xử lý chuyển khoản trong 24h làm việc</div>
                 </div>
                 <button type="button" id="btn-dong-modal-rut-tien" class="btn btn-ghost btn-sm" style="font-size: 1.2rem" aria-label="Đóng">×</button>
               </div>
@@ -2238,7 +2238,7 @@
                         <div style="font-size: 0.72rem; color: var(--th-text-muted); cursor: help">Học phí ${dinhDangTienVnd(hocPhi)}</div>
                         ${
                           nhanTien.linkSoCai
-                            ? `<button type="button" class="lesson-money-status-link settled btn-tra-soat-tu-lop" data-ma-don="${escapeHtml(don.maDon)}" title="Bấm để xem bút toán sổ cái thật trong Ví gia sư">${escapeHtml(nhanTien.nhan)}</button>`
+                            ? `<button type="button" class="lesson-money-status-link settled btn-tra-soat-tu-lop" data-ma-don="${escapeHtml(don.maDon)}" title="Bấm để xem chi tiết giao dịch trong Ví gia sư">${escapeHtml(nhanTien.nhan)}</button>`
                             : `<div style="margin-top: 0.2rem"><span class="badge ${nhanTien.lop}" style="font-size: 0.68rem">${escapeHtml(nhanTien.nhan)}</span></div>`
                         }
                       </div>
@@ -2676,11 +2676,11 @@
             tbody.innerHTML = `
               <tr>
                 <td colspan="6" style="padding: 2.2rem 1rem; text-align: center; color: var(--th-text-muted)">
-                  Không có bút toán sổ cái nào khớp với bộ lọc hiện tại.
+                  Không có giao dịch nào khớp với bộ lọc hiện tại.
                 </td>
               </tr>
             `;
-            if (elPaging) elPaging.innerHTML = '<span>Hiển thị 0 bút toán</span>';
+            if (elPaging) elPaging.innerHTML = '<span>Hiển thị 0 giao dịch</span>';
             return;
           }
 
@@ -2703,7 +2703,7 @@
                   : '<span style="color: #94a3b8">—</span>';
 
               return `
-                <tr class="tx-row-clickable" data-gd-id="${escapeHtml(g.id)}" tabindex="0" role="button" aria-label="Xem chi tiết bút toán số ${g.soThuTu}">
+                <tr class="tx-row-clickable" data-gd-id="${escapeHtml(g.id)}" tabindex="0" role="button" aria-label="Xem chi tiết giao dịch số ${g.soThuTu}">
                   <td><strong style="font-family: monospace; font-size: 0.82rem; color: #1e293b">#${g.soThuTu}</strong></td>
                   <td style="white-space: nowrap; font-size: 0.81rem">${dinhDangNgayGioVn(g.taoLuc)}</td>
                   <td><span class="badge ${loaiInfo.lop}">${escapeHtml(loaiInfo.nhan)}</span></td>
@@ -2748,7 +2748,7 @@
           const batDau = (meta.trang - 1) * meta.kichThuocTrang;
           if (elPaging) {
             elPaging.innerHTML = `
-              <span>Hiển thị <strong>${batDau + 1}–${Math.min(batDau + dsGiaoDichHienTai.length, meta.tong)}</strong> trên tổng <strong>${meta.tong}</strong> bút toán</span>
+              <span>Hiển thị <strong>${batDau + 1}–${Math.min(batDau + dsGiaoDichHienTai.length, meta.tong)}</strong> trên tổng <strong>${meta.tong}</strong> giao dịch</span>
               <div style="display: flex; align-items: center; gap: 0.4rem">
                 <button type="button" class="btn btn-secondary btn-sm" id="btn-gd-prev" ${meta.trang <= 1 ? 'disabled' : ''}>← Trước</button>
                 <span style="font-weight: 700; padding: 0 0.4rem">Trang ${meta.trang} / ${tongTrang}</span>
@@ -2932,7 +2932,7 @@
         const body = document.getElementById('noi-dung-drawer-gd');
         if (!drawer || !body) return;
 
-        body.innerHTML = '<div style="padding: 1.5rem; text-align: center; color: var(--th-text-muted)">Đang tải chi tiết bút toán...</div>';
+        body.innerHTML = '<div style="padding: 1.5rem; text-align: center; color: var(--th-text-muted)">Đang tải chi tiết giao dịch...</div>';
         drawer.classList.add('open');
 
         try {
@@ -2946,7 +2946,7 @@
 
           body.innerHTML = `
             <div style="padding: 1rem; border-radius: 14px; background: #f8fbff; border: 1px solid #dbeafe; text-align: center">
-              <div style="font-size: 0.76rem; color: #475569; font-weight: 600">${escapeHtml(loaiInfo.nhan)} · Bút toán #${gd.soThuTu}</div>
+              <div style="font-size: 0.76rem; color: #475569; font-weight: 600">${escapeHtml(loaiInfo.nhan)} · Giao dịch #${gd.soThuTu}</div>
               <div style="font-size: 1.45rem; font-weight: 800; margin-top: 0.2rem" class="${gd.soTien > 0 ? 'tx-amount-pos' : gd.soTien < 0 ? 'tx-amount-neg' : ''}">
                 ${chuoiTien}
               </div>
@@ -2954,19 +2954,19 @@
             </div>
 
             <div class="tx-detail-row">
-              <span class="tx-detail-lbl">Thứ tự sổ cái</span>
+              <span class="tx-detail-lbl">Mã thứ tự giao dịch</span>
               <span class="tx-detail-val" style="font-family: monospace">#${gd.soThuTu}</span>
             </div>
             <div class="tx-detail-row">
-              <span class="tx-detail-lbl">Thời gian ghi sổ</span>
+              <span class="tx-detail-lbl">Thời gian thực hiện</span>
               <span class="tx-detail-val">${dinhDangNgayGioVn(gd.taoLuc)}</span>
             </div>
             <div class="tx-detail-row">
-              <span class="tx-detail-lbl">Số dư sổ sách trước GD</span>
+              <span class="tx-detail-lbl">Số dư trước GD</span>
               <span class="tx-detail-val">${dinhDangTienVnd(gd.soDuTruoc)}</span>
             </div>
             <div class="tx-detail-row">
-              <span class="tx-detail-lbl">Số dư sổ sách sau GD</span>
+              <span class="tx-detail-lbl">Số dư sau GD</span>
               <span class="tx-detail-val">${dinhDangTienVnd(gd.soDuSau)}</span>
             </div>
             ${
@@ -3005,7 +3005,7 @@
             `
             }
             <div style="padding: 0.75rem 0.9rem; border-radius: 12px; background: #f8fafc; border: 1px solid #e2e8f0; font-size: 0.8rem; color: #475569; line-height: 1.5">
-              <strong>Diễn giải đối soát:</strong> ${escapeHtml(gd.ghiChu || 'Bút toán sổ cái bất biến.')}
+              <strong>Ghi chú giao dịch:</strong> ${escapeHtml(gd.ghiChu || 'Giao dịch ví gia sư.')}
             </div>
           `;
         } catch (err) {
