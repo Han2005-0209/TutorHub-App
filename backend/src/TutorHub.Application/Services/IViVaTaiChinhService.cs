@@ -37,6 +37,11 @@ public interface IViVaTaiChinhService
         string? diaChiIp = null,
         CancellationToken cancellationToken = default);
 
+    Task<KetQuaTaoYeuCauRutTienDto> HuyYeuCauRutTienGiaSuAsync(
+        Guid giaSuId,
+        Guid yeuCauId,
+        CancellationToken cancellationToken = default);
+
     // API 6 — Đổi tài khoản ngân hàng có xác nhận mật khẩu + AuditLog
     Task<TaiKhoanNganHangCheDto> CapNhatNganHangGiaSuAsync(
         Guid giaSuId,

@@ -6,6 +6,69 @@
     <link rel="icon" type="image/svg+xml" href="/assets/img/icon-192.svg" />
     <link rel="stylesheet" href="/assets/css/main.css" />
     <title>Quản trị hệ thống — TutorHub</title>
+    <style>
+      .qt-modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.56);
+        backdrop-filter: blur(4px);
+        z-index: 1200;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+      }
+      .qt-modal-backdrop.open {
+        display: flex;
+      }
+      .qt-modal-box {
+        width: 100%;
+        max-width: 760px;
+        max-height: 92vh;
+        overflow-y: auto;
+        background: #ffffff;
+        border-radius: 20px;
+        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.25);
+        padding: 1.4rem 1.5rem;
+      }
+      .qt-payout-grid {
+        display: grid;
+        grid-template-columns: minmax(220px, 260px) 1fr;
+        gap: 1.25rem;
+        align-items: start;
+      }
+      @media (max-width: 680px) {
+        .qt-payout-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      .qt-info-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.6rem;
+        padding: 0.45rem 0;
+        border-bottom: 1px dashed #e2e8f0;
+        font-size: 0.82rem;
+      }
+      .qt-info-row:last-child {
+        border-bottom: none;
+      }
+      .qt-chip-reason {
+        border: 1px solid #fecaca;
+        background: #fff5f5;
+        color: #991b1b;
+        border-radius: 999px;
+        padding: 0.25rem 0.65rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: inherit;
+      }
+      .qt-chip-reason:hover {
+        background: #fee2e2;
+      }
+    </style>
   </head>
   <body class="portal-body">
     <div class="app-shell portal-quan-tri">
@@ -324,21 +387,43 @@
             </div>
           </section>
 
-          <!-- TAB 4.5: Duyệt rút tiền gia sư -->
+          <!-- TAB 4.5: Duyệt rút tiền gia sư (Chuẩn Maker-Checker + Quét VietQR + Batch CSV) -->
           <section id="qt-rut-tien" class="qt-panel" style="display: none">
             <div class="card" style="padding: 1.35rem; margin-bottom: 1rem">
               <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap">
                 <div>
-                  <h2 style="margin: 0; font-size: 1.08rem; font-weight: 700">Duyệt yêu cầu rút tiền gia sư</h2>
+                  <h2 style="margin: 0; font-size: 1.08rem; font-weight: 700">Duyệt &amp; Chi trả yêu cầu rút tiền gia sư</h2>
                   <p style="margin: 0.2rem 0 0; font-size: 0.82rem; color: var(--th-text-muted)">
-                    Xác nhận đã chi trả chuyển khoản (ghi nhận bút toán sổ cái rút tiền) hoặc từ chối để hoàn số dư khả dụng về ví gia sư.
+                    Mô hình kiểm soát Maker–Checker: quét VietQR thụ hưởng trực tiếp hoặc xuất lô CSV chi hộ ngân hàng, sau đó xác nhận mã đối soát để ghi sổ cái.
                   </p>
                 </div>
-                <div class="mode-switcher" role="tablist" aria-label="Lọc trạng thái yêu cầu rút tiền">
-                  <button type="button" class="mode-pill active btn-loc-rut-qt" data-tt="">Tất cả</button>
-                  <button type="button" class="mode-pill btn-loc-rut-qt" data-tt="CHO_XU_LY">Chờ xử lý</button>
-                  <button type="button" class="mode-pill btn-loc-rut-qt" data-tt="DA_CHI_TRA">Đã chi trả</button>
-                  <button type="button" class="mode-pill btn-loc-rut-qt" data-tt="TU_CHOI">Đã từ chối</button>
+                <div style="display: flex; align-items: center; gap: 0.55rem; flex-wrap: wrap">
+                  <button type="button" class="btn btn-secondary btn-sm" id="btn-xuat-lo-rut-csv" style="font-weight: 700">
+                    Xuất lô chi trả CSV
+                  </button>
+                  <div class="mode-switcher" role="tablist" aria-label="Lọc trạng thái yêu cầu rút tiền">
+                    <button type="button" class="mode-pill active btn-loc-rut-qt" data-tt="">Tất cả</button>
+                    <button type="button" class="mode-pill btn-loc-rut-qt" data-tt="CHO_XU_LY">Chờ xử lý</button>
+                    <button type="button" class="mode-pill btn-loc-rut-qt" data-tt="DA_CHI_TRA">Đã chi trả</button>
+                    <button type="button" class="mode-pill btn-loc-rut-qt" data-tt="TU_CHOI">Đã từ chối</button>
+                  </div>
+                </div>
+              </div>
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 0.75rem; margin-top: 1rem">
+                <div style="padding: 0.85rem 1rem; border-radius: 12px; background: #fffbeb; border: 1px solid #fde68a">
+                  <div style="font-size: 0.74rem; font-weight: 700; color: #92400e">Chờ chi trả</div>
+                  <div id="qt-rut-kpi-cho" style="font-size: 1.2rem; font-weight: 800; color: #b45309; margin-top: 0.15rem">0 ₫</div>
+                  <div id="qt-rut-kpi-cho-sub" style="font-size: 0.74rem; color: #92400e">0 lệnh đang khóa số dư</div>
+                </div>
+                <div style="padding: 0.85rem 1rem; border-radius: 12px; background: #ecfdf5; border: 1px solid #a7f3d0">
+                  <div style="font-size: 0.74rem; font-weight: 700; color: #065f46">Đã chi trả thành công</div>
+                  <div id="qt-rut-kpi-da-chi" style="font-size: 1.2rem; font-weight: 800; color: #047857; margin-top: 0.15rem">0 ₫</div>
+                  <div id="qt-rut-kpi-da-chi-sub" style="font-size: 0.74rem; color: #065f46">0 lệnh đã ghi sổ cái</div>
+                </div>
+                <div style="padding: 0.85rem 1rem; border-radius: 12px; background: #f8fafc; border: 1px solid #e2e8f0">
+                  <div style="font-size: 0.74rem; font-weight: 700; color: #475569">Đã từ chối / Gia sư hủy</div>
+                  <div id="qt-rut-kpi-tu-choi" style="font-size: 1.2rem; font-weight: 800; color: #334155; margin-top: 0.15rem">0 lệnh</div>
+                  <div style="font-size: 0.74rem; color: #64748b">Đã mở khóa hoàn về ví gia sư</div>
                 </div>
               </div>
             </div>
@@ -346,6 +431,20 @@
               <div style="font-size: 0.85rem; color: var(--th-text-muted)">Đang tải danh sách yêu cầu rút tiền...</div>
             </div>
           </section>
+
+          <!-- Modal Đối soát & Chi trả Rút tiền bằng VietQR (Admin Maker-Checker) -->
+          <div id="modal-xu-ly-rut-tien-qt" class="qt-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="qt-modal-rut-title">
+            <div class="qt-modal-box">
+              <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 0.75rem; margin-bottom: 1rem">
+                <div>
+                  <div style="font-size: 0.72rem; font-weight: 700; color: #059669; text-transform: uppercase">Đối soát chi trả gia sư · Maker–Checker</div>
+                  <h3 id="qt-modal-rut-title" style="margin: 0.15rem 0 0; font-size: 1.12rem; font-weight: 800; color: #0f172a">Chi trả lệnh rút</h3>
+                </div>
+                <button type="button" id="btn-dong-modal-rut-qt" class="btn btn-ghost btn-sm" style="font-size: 1.3rem" aria-label="Đóng">×</button>
+              </div>
+              <div id="qt-modal-rut-body"></div>
+            </div>
+          </div>
 
           <!-- TAB 4.6: Giải quyết khiếu nại -->
           <section id="qt-khieu-nai" class="qt-panel" style="display: none">
@@ -1151,8 +1250,318 @@
       });
 
       // =========================================================================
-      // TAB 4.5: DUYỆT RÚT TIỀN GIA SƯ (GET/POST /quan-tri/rut-tien)
+      // TAB 4.5: DUYỆT & CHI TRẢ RÚT TIỀN GIA SƯ (VietQR + Batch CSV + Modal Maker-Checker)
       // =========================================================================
+      let dsRutTienDayDuQt = [];
+
+      function saoChepNhanhQt(text, btn) {
+        if (!text) return;
+        navigator.clipboard?.writeText(text).then(() => {
+          if (btn) {
+            const old = btn.textContent;
+            btn.textContent = 'Đã copy';
+            setTimeout(() => {
+              btn.textContent = old;
+            }, 1300);
+          }
+        }).catch(() => {});
+      }
+
+      function xuatLoChiTraCsvQt() {
+        const dsCho = dsRutTienChoCache.length > 0
+          ? dsRutTienChoCache
+          : dsRutTienDayDuQt.filter((r) => r.trangThai === 'CHO_XU_LY');
+        if (dsCho.length === 0) {
+          hienThongBao('Hiện không có yêu cầu rút tiền nào ở trạng thái Chờ xử lý để xuất lô chi trả.', 'warning');
+          return;
+        }
+        const escCsv = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+        const header = [
+          'MaLenhRut',
+          'GiaSu',
+          'Email',
+          'TenNganHang',
+          'MaBinNAPAS',
+          'SoTaiKhoan',
+          'ChuTaiKhoan',
+          'SoTienVND',
+          'NoiDungChuyenKhoan',
+          'ThoiGianGui',
+        ];
+        const rows = dsCho.map((r) => [
+          r.maLenhRut || `RUT-${String(r.id || '').slice(0, 6).toUpperCase()}`,
+          r.tenGiaSu,
+          r.emailGiaSu,
+          r.tenNganHang,
+          r.maBinNganHang || '',
+          r.soTaiKhoanDayDu || r.soTaiKhoanChe,
+          r.chuTaiKhoan,
+          r.soTien,
+          r.noiDungChuyenKhoan || '',
+          dinhDangNgayGioVn(r.taoLuc),
+        ]);
+        const csv = '\uFEFF' + [header, ...rows].map((row) => row.map(escCsv).join(',')).join('\r\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const ngay = new Date().toISOString().slice(0, 10);
+        a.href = url;
+        a.download = `TutorHub-Lo-Chi-Tra-Gia-Su-${ngay}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        hienThongBao(`Đã xuất file lô chi trả gồm ${dsCho.length} lệnh chờ xử lý (chuẩn UTF-8 Excel/Ngân hàng).`, 'success');
+      }
+
+      document.getElementById('btn-xuat-lo-rut-csv')?.addEventListener('click', xuatLoChiTraCsvQt);
+
+      function dongModalXuLyRutQt() {
+        document.getElementById('modal-xu-ly-rut-tien-qt')?.classList.remove('open');
+      }
+      document.getElementById('btn-dong-modal-rut-qt')?.addEventListener('click', dongModalXuLyRutQt);
+      document.getElementById('modal-xu-ly-rut-tien-qt')?.addEventListener('click', (e) => {
+        if (e.target.id === 'modal-xu-ly-rut-tien-qt') dongModalXuLyRutQt();
+      });
+
+      function moModalXuLyRutQt(r) {
+        const modal = document.getElementById('modal-xu-ly-rut-tien-qt');
+        const title = document.getElementById('qt-modal-rut-title');
+        const body = document.getElementById('qt-modal-rut-body');
+        if (!modal || !body || !r) return;
+
+        const maLenh = r.maLenhRut || `RUT-${String(r.id || '').slice(0, 6).toUpperCase()}`;
+        const stkHienThi = r.soTaiKhoanDayDu || r.soTaiKhoanChe;
+        const noiDungCk = r.noiDungChuyenKhoan || `TH RUT ${String(r.id || '').slice(0, 6).toUpperCase()}`;
+        const choXuLy = r.trangThai === 'CHO_XU_LY';
+        const tt = layNhanTrangThaiRutTien(r.trangThai);
+
+        if (title) title.textContent = `${maLenh} · ${r.tenGiaSu}`;
+
+        const qrHtml = r.vietQrUrl
+          ? `
+            <div style="padding: 1rem; border-radius: 16px; border: 1px solid #d1fae5; background: linear-gradient(180deg, #ecfdf5 0%, #ffffff 100%); text-align: center">
+              <div style="font-size: 0.74rem; font-weight: 700; color: #065f46; margin-bottom: 0.55rem">
+                Quét VietQR để chi trả cho Gia sư
+              </div>
+              <img
+                src="${escapeHtml(r.vietQrUrl)}"
+                alt="Mã VietQR chi trả ${escapeHtml(maLenh)}"
+                style="width: 100%; max-width: 220px; border-radius: 12px; border: 1px solid #e2e8f0; background: #fff"
+              />
+              <div style="margin-top: 0.6rem; font-size: 1.05rem; font-weight: 800; color: #0f172a">${dinhDangTienVnd(r.soTien)}</div>
+              <div style="font-size: 0.72rem; color: #475569; margin-top: 0.2rem; line-height: 1.45">
+                Admin tự quét bằng app ngân hàng Kế toán (PIN/SmartOTP) — server không tự rút tiền ngân hàng.
+              </div>
+            </div>
+          `
+          : `
+            <div style="padding: 1.15rem; border-radius: 16px; border: 1px dashed #cbd5e1; background: #f8fafc; text-align: center">
+              <div style="font-size: 0.82rem; font-weight: 700; color: #334155">Chưa có mã BIN VietQR tự động</div>
+              <p style="font-size: 0.76rem; color: #64748b; margin: 0.4rem 0 0; line-height: 1.45">
+                Ngân hàng <strong>${escapeHtml(r.tenNganHang)}</strong> chưa nằm trong danh sách BIN tự sinh QR. Vui lòng copy số tài khoản bên phải để chuyển khoản thủ công.
+              </p>
+            </div>
+          `;
+
+        body.innerHTML = `
+          <div class="qt-payout-grid">
+            <div>${qrHtml}</div>
+            <div>
+              <div style="padding: 0.85rem 1rem; border-radius: 14px; background: #f8fbff; border: 1px solid #dbeafe; margin-bottom: 0.9rem">
+                <div class="qt-info-row">
+                  <span style="color: #64748b">Trạng thái</span>
+                  <span class="badge ${tt.lop}">${escapeHtml(tt.nhan)}</span>
+                </div>
+                <div class="qt-info-row">
+                  <span style="color: #64748b">Số tiền chi trả</span>
+                  <strong style="color: #1d4ed8; font-size: 1.02rem">${dinhDangTienVnd(r.soTien)}</strong>
+                </div>
+                <div class="qt-info-row">
+                  <span style="color: #64748b">Ngân hàng</span>
+                  <strong>${escapeHtml(r.tenNganHang)}${r.maBinNganHang ? ` (${escapeHtml(r.maBinNganHang)})` : ''}</strong>
+                </div>
+                <div class="qt-info-row">
+                  <span style="color: #64748b">Số tài khoản</span>
+                  <span style="display: inline-flex; align-items: center; gap: 0.4rem">
+                    <strong style="font-family: monospace; font-size: 0.92rem">${escapeHtml(stkHienThi)}</strong>
+                    <button type="button" class="btn btn-secondary btn-sm btn-copy-qt-modal" data-copy="${escapeHtml(stkHienThi)}" style="padding: 0.12rem 0.45rem; font-size: 0.71rem">Copy</button>
+                  </span>
+                </div>
+                <div class="qt-info-row">
+                  <span style="color: #64748b">Chủ tài khoản</span>
+                  <strong>${escapeHtml(r.chuTaiKhoan)}</strong>
+                </div>
+                <div class="qt-info-row">
+                  <span style="color: #64748b">Nội dung CK</span>
+                  <span style="display: inline-flex; align-items: center; gap: 0.4rem">
+                    <strong style="font-family: monospace; color: #b91c1c">${escapeHtml(noiDungCk)}</strong>
+                    <button type="button" class="btn btn-secondary btn-sm btn-copy-qt-modal" data-copy="${escapeHtml(noiDungCk)}" style="padding: 0.12rem 0.45rem; font-size: 0.71rem">Copy</button>
+                  </span>
+                </div>
+                <div class="qt-info-row">
+                  <span style="color: #64748b">Thời gian gửi</span>
+                  <span>${dinhDangNgayGioVn(r.taoLuc)}</span>
+                </div>
+              </div>
+
+              ${
+                choXuLy
+                  ? `
+                <div style="display: flex; gap: 0.45rem; margin-bottom: 0.85rem">
+                  <button type="button" class="btn btn-emerald btn-sm" id="btn-tab-qt-duyet" style="flex: 1; font-weight: 700">✓ Xác nhận đã chi trả</button>
+                  <button type="button" class="btn btn-secondary btn-sm" id="btn-tab-qt-tuchoi" style="flex: 1; font-weight: 700">✕ Từ chối &amp; Hoàn ví</button>
+                </div>
+
+                <div id="qt-modal-rut-err" style="display: none; margin-bottom: 0.7rem"></div>
+
+                <form id="form-qt-duyet-rut">
+                  <div class="form-group">
+                    <label class="form-label" for="qt-inp-ma-gd-nh">Mã tham chiếu giao dịch ngân hàng (tùy chọn)</label>
+                    <input id="qt-inp-ma-gd-nh" type="text" class="form-control" placeholder="VD: FT26327501663076 hoặc mã UNC" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="qt-inp-ghi-chu-duyet">Ghi chú đối soát</label>
+                    <input id="qt-inp-ghi-chu-duyet" type="text" class="form-control" value="Đã chuyển khoản chi trả thành công" />
+                  </div>
+                  <div style="display: flex; justify-content: flex-end; gap: 0.5rem">
+                    <button type="button" class="btn btn-secondary btn-sm" id="btn-huy-modal-rut-qt-1">Đóng</button>
+                    <button type="submit" class="btn btn-emerald btn-sm" id="btn-submit-duyet-rut-qt" style="font-weight: 700">Xác nhận đã chi trả &amp; Ghi sổ cái</button>
+                  </div>
+                </form>
+
+                <form id="form-qt-tuchoi-rut" style="display: none">
+                  <div style="margin-bottom: 0.55rem">
+                    <div style="font-size: 0.76rem; font-weight: 700; color: #991b1b; margin-bottom: 0.35rem">Chọn nhanh lý do từ chối:</div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 0.35rem">
+                      <button type="button" class="qt-chip-reason" data-reason="Tên chủ tài khoản không khớp CCCD đã xác minh">Sai tên chủ TK</button>
+                      <button type="button" class="qt-chip-reason" data-reason="Số tài khoản ngân hàng không hợp lệ hoặc không tồn tại">STK không tồn tại</button>
+                      <button type="button" class="qt-chip-reason" data-reason="Cần đối soát thêm khiếu nại buổi học trước khi chi trả">Chờ đối soát khiếu nại</button>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="qt-inp-ly-do-tuchoi">Lý do từ chối (bắt buộc — gửi tới gia sư) *</label>
+                    <textarea id="qt-inp-ly-do-tuchoi" class="form-control" rows="2" required placeholder="Nhập lý do chi tiết để gia sư cập nhật lại..."></textarea>
+                  </div>
+                  <div style="display: flex; justify-content: flex-end; gap: 0.5rem">
+                    <button type="button" class="btn btn-secondary btn-sm" id="btn-huy-modal-rut-qt-2">Đóng</button>
+                    <button type="submit" class="btn btn-danger btn-sm" id="btn-submit-tuchoi-rut-qt" style="font-weight: 700">Từ chối &amp; Mở khóa ví gia sư</button>
+                  </div>
+                </form>
+              `
+                  : `
+                <div style="padding: 0.85rem 1rem; border-radius: 12px; background: #f8fafc; border: 1px solid #e2e8f0; font-size: 0.82rem; color: #334155">
+                  <div><strong>Thời gian xử lý:</strong> ${r.xuLyLuc ? dinhDangNgayGioVn(r.xuLyLuc) : '—'}</div>
+                  <div style="margin-top: 0.35rem"><strong>Ghi chú xử lý:</strong> ${escapeHtml(r.ghiChu || '—')}</div>
+                </div>
+                <div style="display: flex; justify-content: flex-end; margin-top: 0.9rem">
+                  <button type="button" class="btn btn-secondary btn-sm" id="btn-huy-modal-rut-qt-3">Đóng</button>
+                </div>
+              `
+              }
+            </div>
+          </div>
+        `;
+
+        body.querySelectorAll('.btn-copy-qt-modal').forEach((b) => {
+          b.addEventListener('click', () => saoChepNhanhQt(b.dataset.copy, b));
+        });
+        ['btn-huy-modal-rut-qt-1', 'btn-huy-modal-rut-qt-2', 'btn-huy-modal-rut-qt-3'].forEach((id) => {
+          body.querySelector(`#${id}`)?.addEventListener('click', dongModalXuLyRutQt);
+        });
+
+        if (choXuLy) {
+          const btnTabDuyet = body.querySelector('#btn-tab-qt-duyet');
+          const btnTabTuChoi = body.querySelector('#btn-tab-qt-tuchoi');
+          const formDuyet = body.querySelector('#form-qt-duyet-rut');
+          const formTuChoi = body.querySelector('#form-qt-tuchoi-rut');
+          const elErr = body.querySelector('#qt-modal-rut-err');
+
+          const hienLoiModal = (msg) => {
+            if (!elErr) return;
+            elErr.style.display = 'block';
+            elErr.className = 'alert alert-danger';
+            elErr.textContent = msg;
+          };
+
+          btnTabDuyet?.addEventListener('click', () => {
+            if (elErr) elErr.style.display = 'none';
+            formDuyet.style.display = 'block';
+            formTuChoi.style.display = 'none';
+            btnTabDuyet.className = 'btn btn-emerald btn-sm';
+            btnTabTuChoi.className = 'btn btn-secondary btn-sm';
+          });
+          btnTabTuChoi?.addEventListener('click', () => {
+            if (elErr) elErr.style.display = 'none';
+            formDuyet.style.display = 'none';
+            formTuChoi.style.display = 'block';
+            btnTabDuyet.className = 'btn btn-secondary btn-sm';
+            btnTabTuChoi.className = 'btn btn-danger btn-sm';
+          });
+
+          body.querySelectorAll('.qt-chip-reason').forEach((chip) => {
+            chip.addEventListener('click', () => {
+              const ta = body.querySelector('#qt-inp-ly-do-tuchoi');
+              if (ta) ta.value = chip.dataset.reason || '';
+            });
+          });
+
+          formDuyet?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (elErr) elErr.style.display = 'none';
+            const maGd = body.querySelector('#qt-inp-ma-gd-nh')?.value?.trim() || '';
+            const ghiChuBase = body.querySelector('#qt-inp-ghi-chu-duyet')?.value?.trim() || 'Đã chuyển khoản chi trả thành công';
+            const ghiChu = maGd ? `Mã GD NH: ${maGd} · ${ghiChuBase}` : ghiChuBase;
+            const btnSub = body.querySelector('#btn-submit-duyet-rut-qt');
+            if (btnSub) {
+              btnSub.disabled = true;
+              btnSub.textContent = 'Đang ghi sổ cái...';
+            }
+            try {
+              await api.post(`/quan-tri/rut-tien/${r.id}/xu-ly`, { duyet: true, ghiChu });
+              dongModalXuLyRutQt();
+              hienThongBao(`Đã xác nhận chi trả ${dinhDangTienVnd(r.soTien)} (${maLenh}) và gửi thông báo tới gia sư!`, 'success');
+              await Promise.all([taiTongQuan(), taiDsRutTienQuanTri(), taiDsNguoiDung()]);
+            } catch (err) {
+              hienLoiModal(err.message || 'Không thể xác nhận chi trả.');
+              if (btnSub) {
+                btnSub.disabled = false;
+                btnSub.textContent = 'Xác nhận đã chi trả & Ghi sổ cái';
+              }
+            }
+          });
+
+          formTuChoi?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (elErr) elErr.style.display = 'none';
+            const lyDo = body.querySelector('#qt-inp-ly-do-tuchoi')?.value?.trim() || '';
+            if (!lyDo) {
+              hienLoiModal('Vui lòng nhập lý do từ chối yêu cầu rút tiền.');
+              return;
+            }
+            const btnSub = body.querySelector('#btn-submit-tuchoi-rut-qt');
+            if (btnSub) {
+              btnSub.disabled = true;
+              btnSub.textContent = 'Đang hoàn số dư...';
+            }
+            try {
+              await api.post(`/quan-tri/rut-tien/${r.id}/xu-ly`, { duyet: false, ghiChu: lyDo });
+              dongModalXuLyRutQt();
+              hienThongBao(`Đã từ chối lệnh ${maLenh} và mở khóa hoàn ${dinhDangTienVnd(r.soTien)} về ví gia sư.`, 'info');
+              await Promise.all([taiTongQuan(), taiDsRutTienQuanTri(), taiDsNguoiDung()]);
+            } catch (err) {
+              hienLoiModal(err.message || 'Không thể từ chối yêu cầu rút tiền.');
+              if (btnSub) {
+                btnSub.disabled = false;
+                btnSub.textContent = 'Từ chối & Mở khóa ví gia sư';
+              }
+            }
+          });
+        }
+
+        modal.classList.add('open');
+      }
+
       async function taiDsRutTienQuanTri() {
         const container = document.getElementById('qt-ds-rut-tien');
         if (!container) return;
@@ -1161,9 +1570,29 @@
           if (trangThaiLocRut) qs.set('trangThai', trangThaiLocRut);
           const res = await api.get(`/quan-tri/rut-tien?${qs.toString()}`);
           const ds = res?.duLieu || [];
+          dsRutTienDayDuQt = ds;
           if (!trangThaiLocRut || trangThaiLocRut === 'CHO_XU_LY') {
             dsRutTienChoCache = ds.filter((r) => r.trangThai === 'CHO_XU_LY');
             renderThongBaoQuanTri();
+          }
+
+          // Cập nhật KPI tổng hợp khi đang xem tất cả hoặc theo bộ lọc hiện tại
+          const dsCho = ds.filter((r) => r.trangThai === 'CHO_XU_LY');
+          const dsDaChi = ds.filter((r) => r.trangThai === 'DA_CHI_TRA');
+          const dsTuChoi = ds.filter((r) => r.trangThai === 'TU_CHOI');
+          if (!trangThaiLocRut) {
+            const tongCho = dsCho.reduce((s, x) => s + Number(x.soTien || 0), 0);
+            const tongDaChi = dsDaChi.reduce((s, x) => s + Number(x.soTien || 0), 0);
+            const elCho = document.getElementById('qt-rut-kpi-cho');
+            const elChoSub = document.getElementById('qt-rut-kpi-cho-sub');
+            const elDaChi = document.getElementById('qt-rut-kpi-da-chi');
+            const elDaChiSub = document.getElementById('qt-rut-kpi-da-chi-sub');
+            const elTuChoi = document.getElementById('qt-rut-kpi-tu-choi');
+            if (elCho) elCho.textContent = dinhDangTienVnd(tongCho);
+            if (elChoSub) elChoSub.textContent = `${dsCho.length} lệnh đang khóa số dư`;
+            if (elDaChi) elDaChi.textContent = dinhDangTienVnd(tongDaChi);
+            if (elDaChiSub) elDaChiSub.textContent = `${dsDaChi.length} lệnh đã ghi sổ cái`;
+            if (elTuChoi) elTuChoi.textContent = `${dsTuChoi.length} lệnh`;
           }
 
           if (ds.length === 0) {
@@ -1175,6 +1604,7 @@
             <table class="th-table">
               <thead>
                 <tr>
+                  <th>Mã lệnh</th>
                   <th>Gia sư</th>
                   <th>Thời gian gửi</th>
                   <th>Ngân hàng thụ hưởng</th>
@@ -1189,28 +1619,31 @@
                   .map((r) => {
                     const tt = layNhanTrangThaiRutTien(r.trangThai);
                     const choXuLy = r.trangThai === 'CHO_XU_LY';
+                    const maLenh = r.maLenhRut || `RUT-${String(r.id || '').slice(0, 6).toUpperCase()}`;
+                    const stkHienThi = r.soTaiKhoanDayDu || r.soTaiKhoanChe;
                     return `
                       <tr>
+                        <td style="font-family: monospace; font-size: 0.79rem; font-weight: 700; white-space: nowrap; color: #1e40af">${escapeHtml(maLenh)}</td>
                         <td>
                           <div style="font-weight: 700">${escapeHtml(r.tenGiaSu)}</div>
                           <div style="font-size: 0.76rem; color: var(--th-text-muted)">${escapeHtml(r.emailGiaSu)}</div>
                         </td>
                         <td style="font-size: 0.8rem; white-space: nowrap">${dinhDangNgayGioVn(r.taoLuc)}</td>
                         <td>
-                          <div style="font-weight: 600">${escapeHtml(r.tenNganHang)} · <span style="font-family: monospace">${escapeHtml(r.soTaiKhoanChe)}</span></div>
+                          <div style="font-weight: 600">
+                            ${escapeHtml(r.tenNganHang)} ·
+                            <span style="font-family: monospace">${escapeHtml(stkHienThi)}</span>
+                          </div>
                           <div style="font-size: 0.74rem; color: var(--th-text-muted)">${escapeHtml(r.chuTaiKhoan)}</div>
                         </td>
                         <td style="text-align: right; font-weight: 800; white-space: nowrap">${dinhDangTienVnd(r.soTien)}</td>
                         <td><span class="badge ${tt.lop}">${escapeHtml(tt.nhan)}</span></td>
-                        <td style="font-size: 0.79rem; color: var(--th-text-muted)">${escapeHtml(r.ghiChu || '—')}</td>
+                        <td style="font-size: 0.79rem; color: var(--th-text-muted); max-width: 220px">${escapeHtml(r.ghiChu || '—')}</td>
                         <td style="text-align: right; white-space: nowrap">
                           ${
                             choXuLy
-                              ? `<div style="display: inline-flex; gap: 0.4rem">
-                                   <button type="button" class="btn btn-emerald btn-sm btn-duyet-rut-qt" data-id="${r.id}" data-so-tien="${r.soTien}">Xác nhận chi trả</button>
-                                   <button type="button" class="btn btn-danger btn-sm btn-tu-choi-rut-qt" data-id="${r.id}">Từ chối</button>
-                                 </div>`
-                              : `<span style="font-size: 0.76rem; color: var(--th-text-muted)">${r.xuLyLuc ? dinhDangNgayGioVn(r.xuLyLuc) : 'Đã xong'}</span>`
+                              ? `<button type="button" class="btn btn-emerald btn-sm btn-mo-xu-ly-rut-qt" data-id="${r.id}" style="font-weight: 700">Chi trả / VietQR →</button>`
+                              : `<button type="button" class="btn btn-secondary btn-sm btn-mo-xu-ly-rut-qt" data-id="${r.id}">Xem phiếu</button>`
                           }
                         </td>
                       </tr>
@@ -1221,44 +1654,10 @@
             </table>
           `;
 
-          container.querySelectorAll('.btn-duyet-rut-qt').forEach((btn) => {
-            btn.addEventListener('click', async () => {
-              const ghiChu = prompt(
-                `Xác nhận đã chuyển khoản ${dinhDangTienVnd(Number(btn.dataset.soTien))}? (Nhập mã giao dịch ngân hàng hoặc ghi chú):`,
-                'Đã chuyển khoản thành công'
-              );
-              if (ghiChu === null) return;
-              btn.disabled = true;
-              try {
-                await api.post(`/quan-tri/rut-tien/${btn.dataset.id}/xu-ly`, {
-                  duyet: true,
-                  ghiChu: ghiChu.trim() || 'Đã chi trả chuyển khoản',
-                });
-                hienThongBao('Đã xác nhận chi trả rút tiền và ghi sổ cái ví gia sư thành công!', 'success');
-                await Promise.all([taiTongQuan(), taiDsRutTienQuanTri(), taiDsNguoiDung()]);
-              } catch (err) {
-                hienThongBao(err.message, 'danger');
-                btn.disabled = false;
-              }
-            });
-          });
-
-          container.querySelectorAll('.btn-tu-choi-rut-qt').forEach((btn) => {
-            btn.addEventListener('click', async () => {
-              const ghiChu = prompt('Nhập lý do từ chối yêu cầu rút tiền (bắt buộc):', 'Thông tin chủ tài khoản chưa khớp');
-              if (!ghiChu || !ghiChu.trim()) return;
-              btn.disabled = true;
-              try {
-                await api.post(`/quan-tri/rut-tien/${btn.dataset.id}/xu-ly`, {
-                  duyet: false,
-                  ghiChu: ghiChu.trim(),
-                });
-                hienThongBao('Đã từ chối yêu cầu rút tiền và hoàn lại số dư khả dụng về ví gia sư.', 'info');
-                await Promise.all([taiTongQuan(), taiDsRutTienQuanTri(), taiDsNguoiDung()]);
-              } catch (err) {
-                hienThongBao(err.message, 'danger');
-                btn.disabled = false;
-              }
+          container.querySelectorAll('.btn-mo-xu-ly-rut-qt').forEach((btn) => {
+            btn.addEventListener('click', () => {
+              const found = dsRutTienDayDuQt.find((x) => x.id === btn.dataset.id);
+              if (found) moModalXuLyRutQt(found);
             });
           });
         } catch (err) {

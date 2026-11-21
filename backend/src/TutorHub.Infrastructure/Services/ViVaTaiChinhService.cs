@@ -1,3 +1,5 @@
+using System.Globalization;
+using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
@@ -251,7 +253,7 @@ public sealed class ViVaTaiChinhService : IViVaTaiChinhService
             .ToListAsync(cancellationToken);
 
         return new KetQuaPhanTrangDto<YeuCauRutTienDto>(
-            ds.Select(AnhXaYeuCauRutTien).ToList(),
+            ds.Select(r => AnhXaYeuCauRutTien(r, choQuanTri: false)).ToList(),
             trang,
             kichThuocTrang,
             tong,
@@ -345,11 +347,104 @@ public sealed class ViVaTaiChinhService : IViVaTaiChinhService
         };
 
         _db.YeuCauRutTiens.Add(lenhRut);
+        _db.ThongBaos.Add(new ThongBao
+        {
+            NguoiNhanId = giaSuId,
+            Loai = LoaiThongBao.THANH_TOAN,
+            TieuDe = "Đã tiếp nhận yêu cầu rút tiền",
+            NoiDung = $"Yêu cầu rút {yeuCau.SoTien:N0} ₫ về {nganHang.TenNganHang} ({CheSoTaiKhoan(nganHang.SoTaiKhoan)}) đã được tạm khóa và chuyển cho quản trị viên đối soát chi trả.",
+            TaoLuc = lenhRut.TaoLuc
+        });
         await _db.SaveChangesAsync(cancellationToken);
         await tx.CommitAsync(cancellationToken);
 
         return new KetQuaTaoYeuCauRutTienDto(
-            YeuCau: AnhXaYeuCauRutTien(lenhRut),
+            YeuCau: AnhXaYeuCauRutTien(lenhRut, choQuanTri: false),
+            SoDuKhaDungMoi: vi.SoDu,
+            SoDuDangXuLyRutMoi: vi.SoDuDangXuLyRut);
+    }
+
+    public async Task<KetQuaTaoYeuCauRutTienDto> HuyYeuCauRutTienGiaSuAsync(
+        Guid giaSuId,
+        Guid yeuCauId,
+        CancellationToken cancellationToken = default)
+    {
+        var lenh = await _db.YeuCauRutTiens
+            .Include(r => r.GiaSu)!.ThenInclude(g => g!.TaiKhoanVi)
+            .FirstOrDefaultAsync(r => r.Id == yeuCauId, cancellationToken)
+            ?? throw new LoiUngDungException("KHONG_TIM_THAY", "Không tìm thấy yêu cầu rút tiền.", 404);
+
+        if (lenh.GiaSuId != giaSuId)
+        {
+            throw new LoiUngDungException("KHONG_CO_QUYEN", "Bạn không có quyền hủy yêu cầu rút tiền này.", 403);
+        }
+
+        var vi = lenh.GiaSu?.TaiKhoanVi
+            ?? throw new LoiUngDungException("KHONG_TIM_THAY", "Không tìm thấy tài khoản ví của gia sư.", 404);
+
+        await using var tx = await _db.Database.BeginTransactionAsync(cancellationToken);
+        await KhoaUngDungSqlHelper.KhoaTaiNguyenTrongGiaoDichAsync(_db, [$"vi:{vi.Id:N}"], cancellationToken);
+
+        await _db.Entry(lenh).ReloadAsync(cancellationToken);
+        await _db.Entry(vi).ReloadAsync(cancellationToken);
+
+        if (lenh.TrangThai != TrangThaiRutTien.CHO_XU_LY)
+        {
+            throw new LoiUngDungException(
+                "DA_XU_LY",
+                "Yêu cầu rút tiền này đã được xử lý hoặc hủy trước đó.",
+                409);
+        }
+
+        var now = DateTime.UtcNow;
+        var maLenh = TaoMaLenhRut(lenh);
+        var dtoTruocHuy = AnhXaYeuCauRutTien(lenh, choQuanTri: false);
+        var giaTriCuJson = JsonSerializer.Serialize(new
+        {
+            maLenhRut = maLenh,
+            soTien = lenh.SoTien,
+            tenNganHang = lenh.TenNganHang,
+            soTaiKhoanChe = CheSoTaiKhoan(lenh.SoTaiKhoan),
+            chuTaiKhoan = lenh.ChuTaiKhoan,
+            taoLuc = lenh.TaoLuc
+        });
+
+        vi.SoDu += lenh.SoTien;
+        vi.SoDuDangXuLyRut = Math.Max(0, vi.SoDuDangXuLyRut - lenh.SoTien);
+
+        // Xóa bản ghi CHO_XU_LY chưa qua Admin duyệt để bảo toàn ràng buộc OCL
+        // (DA_CHI_TRA / TU_CHOI bắt buộc có NguoiXuLyId = QuanTriVien) và bất biến sum(CHO_XU_LY) == SoDuDangXuLyRut,
+        // đồng thời lưu vết kiểm toán bất biến trong AuditLog + ThongBao.
+        _db.YeuCauRutTiens.Remove(lenh);
+
+        _db.AuditLogs.Add(new AuditLog
+        {
+            NguoiDungId = giaSuId,
+            HanhDong = "HUY_YEU_CAU_RUT_TIEN",
+            DoiTuong = $"YeuCauRutTien:{lenh.Id}",
+            GiaTriCuJson = giaTriCuJson,
+            GiaTriMoiJson = JsonSerializer.Serialize(new { trangThai = "DA_HUY_BOI_GIA_SU", soDuKhaDungMoi = vi.SoDu }),
+            TaoLuc = now
+        });
+
+        _db.ThongBaos.Add(new ThongBao
+        {
+            NguoiNhanId = giaSuId,
+            Loai = LoaiThongBao.THANH_TOAN,
+            TieuDe = $"Đã hủy yêu cầu rút tiền {maLenh}",
+            NoiDung = $"Bạn đã hủy yêu cầu rút {lenh.SoTien:N0} ₫ ({maLenh}). Số tiền đã được mở khóa về Số dư khả dụng ({vi.SoDu:N0} ₫).",
+            TaoLuc = now
+        });
+
+        await _db.SaveChangesAsync(cancellationToken);
+        await tx.CommitAsync(cancellationToken);
+
+        return new KetQuaTaoYeuCauRutTienDto(
+            YeuCau: dtoTruocHuy with
+            {
+                GhiChu = "Gia sư chủ động hủy yêu cầu rút tiền trước khi quản trị xử lý",
+                XuLyLuc = now
+            },
             SoDuKhaDungMoi: vi.SoDu,
             SoDuDangXuLyRutMoi: vi.SoDuDangXuLyRut);
     }
@@ -1315,7 +1410,7 @@ public sealed class ViVaTaiChinhService : IViVaTaiChinhService
             .ToListAsync(cancellationToken);
 
         return new KetQuaPhanTrangDto<YeuCauRutTienDto>(
-            ds.Select(AnhXaYeuCauRutTien).ToList(),
+            ds.Select(r => AnhXaYeuCauRutTien(r, choQuanTri: true)).ToList(),
             trang,
             kichThuocTrang,
             tong,
@@ -1373,6 +1468,10 @@ public sealed class ViVaTaiChinhService : IViVaTaiChinhService
 
             // 1 bút toán RUT_TIEN duy nhất khi quản trị xác nhận chi trả
             var soThuTu = await LaySoThuTuTiepTheoAsync(vi.Id, cancellationToken);
+            var maLenh = TaoMaLenhRut(lenh);
+            var moTaChiTra = string.IsNullOrWhiteSpace(ghiChuSach)
+                ? $"Chi trả rút tiền {maLenh} về {lenh.TenNganHang} {CheSoTaiKhoan(lenh.SoTaiKhoan)}"
+                : $"Chi trả rút tiền {maLenh} về {lenh.TenNganHang} {CheSoTaiKhoan(lenh.SoTaiKhoan)} · {ghiChuSach}";
             _db.GiaoDichVis.Add(new GiaoDichVi
             {
                 TaiKhoanViId = vi.Id,
@@ -1381,7 +1480,16 @@ public sealed class ViVaTaiChinhService : IViVaTaiChinhService
                 SoTien = -lenh.SoTien,
                 SoDuSau = vi.SoDu + vi.SoDuDangXuLyRut,
                 YeuCauRutTienId = lenh.Id,
-                GhiChu = $"Chi trả rút tiền về {lenh.TenNganHang} {CheSoTaiKhoan(lenh.SoTaiKhoan)}",
+                GhiChu = moTaChiTra.Length > 500 ? moTaChiTra[..500] : moTaChiTra,
+                TaoLuc = now
+            });
+
+            _db.ThongBaos.Add(new ThongBao
+            {
+                NguoiNhanId = lenh.GiaSuId,
+                Loai = LoaiThongBao.THANH_TOAN,
+                TieuDe = $"Đã chi trả yêu cầu rút tiền {maLenh}",
+                NoiDung = $"Quản trị viên đã xác nhận chuyển khoản {lenh.SoTien:N0} ₫ về {lenh.TenNganHang} ({CheSoTaiKhoan(lenh.SoTaiKhoan)}). Ghi chú: {lenh.GhiChu}.",
                 TaoLuc = now
             });
         }
@@ -1392,12 +1500,22 @@ public sealed class ViVaTaiChinhService : IViVaTaiChinhService
             vi.SoDuDangXuLyRut = Math.Max(0, vi.SoDuDangXuLyRut - lenh.SoTien);
             lenh.TrangThai = TrangThaiRutTien.TU_CHOI;
             lenh.GhiChu = ghiChuSach;
+
+            var maLenh = TaoMaLenhRut(lenh);
+            _db.ThongBaos.Add(new ThongBao
+            {
+                NguoiNhanId = lenh.GiaSuId,
+                Loai = LoaiThongBao.THANH_TOAN,
+                TieuDe = $"Yêu cầu rút tiền {maLenh} bị từ chối",
+                NoiDung = $"Yêu cầu rút {lenh.SoTien:N0} ₫ đã được hoàn lại vào Số dư khả dụng ({vi.SoDu:N0} ₫). Lý do: {ghiChuSach}.",
+                TaoLuc = now
+            });
         }
 
         await _db.SaveChangesAsync(cancellationToken);
         await tx.CommitAsync(cancellationToken);
 
-        return AnhXaYeuCauRutTien(lenh);
+        return AnhXaYeuCauRutTien(lenh, choQuanTri: true);
     }
 
     public async Task<KetQuaPhanTrangDto<KhieuNaiChiTietDto>> LayDsKhieuNaiQuanTriAsync(
@@ -1991,19 +2109,113 @@ public sealed class ViVaTaiChinhService : IViVaTaiChinhService
             TaoLuc: gd.TaoLuc);
     }
 
-    private static YeuCauRutTienDto AnhXaYeuCauRutTien(YeuCauRutTien r) => new(
-        Id: r.Id,
-        GiaSuId: r.GiaSuId,
-        TenGiaSu: r.GiaSu?.HoTen ?? "Gia sư",
-        EmailGiaSu: r.GiaSu?.Email ?? string.Empty,
-        SoTien: r.SoTien,
-        TrangThai: r.TrangThai,
-        TenNganHang: r.TenNganHang,
-        SoTaiKhoanChe: CheSoTaiKhoan(r.SoTaiKhoan),
-        ChuTaiKhoan: r.ChuTaiKhoan,
-        GhiChu: r.GhiChu,
-        TaoLuc: r.TaoLuc,
-        XuLyLuc: r.XuLyLuc);
+    private static string TaoMaLenhRut(YeuCauRutTien r)
+    {
+        var ngay = r.TaoLuc == default ? DateTime.UtcNow : r.TaoLuc;
+        var hauTo = r.Id.ToString("N")[..6].ToUpperInvariant();
+        return $"RUT-{ngay:yyMMdd}-{hauTo}";
+    }
+
+    private static string? TraCuuMaBinTheoTenNganHang(string? tenNganHang)
+    {
+        if (string.IsNullOrWhiteSpace(tenNganHang))
+        {
+            return null;
+        }
+
+        var decomposed = tenNganHang.Trim().ToLowerInvariant().Replace('đ', 'd').Normalize(NormalizationForm.FormD);
+        var sb = new StringBuilder(decomposed.Length);
+        foreach (var ch in decomposed)
+        {
+            if (CharUnicodeInfo.GetUnicodeCategory(ch) != UnicodeCategory.NonSpacingMark &&
+                char.IsAsciiLetterOrDigit(ch))
+            {
+                sb.Append(ch);
+            }
+        }
+
+        var norm = sb.ToString();
+        if (norm.Length == 0)
+        {
+            return null;
+        }
+
+        return norm switch
+        {
+            _ when norm.Contains("vietcombank") || norm == "vcb" => "970436",
+            _ when norm.Contains("mbbank") || norm == "mb" || norm.Contains("quandoi") => "970422",
+            _ when norm.Contains("techcombank") || norm == "tcb" => "970407",
+            _ when norm.Contains("bidv") => "970418",
+            _ when norm.Contains("vietinbank") || norm == "ctg" || norm == "icb" => "970415",
+            _ when norm.Contains("acb") || norm.Contains("achau") => "970416",
+            _ when norm.Contains("cake") => "546034",
+            _ when norm.Contains("ubank") => "546035",
+            _ when norm.Contains("vpbank") || norm == "vpb" => "970432",
+            _ when norm.Contains("tpbank") || norm == "tpb" || norm.Contains("tienphong") => "970423",
+            _ when norm.Contains("agribank") || norm == "vba" => "970405",
+            _ when norm.Contains("sacombank") || norm == "stb" => "970403",
+            _ when norm.Contains("hdbank") || norm == "hdb" => "970437",
+            _ when norm.Contains("vib") => "970441",
+            _ when norm.Contains("shb") => "970443",
+            _ when norm.Contains("msb") || norm.Contains("maritime") => "970426",
+            _ when norm.Contains("ocb") || norm.Contains("phuongdong") => "970448",
+            _ when norm.Contains("eximbank") || norm == "eib" => "970431",
+            _ when norm.Contains("seabank") || norm == "seab" => "970440",
+            _ when norm.Contains("lpbank") || norm.Contains("lienviet") => "970449",
+            _ when norm.Contains("namabank") || norm == "nab" => "970428",
+            _ when norm.Contains("abbank") || norm == "abb" => "970425",
+            _ when norm.Contains("bacabank") || norm == "bab" => "970409",
+            _ when norm.Contains("bvbank") || norm.Contains("banviet") || norm.Contains("vietcapital") => "970454",
+            _ when norm.Contains("timo") => "963388",
+            _ when norm.Contains("pvcombank") => "970412",
+            _ when norm.Contains("ncb") => "970419",
+            _ when norm.Contains("vietbank") => "970433",
+            _ when norm.Contains("kienlong") => "970452",
+            _ when norm.Contains("saigonbank") => "970400",
+            _ when norm.Contains("pgbank") => "970430",
+            _ when norm.Contains("vietabank") => "970427",
+            _ when norm.Contains("baoviet") => "970438",
+            _ when norm.Contains("shinhan") => "970424",
+            _ when norm.Contains("woori") => "970457",
+            _ when norm.Contains("hsbc") => "458761",
+            _ when norm.Contains("cimb") => "422589",
+            _ => null
+        };
+    }
+
+    private static YeuCauRutTienDto AnhXaYeuCauRutTien(YeuCauRutTien r, bool choQuanTri = false)
+    {
+        var maLenh = TaoMaLenhRut(r);
+        var hauTo = r.Id.ToString("N")[..6].ToUpperInvariant();
+        var noiDungCk = $"TH RUT {hauTo}";
+        var maBin = TraCuuMaBinTheoTenNganHang(r.TenNganHang);
+        string? vietQrUrl = null;
+        if (choQuanTri && !string.IsNullOrWhiteSpace(maBin) && !string.IsNullOrWhiteSpace(r.SoTaiKhoan))
+        {
+            vietQrUrl =
+                $"https://img.vietqr.io/image/{Uri.EscapeDataString(maBin)}-{Uri.EscapeDataString(r.SoTaiKhoan.Trim())}-compact2.png" +
+                $"?amount={r.SoTien}&addInfo={Uri.EscapeDataString(noiDungCk)}&accountName={Uri.EscapeDataString(r.ChuTaiKhoan.Trim())}";
+        }
+
+        return new YeuCauRutTienDto(
+            Id: r.Id,
+            GiaSuId: r.GiaSuId,
+            TenGiaSu: r.GiaSu?.HoTen ?? "Gia sư",
+            EmailGiaSu: r.GiaSu?.Email ?? string.Empty,
+            SoTien: r.SoTien,
+            TrangThai: r.TrangThai,
+            TenNganHang: r.TenNganHang,
+            SoTaiKhoanChe: CheSoTaiKhoan(r.SoTaiKhoan),
+            ChuTaiKhoan: r.ChuTaiKhoan,
+            GhiChu: r.GhiChu,
+            TaoLuc: r.TaoLuc,
+            XuLyLuc: r.XuLyLuc,
+            MaLenhRut: maLenh,
+            NoiDungChuyenKhoan: noiDungCk,
+            MaBinNganHang: maBin,
+            SoTaiKhoanDayDu: choQuanTri ? r.SoTaiKhoan : null,
+            VietQrUrl: vietQrUrl);
+    }
 
     private KhieuNaiChiTietDto AnhXaKhieuNaiChiTiet(KhieuNai k)
     {

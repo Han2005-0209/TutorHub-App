@@ -96,4 +96,16 @@ public sealed class ViController : ControllerBase
         var dto = await _service.TaoYeuCauRutTienAsync(giaSuId, yeuCau, ip, cancellationToken);
         return StatusCode(StatusCodes.Status201Created, new PhanHoiApi<KetQuaTaoYeuCauRutTienDto>(dto));
     }
+
+    // API 5b: Gia sư chủ động hủy yêu cầu rút tiền đang chờ xử lý (mở khóa số dư khả dụng nguyên tử)
+    [HttpPost("rut-tien/{id:guid}/huy")]
+    [ProducesResponseType(typeof(PhanHoiApi<KetQuaTaoYeuCauRutTienDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<PhanHoiApi<KetQuaTaoYeuCauRutTienDto>>> HuyYeuCauRutTien(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        var giaSuId = User.LayNguoiDungId();
+        var dto = await _service.HuyYeuCauRutTienGiaSuAsync(giaSuId, id, cancellationToken);
+        return Ok(new PhanHoiApi<KetQuaTaoYeuCauRutTienDto>(dto));
+    }
 }

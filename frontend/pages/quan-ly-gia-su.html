@@ -940,16 +940,25 @@
 
               <!-- Lịch sử yêu cầu rút tiền -->
               <div class="card" style="padding: 1.25rem 1.4rem">
-                <h3 style="margin: 0 0 0.75rem; font-size: 1rem; font-weight: 800; color: #0f172a">Lịch sử yêu cầu rút tiền</h3>
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 0.75rem">
+                  <div>
+                    <h3 style="margin: 0; font-size: 1rem; font-weight: 800; color: #0f172a">Lịch sử yêu cầu rút tiền</h3>
+                    <p style="margin: 0.15rem 0 0; font-size: 0.78rem; color: var(--th-text-muted)">
+                      Theo dõi tiến trình đối soát chi trả; bạn có thể chủ động hủy lệnh khi đang ở trạng thái <strong>Chờ xử lý</strong>.
+                    </p>
+                  </div>
+                </div>
                 <div style="overflow-x: auto">
                   <table class="th-table" aria-label="Lịch sử yêu cầu rút tiền">
                     <thead>
                       <tr>
+                        <th>Mã lệnh</th>
                         <th>Thời gian gửi</th>
                         <th>Ngân hàng thụ hưởng</th>
                         <th style="text-align: right">Số tiền rút</th>
                         <th>Trạng thái</th>
                         <th>Ghi chú xử lý</th>
+                        <th style="text-align: right">Thao tác</th>
                       </tr>
                     </thead>
                     <tbody id="tbody-lich-su-rut-tien"></tbody>
@@ -1054,15 +1063,44 @@
                 <!-- Chế độ chỉnh sửa (Yêu cầu xác nhận lại mật khẩu) -->
                 <form id="form-sua-ngan-hang-tk" style="display: none; margin-top: 0.5rem" novalidate>
                   <div class="form-group">
-                    <label class="form-label" for="tk-nh-ten-inp">Tên ngân hàng *</label>
-                    <input id="tk-nh-ten-inp" type="text" required class="form-control" placeholder="VD: Vietcombank, ACB, Techcombank..." />
+                    <label class="form-label" for="tk-nh-ten-inp">Ngân hàng thụ hưởng (chuẩn NAPAS 247) *</label>
+                    <select id="tk-nh-ten-inp" required class="form-control">
+                      <option value="">— Chọn ngân hàng —</option>
+                      <option value="MB Bank">MB Bank — Ngân hàng Quân Đội (970422)</option>
+                      <option value="Vietcombank">Vietcombank — Ngoại thương VN (970436)</option>
+                      <option value="Techcombank">Techcombank — Kỹ thương VN (970407)</option>
+                      <option value="BIDV">BIDV — Đầu tư &amp; Phát triển VN (970418)</option>
+                      <option value="VietinBank">VietinBank — Công thương VN (970415)</option>
+                      <option value="ACB">ACB — Ngân hàng Á Châu (970416)</option>
+                      <option value="VPBank">VPBank — Việt Nam Thịnh Vượng (970432)</option>
+                      <option value="TPBank">TPBank — Ngân hàng Tiên Phong (970423)</option>
+                      <option value="Agribank">Agribank — Nông nghiệp &amp; PTNT (970405)</option>
+                      <option value="Sacombank">Sacombank — Sài Gòn Thương Tín (970403)</option>
+                      <option value="HDBank">HDBank — Phát triển TP.HCM (970437)</option>
+                      <option value="VIB">VIB — Ngân hàng Quốc tế (970441)</option>
+                      <option value="SHB">SHB — Sài Gòn - Hà Nội (970443)</option>
+                      <option value="MSB">MSB — Ngân hàng Hàng Hải (970426)</option>
+                      <option value="OCB">OCB — Ngân hàng Phương Đông (970448)</option>
+                      <option value="Eximbank">Eximbank — Xuất Nhập khẩu VN (970431)</option>
+                      <option value="SeABank">SeABank — Ngân hàng Đông Nam Á (970440)</option>
+                      <option value="LPBank">LPBank — Lộc Phát Việt Nam (970449)</option>
+                      <option value="Nam A Bank">Nam A Bank — Ngân hàng Nam Á (970428)</option>
+                      <option value="Cake by VPBank">Cake by VPBank (546034)</option>
+                      <option value="Timo">Timo by BVBank (963388)</option>
+                      <option value="BVBank">BVBank — Ngân hàng Bản Việt (970454)</option>
+                      <option value="PVcomBank">PVcomBank (970412)</option>
+                      <option value="NCB">NCB — Ngân hàng Quốc Dân (970419)</option>
+                      <option value="Shinhan Bank">Shinhan Bank Việt Nam (970424)</option>
+                      <option value="__KHAC__">Ngân hàng khác (tự nhập tên)...</option>
+                    </select>
+                    <input id="tk-nh-ten-khac" type="text" class="form-control" style="display: none; margin-top: 0.45rem" placeholder="Nhập tên ngân hàng của bạn..." />
                   </div>
                   <div class="form-group">
                     <label class="form-label" for="tk-nh-stk-inp">Số tài khoản mới *</label>
-                    <input id="tk-nh-stk-inp" type="text" required class="form-control" placeholder="Nhập đầy đủ số tài khoản" />
+                    <input id="tk-nh-stk-inp" type="text" required class="form-control" placeholder="Nhập đầy đủ số tài khoản (6–30 ký tự)" />
                   </div>
                   <div class="form-group">
-                    <label class="form-label" for="tk-nh-chu-inp">Tên chủ tài khoản (in hoa không dấu) *</label>
+                    <label class="form-label" for="tk-nh-chu-inp">Tên chủ tài khoản (in hoa không dấu, khớp CCCD) *</label>
                     <input id="tk-nh-chu-inp" type="text" required class="form-control" style="text-transform: uppercase" placeholder="NGUYEN HOANG MINH" />
                   </div>
                   <div class="form-group" style="padding: 0.75rem 0.85rem; border-radius: 12px; background: #fffbeb; border: 1px solid #fde68a">
@@ -1092,18 +1130,32 @@
             </div>
           </div>
 
-          <!-- Modal Tạo Yêu cầu Rút tiền (Định dạng ngàn + Rút tối đa + Xác nhận mật khẩu) -->
+          <!-- Modal Tạo Yêu cầu Rút tiền (Mệnh giá nhanh + Dự toán chi tiết + Xác nhận mật khẩu) -->
           <div id="modal-rut-tien-gs" class="modal-backdrop-custom" style="display: none" role="dialog" aria-modal="true" aria-labelledby="tieu-de-modal-rut-tien">
-            <div class="modal-box-custom" style="max-width: 460px">
+            <div class="modal-box-custom" style="max-width: 500px">
               <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.85rem">
-                <h3 id="tieu-de-modal-rut-tien" style="margin: 0; font-size: 1.08rem; font-weight: 800">Tạo yêu cầu rút tiền</h3>
+                <div>
+                  <h3 id="tieu-de-modal-rut-tien" style="margin: 0; font-size: 1.08rem; font-weight: 800">Tạo yêu cầu rút tiền về ngân hàng</h3>
+                  <div style="font-size: 0.76rem; color: var(--th-text-muted); margin-top: 2px">Miễn phí rút · Đối soát Maker–Checker trong 24h làm việc</div>
+                </div>
                 <button type="button" id="btn-dong-modal-rut-tien" class="btn btn-ghost btn-sm" style="font-size: 1.2rem" aria-label="Đóng">×</button>
               </div>
               <div id="tb-modal-rut-tien" style="display: none; margin-bottom: 0.8rem"></div>
+              <div id="rut-canh-bao-chua-nh" style="display: none; padding: 0.85rem 1rem; border-radius: 12px; background: #fef2f2; border: 1px solid #fecaca; margin-bottom: 0.9rem; font-size: 0.82rem; color: #991b1b">
+                <div style="font-weight: 700; margin-bottom: 0.35rem">Bạn chưa liên kết tài khoản ngân hàng nhận tiền</div>
+                <div style="margin-bottom: 0.55rem">Vui lòng thiết lập ngân hàng thụ hưởng (chuẩn NAPAS 247) trước khi tạo lệnh rút tiền.</div>
+                <button type="button" class="btn btn-primary btn-sm" id="btn-nhay-thiet-lap-nh-tu-modal">Thiết lập ngân hàng ngay →</button>
+              </div>
               <form id="form-rut-tien-gs" novalidate>
-                <div style="padding: 0.75rem 0.9rem; border-radius: 12px; background: #f8fbff; border: 1px solid #dbeafe; font-size: 0.82rem; margin-bottom: 0.9rem">
-                  <div>Số dư khả dụng: <strong id="rut-so-du-hien-tai" style="color: #1d4ed8">0 ₫</strong></div>
-                  <div style="margin-top: 0.25rem; color: #475569">Ngân hàng thụ hưởng: <strong id="rut-ngan-hang-nhan">—</strong></div>
+                <div style="padding: 0.8rem 0.95rem; border-radius: 12px; background: #f8fbff; border: 1px solid #dbeafe; font-size: 0.82rem; margin-bottom: 0.9rem">
+                  <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem">
+                    <span style="color: #475569">Số dư khả dụng</span>
+                    <strong id="rut-so-du-hien-tai" style="color: #1d4ed8; font-size: 0.98rem">0 ₫</strong>
+                  </div>
+                  <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; margin-top: 0.35rem; padding-top: 0.35rem; border-top: 1px dashed #cbd5e1">
+                    <span style="color: #475569">Thụ hưởng</span>
+                    <strong id="rut-ngan-hang-nhan" style="text-align: right; color: #0f172a">—</strong>
+                  </div>
                 </div>
                 <div class="form-group">
                   <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.3rem">
@@ -1112,8 +1164,28 @@
                       Rút tối đa
                     </button>
                   </div>
+                  <div id="nhom-chon-nhanh-rut" style="display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.5rem">
+                    <button type="button" class="btn btn-secondary btn-sm btn-chon-nhanh-rut" data-tien="100000" style="font-size: 0.75rem; padding: 0.25rem 0.6rem">100.000 ₫</button>
+                    <button type="button" class="btn btn-secondary btn-sm btn-chon-nhanh-rut" data-tien="200000" style="font-size: 0.75rem; padding: 0.25rem 0.6rem">200.000 ₫</button>
+                    <button type="button" class="btn btn-secondary btn-sm btn-chon-nhanh-rut" data-tien="500000" style="font-size: 0.75rem; padding: 0.25rem 0.6rem">500.000 ₫</button>
+                    <button type="button" class="btn btn-secondary btn-sm btn-chon-nhanh-rut" data-tien="1000000" style="font-size: 0.75rem; padding: 0.25rem 0.6rem">1.000.000 ₫</button>
+                  </div>
                   <input id="inp-so-tien-rut" type="text" inputmode="numeric" autocomplete="off" required class="form-control" placeholder="VD: 200.000" />
                   <div id="err-so-tien-rut" class="pwd-field-error"></div>
+                </div>
+                <div style="padding: 0.75rem 0.9rem; border-radius: 12px; background: #f8fafc; border: 1px solid #e2e8f0; font-size: 0.8rem; margin-bottom: 0.9rem">
+                  <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem">
+                    <span style="color: #64748b">Phí rút tiền</span>
+                    <strong style="color: #15803d">0 ₫ (Miễn phí)</strong>
+                  </div>
+                  <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem">
+                    <span style="color: #64748b">Thực nhận về ngân hàng</span>
+                    <strong id="rut-preview-thuc-nhan" style="color: #0f172a">0 ₫</strong>
+                  </div>
+                  <div style="display: flex; justify-content: space-between; padding-top: 0.25rem; border-top: 1px dashed #cbd5e1">
+                    <span style="color: #64748b">Số dư khả dụng còn lại</span>
+                    <strong id="rut-preview-con-lai" style="color: #1e40af">0 ₫</strong>
+                  </div>
                 </div>
                 <div class="form-group" style="padding: 0.75rem 0.85rem; border-radius: 12px; background: #fffbeb; border: 1px solid #fde68a">
                   <label class="form-label" for="inp-mat-khau-rut" style="color: #92400e">Xác nhận mật khẩu đăng nhập *</label>
@@ -1125,6 +1197,20 @@
                   <button type="submit" id="btn-submit-rut-tien" class="btn btn-primary btn-sm">Xác nhận &amp; Gửi yêu cầu</button>
                 </div>
               </form>
+            </div>
+          </div>
+
+          <!-- Modal Xem Phiếu Chi tiết Yêu cầu Rút tiền (Tiến trình 3 bước + Hủy lệnh) -->
+          <div id="modal-phieu-rut-gs" class="modal-backdrop-custom" style="display: none" role="dialog" aria-modal="true" aria-labelledby="tieu-de-phieu-rut">
+            <div class="modal-box-custom" style="max-width: 500px">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.85rem">
+                <div>
+                  <div style="font-size: 0.72rem; font-weight: 700; color: #2563eb; text-transform: uppercase">Phiếu yêu cầu rút tiền</div>
+                  <h3 id="tieu-de-phieu-rut" style="margin: 0.1rem 0 0; font-size: 1.05rem; font-weight: 800">Chi tiết lệnh rút</h3>
+                </div>
+                <button type="button" id="btn-dong-phieu-rut" class="btn btn-ghost btn-sm" style="font-size: 1.2rem" aria-label="Đóng">×</button>
+              </div>
+              <div id="noi-dung-phieu-rut-gs"></div>
             </div>
           </div>
 
@@ -2439,12 +2525,44 @@
         if (elChu) elChu.textContent = nh?.chuTaiKhoan || 'Chưa cập nhật';
 
         const inpTen = document.getElementById('tk-nh-ten-inp');
+        const inpTenKhac = document.getElementById('tk-nh-ten-khac');
         const inpStk = document.getElementById('tk-nh-stk-inp');
         const inpChu = document.getElementById('tk-nh-chu-inp');
-        if (inpTen) inpTen.value = nh?.tenNganHang || '';
+        if (inpTen) {
+          const tenHienTai = (nh?.tenNganHang || '').trim();
+          const coSan = Array.from(inpTen.options).some((o) => o.value && o.value !== '__KHAC__' && o.value.toLowerCase() === tenHienTai.toLowerCase());
+          if (!tenHienTai) {
+            inpTen.value = '';
+            if (inpTenKhac) {
+              inpTenKhac.style.display = 'none';
+              inpTenKhac.value = '';
+            }
+          } else if (coSan) {
+            const matched = Array.from(inpTen.options).find((o) => o.value.toLowerCase() === tenHienTai.toLowerCase());
+            inpTen.value = matched ? matched.value : tenHienTai;
+            if (inpTenKhac) {
+              inpTenKhac.style.display = 'none';
+              inpTenKhac.value = '';
+            }
+          } else {
+            inpTen.value = '__KHAC__';
+            if (inpTenKhac) {
+              inpTenKhac.style.display = 'block';
+              inpTenKhac.value = tenHienTai;
+            }
+          }
+        }
         if (inpStk) inpStk.value = '';
         if (inpChu) inpChu.value = nh?.chuTaiKhoan || '';
       }
+
+      document.getElementById('tk-nh-ten-inp')?.addEventListener('change', (e) => {
+        const inpTenKhac = document.getElementById('tk-nh-ten-khac');
+        if (!inpTenKhac) return;
+        const laKhac = e.target.value === '__KHAC__';
+        inpTenKhac.style.display = laKhac ? 'block' : 'none';
+        if (laKhac) inpTenKhac.focus();
+      });
 
       const khungXemNh = document.getElementById('khung-xem-ngan-hang');
       const formSuaNhTk = document.getElementById('form-sua-ngan-hang-tk');
@@ -2467,7 +2585,10 @@
       formSuaNhTk?.addEventListener('submit', async (e) => {
         e.preventDefault();
         if (tbNhTk) tbNhTk.style.display = 'none';
-        const tenNH = document.getElementById('tk-nh-ten-inp')?.value?.trim() || '';
+        const selTen = document.getElementById('tk-nh-ten-inp')?.value?.trim() || '';
+        const tenNH = selTen === '__KHAC__'
+          ? (document.getElementById('tk-nh-ten-khac')?.value?.trim() || '')
+          : selTen;
         const soTK = document.getElementById('tk-nh-stk-inp')?.value?.trim() || '';
         const chuTK = document.getElementById('tk-nh-chu-inp')?.value?.trim().toUpperCase() || '';
         const mkXn = document.getElementById('tk-nh-mat-khau-xn')?.value || '';
@@ -2652,6 +2773,105 @@
         }
       }
 
+      async function huyYeuCauRutTienGs(yeuCauId, maLenh) {
+        if (!confirm(`Bạn có chắc muốn hủy yêu cầu rút tiền ${maLenh || ''}? Số tiền tạm khóa sẽ được hoàn lại ngay vào Số dư khả dụng.`)) {
+          return;
+        }
+        try {
+          const res = await api.post(`/vi/toi/rut-tien/${yeuCauId}/huy`, {});
+          const modalPhieu = document.getElementById('modal-phieu-rut-gs');
+          if (modalPhieu) modalPhieu.style.display = 'none';
+          await Promise.all([dongBoVaRenderViGiaoDich(), taiTongQuanGiaSu()]);
+          const soDuMoi = res?.duLieu?.soDuKhaDungMoi;
+          hienThongBao(
+            typeof soDuMoi === 'number'
+              ? `Đã hủy yêu cầu rút tiền! Số dư khả dụng hiện tại: ${dinhDangTienVnd(soDuMoi)}.`
+              : 'Đã hủy yêu cầu rút tiền và mở khóa số dư khả dụng.',
+            'success'
+          );
+        } catch (err) {
+          hienThongBao(err.message || 'Không thể hủy yêu cầu rút tiền.', 'danger');
+        }
+      }
+
+      function moModalPhieuRutGs(r) {
+        const modal = document.getElementById('modal-phieu-rut-gs');
+        const body = document.getElementById('noi-dung-phieu-rut-gs');
+        const title = document.getElementById('tieu-de-phieu-rut');
+        if (!modal || !body || !r) return;
+
+        const maLenh = r.maLenhRut || `RUT-${String(r.id || '').slice(0, 6).toUpperCase()}`;
+        const ttInfo = layNhanTrangThaiRutTien(r.trangThai);
+        const daChiTra = r.trangThai === 'DA_CHI_TRA';
+        const biTuChoi = r.trangThai === 'TU_CHOI';
+        const choXuLy = r.trangThai === 'CHO_XU_LY';
+
+        if (title) title.textContent = maLenh;
+
+        const buoc2Nhan = choXuLy ? 'Đang đối soát' : daChiTra ? 'Đã duyệt' : 'Đã đóng';
+        const buoc3Nhan = daChiTra ? 'Đã chi trả' : biTuChoi ? 'Đã hoàn về ví' : 'Chuyển khoản';
+        const mauBuoc = (active, danger = false) =>
+          danger
+            ? 'background: #fef2f2; border-color: #fecaca; color: #b91c1c'
+            : active
+              ? 'background: #ecfdf5; border-color: #a7f3d0; color: #047857'
+              : 'background: #f8fafc; border-color: #e2e8f0; color: #64748b';
+
+        body.innerHTML = `
+          <div style="padding: 0.95rem 1rem; border-radius: 14px; background: #f8fbff; border: 1px solid #dbeafe; text-align: center; margin-bottom: 0.9rem">
+            <div style="font-size: 0.75rem; color: #475569; font-weight: 600">Số tiền yêu cầu rút</div>
+            <div style="font-size: 1.5rem; font-weight: 800; color: #0f172a; margin: 0.15rem 0 0.35rem">${dinhDangTienVnd(r.soTien)}</div>
+            <span class="badge ${ttInfo.lop}">${escapeHtml(ttInfo.nhan)}</span>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.45rem; margin-bottom: 0.95rem; text-align: center">
+            <div style="padding: 0.5rem 0.35rem; border-radius: 10px; border: 1px solid; font-size: 0.73rem; font-weight: 700; ${mauBuoc(true)}">
+              1. Đã gửi &amp; Khóa tiền
+            </div>
+            <div style="padding: 0.5rem 0.35rem; border-radius: 10px; border: 1px solid; font-size: 0.73rem; font-weight: 700; ${mauBuoc(!choXuLy, biTuChoi)}">
+              2. ${buoc2Nhan}
+            </div>
+            <div style="padding: 0.5rem 0.35rem; border-radius: 10px; border: 1px solid; font-size: 0.73rem; font-weight: 700; ${mauBuoc(daChiTra, biTuChoi)}">
+              3. ${buoc3Nhan}
+            </div>
+          </div>
+
+          <div class="tx-detail-row"><span class="tx-detail-lbl">Mã lệnh rút</span><span class="tx-detail-val" style="font-family: monospace">${escapeHtml(maLenh)}</span></div>
+          <div class="tx-detail-row"><span class="tx-detail-lbl">Nội dung CK dự kiến</span><span class="tx-detail-val" style="font-family: monospace">${escapeHtml(r.noiDungChuyenKhoan || '—')}</span></div>
+          <div class="tx-detail-row"><span class="tx-detail-lbl">Ngân hàng thụ hưởng</span><span class="tx-detail-val">${escapeHtml(r.tenNganHang)} · ${escapeHtml(r.soTaiKhoanChe)}</span></div>
+          <div class="tx-detail-row"><span class="tx-detail-lbl">Chủ tài khoản</span><span class="tx-detail-val">${escapeHtml(r.chuTaiKhoan)}</span></div>
+          <div class="tx-detail-row"><span class="tx-detail-lbl">Thời gian gửi</span><span class="tx-detail-val">${dinhDangNgayGioVn(r.taoLuc)}</span></div>
+          <div class="tx-detail-row"><span class="tx-detail-lbl">Thời gian xử lý</span><span class="tx-detail-val">${r.xuLyLuc ? dinhDangNgayGioVn(r.xuLyLuc) : 'Đang chờ quản trị đối soát (tối đa 24h)'}</span></div>
+          <div style="margin-top: 0.75rem; padding: 0.7rem 0.85rem; border-radius: 10px; background: #f8fafc; border: 1px solid #e2e8f0; font-size: 0.8rem; color: #334155">
+            <strong>Ghi chú / Mã tham chiếu:</strong> ${escapeHtml(r.ghiChu || 'Chưa có ghi chú xử lý.')}
+          </div>
+          <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem">
+            ${
+              choXuLy
+                ? `<button type="button" class="btn btn-danger btn-sm" id="btn-huy-lenh-trong-phieu">Hủy lệnh rút này</button>`
+                : ''
+            }
+            <button type="button" class="btn btn-secondary btn-sm" id="btn-dong-phieu-rut-footer">Đóng</button>
+          </div>
+        `;
+
+        body.querySelector('#btn-dong-phieu-rut-footer')?.addEventListener('click', () => {
+          modal.style.display = 'none';
+        });
+        body.querySelector('#btn-huy-lenh-trong-phieu')?.addEventListener('click', () => {
+          huyYeuCauRutTienGs(r.id, maLenh);
+        });
+        modal.style.display = 'flex';
+      }
+
+      document.getElementById('btn-dong-phieu-rut')?.addEventListener('click', () => {
+        const m = document.getElementById('modal-phieu-rut-gs');
+        if (m) m.style.display = 'none';
+      });
+      document.getElementById('modal-phieu-rut-gs')?.addEventListener('click', (e) => {
+        if (e.target.id === 'modal-phieu-rut-gs') e.target.style.display = 'none';
+      });
+
       async function taiLichSuRutTienGiaSu() {
         const tbody = document.getElementById('tbody-lich-su-rut-tien');
         if (!tbody) return;
@@ -2659,28 +2879,51 @@
           const res = await api.get('/vi/toi/rut-tien?trang=1&kichThuocTrang=20');
           dsYeuCauRutHienTai = res?.duLieu || [];
           if (dsYeuCauRutHienTai.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 1.2rem; color: var(--th-text-muted)">Chưa có yêu cầu rút tiền nào.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 1.2rem; color: var(--th-text-muted)">Chưa có yêu cầu rút tiền nào.</td></tr>';
             return;
           }
           tbody.innerHTML = dsYeuCauRutHienTai
             .map((r) => {
               const ttInfo = layNhanTrangThaiRutTien(r.trangThai);
+              const maLenh = r.maLenhRut || `RUT-${String(r.id || '').slice(0, 6).toUpperCase()}`;
+              const choXuLy = r.trangThai === 'CHO_XU_LY';
               return `
                 <tr>
-                  <td style="font-size: 0.81rem; white-space: nowrap">${dinhDangNgayGioVn(r.taoLuc)}</td>
+                  <td style="font-family: monospace; font-size: 0.79rem; font-weight: 700; white-space: nowrap; color: #1e40af">${escapeHtml(maLenh)}</td>
+                  <td style="font-size: 0.8rem; white-space: nowrap">${dinhDangNgayGioVn(r.taoLuc)}</td>
                   <td>
                     <div style="font-weight: 600">${escapeHtml(r.tenNganHang)} · <span style="font-family: monospace">${escapeHtml(r.soTaiKhoanChe)}</span></div>
                     <div style="font-size: 0.74rem; color: var(--th-text-muted)">${escapeHtml(r.chuTaiKhoan)}</div>
                   </td>
                   <td style="text-align: right; font-weight: 800; color: #0f172a; white-space: nowrap">${dinhDangTienVnd(r.soTien)}</td>
                   <td><span class="badge ${ttInfo.lop}">${escapeHtml(ttInfo.nhan)}</span></td>
-                  <td style="font-size: 0.8rem; color: var(--th-text-muted)">${escapeHtml(r.ghiChu || '—')}</td>
+                  <td style="font-size: 0.79rem; color: var(--th-text-muted); max-width: 220px">${escapeHtml(r.ghiChu || '—')}</td>
+                  <td style="text-align: right; white-space: nowrap">
+                    <div style="display: inline-flex; gap: 0.35rem">
+                      <button type="button" class="btn btn-secondary btn-sm btn-xem-phieu-rut-gs" data-id="${r.id}">Xem phiếu</button>
+                      ${
+                        choXuLy
+                          ? `<button type="button" class="btn btn-danger btn-sm btn-huy-rut-gs" data-id="${r.id}" data-ma="${escapeHtml(maLenh)}">Hủy</button>`
+                          : ''
+                      }
+                    </div>
+                  </td>
                 </tr>
               `;
             })
             .join('');
+
+          tbody.querySelectorAll('.btn-xem-phieu-rut-gs').forEach((btn) => {
+            btn.addEventListener('click', () => {
+              const found = dsYeuCauRutHienTai.find((x) => x.id === btn.dataset.id);
+              if (found) moModalPhieuRutGs(found);
+            });
+          });
+          tbody.querySelectorAll('.btn-huy-rut-gs').forEach((btn) => {
+            btn.addEventListener('click', () => huyYeuCauRutTienGs(btn.dataset.id, btn.dataset.ma));
+          });
         } catch (err) {
-          tbody.innerHTML = `<tr><td colspan="5" style="padding: 1rem; color: #b91c1c">${escapeHtml(err.message)}</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="7" style="padding: 1rem; color: #b91c1c">${escapeHtml(err.message)}</td></tr>`;
         }
       }
 
@@ -2816,16 +3059,46 @@
         return num > 0 ? Number(num).toLocaleString('vi-VN') : '';
       }
 
+      function capNhatDuToanRutTien() {
+        const khaDung = Number(tongQuanViHienTai?.soDuKhaDung ?? 0);
+        const soTien = phanTichSoTienRut(inpSoTienRut?.value);
+        const elThucNhan = document.getElementById('rut-preview-thuc-nhan');
+        const elConLai = document.getElementById('rut-preview-con-lai');
+        if (elThucNhan) elThucNhan.textContent = dinhDangTienVnd(soTien);
+        if (elConLai) {
+          const conLai = khaDung - soTien;
+          elConLai.textContent = conLai >= 0 ? dinhDangTienVnd(conLai) : 'Vượt số dư khả dụng';
+          elConLai.style.color = conLai >= 0 ? '#1e40af' : '#dc2626';
+        }
+      }
+
       inpSoTienRut?.addEventListener('input', () => {
         const val = phanTichSoTienRut(inpSoTienRut.value);
         inpSoTienRut.value = dinhDangSoNgan(val);
         if (errSoTienRut) errSoTienRut.textContent = '';
+        capNhatDuToanRutTien();
+      });
+
+      document.querySelectorAll('.btn-chon-nhanh-rut').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const val = Number(btn.dataset.tien || 0);
+          if (inpSoTienRut) inpSoTienRut.value = dinhDangSoNgan(val);
+          if (errSoTienRut) errSoTienRut.textContent = '';
+          capNhatDuToanRutTien();
+        });
       });
 
       document.getElementById('btn-rut-toi-da')?.addEventListener('click', () => {
         const khaDung = Number(tongQuanViHienTai?.soDuKhaDung ?? 0);
         if (inpSoTienRut) inpSoTienRut.value = dinhDangSoNgan(khaDung);
         if (errSoTienRut) errSoTienRut.textContent = '';
+        capNhatDuToanRutTien();
+      });
+
+      document.getElementById('btn-nhay-thiet-lap-nh-tu-modal')?.addEventListener('click', () => {
+        if (modalRutTien) modalRutTien.style.display = 'none';
+        chuyenTab('tab-tai-khoan');
+        document.getElementById('btn-mo-sua-ngan-hang')?.click();
       });
 
       document.getElementById('btn-mo-modal-rut-tien')?.addEventListener('click', async () => {
@@ -2834,15 +3107,21 @@
         const nh = tongQuanViHienTai?.nganHang;
         khoaIdempotencyRutHienTai = `RUT-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
+        const elCanhBaoNh = document.getElementById('rut-canh-bao-chua-nh');
+        const formRut = document.getElementById('form-rut-tien-gs');
+        if (elCanhBaoNh) elCanhBaoNh.style.display = nh ? 'none' : 'block';
+        if (formRut) formRut.style.display = nh ? 'block' : 'none';
+
         document.getElementById('rut-so-du-hien-tai').textContent = dinhDangTienVnd(khaDung);
         document.getElementById('rut-ngan-hang-nhan').textContent = nh
           ? `${nh.tenNganHang} (${nh.soTaiKhoanChe}) · ${nh.chuTaiKhoan}`
-          : 'Chưa thiết lập (vào Cài đặt tài khoản)';
+          : 'Chưa thiết lập';
         if (inpSoTienRut) inpSoTienRut.value = khaDung >= 100000 ? dinhDangSoNgan(Math.min(khaDung, 200000)) : '';
         if (inpMatKhauRut) inpMatKhauRut.value = '';
         if (errSoTienRut) errSoTienRut.textContent = '';
         if (errMatKhauRut) errMatKhauRut.textContent = '';
         if (tbModalRut) tbModalRut.style.display = 'none';
+        capNhatDuToanRutTien();
         if (modalRutTien) modalRutTien.style.display = 'flex';
       });
 

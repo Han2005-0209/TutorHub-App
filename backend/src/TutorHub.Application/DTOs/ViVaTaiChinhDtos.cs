@@ -47,7 +47,12 @@ public sealed record YeuCauRutTienDto(
     string ChuTaiKhoan,
     string? GhiChu,
     DateTime TaoLuc,
-    DateTime? XuLyLuc);
+    DateTime? XuLyLuc,
+    string? MaLenhRut = null,
+    string? NoiDungChuyenKhoan = null,
+    string? MaBinNganHang = null,
+    string? SoTaiKhoanDayDu = null,
+    string? VietQrUrl = null);
 
 public sealed record TaoYeuCauRutTienDto(
     int SoTien,
