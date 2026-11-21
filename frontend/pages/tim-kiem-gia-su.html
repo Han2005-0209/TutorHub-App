@@ -303,7 +303,7 @@
         ganChuQuyenBienDaoVietNam(banDo);
       }
 
-      function veViTriCuaBan(lat, lng, banKinhKm = 5, tenKhuVuc = 'Cần Thơ') {
+      function veViTriCuaBan(lat, lng, banKinhKm = 5, tenKhuVuc = 'Cần Thơ', capNhatKhungNhin = true) {
         khoiTaoBanDo();
         if (!banDo || !lopViTriBanThan) return;
         banDo.invalidateSize();
@@ -312,15 +312,16 @@
         const banKinhMet = banKinhKm > 0 ? banKinhKm * 1000 : 0;
         let vongTronQuet = null;
 
-        // Vòng tròn radar bán kính quét quanh HỌC SINH (Học sinh là tâm tìm kiếm)
+        // Vòng tròn radar bán kính quét quanh HỌC SINH (chỉ vẽ 1 vòng duy nhất, nét thanh nhẹ để không rối mắt)
         if (banKinhMet > 0) {
           vongTronQuet = window.L.circle([lat, lng], {
             radius: banKinhMet,
-            color: '#f0656d',
-            fillColor: '#f7a1a6',
-            fillOpacity: 0.14,
-            weight: 2.2,
+            color: '#e11d48',
+            fillColor: '#fda4af',
+            fillOpacity: 0.06,
+            weight: 1.8,
             dashArray: '6, 6',
+            interactive: false,
           }).addTo(lopViTriBanThan);
         }
 
@@ -338,7 +339,7 @@
         });
 
         const txtBk = banKinhKm > 0 ? `Bán kính quét: <strong>${banKinhKm} km</strong>` : 'Phạm vi: <strong>Toàn khu vực</strong>';
-        const marker = window.L.marker([lat, lng], { icon: iconBanThan })
+        window.L.marker([lat, lng], { icon: iconBanThan, zIndexOffset: 1000 })
           .bindPopup(
             `<div style="font-weight: 700; font-size: 0.94rem; color: #1e293b">📍 Vị trí của bạn (Tâm quét)</div>
              <div style="font-size: 0.82rem; color: #64748b; margin-top: 3px">Khu vực: ${escapeHtml(tenKhuVuc)}</div>
@@ -348,13 +349,13 @@
           )
           .addTo(lopViTriBanThan);
 
-        // Luôn căn giữa chính xác vị trí học sinh làm tâm bản đồ
-        if (vongTronQuet) {
-          banDo.fitBounds(vongTronQuet.getBounds(), { padding: [35, 35], maxZoom: 15 });
-        } else {
-          banDo.setView([lat, lng], 13, { animate: true });
+        if (capNhatKhungNhin) {
+          if (vongTronQuet && banKinhKm <= 8) {
+            banDo.fitBounds(vongTronQuet.getBounds(), { padding: [35, 35], maxZoom: 14 });
+          } else {
+            banDo.setView([lat, lng], 13, { animate: true });
+          }
         }
-        // Không tự động mở popup che khuất bản đồ khi quét xong (người dùng click vào marker khi cần xem)
       }
 
       function kichHoatTimQuanhDay() {
@@ -470,10 +471,33 @@
         dongBoCheDoXem();
       }
 
+      let vongTronGiaSuDangChon = null;
+
+      function tachToaDoChongDe(latGoc, lngGoc, dsDaDat) {
+        let lat = latGoc;
+        let lng = lngGoc;
+        const khoangCachToiThieuDo = 0.0052; // ~550m để các avatar 60x72px không bao giờ đè lên nhau
+        let buoc = 1;
+        while (
+          buoc <= 36 &&
+          dsDaDat.some((p) => Math.hypot(p[0] - lat, p[1] - lng) < khoangCachToiThieuDo)
+        ) {
+          const gocRad = buoc * 2.399963229728653; // Golden angle ~137.508 độ
+          const banKinhDo = 0.0046 * Math.sqrt(buoc);
+          lat = Number((latGoc + Math.sin(gocRad) * banKinhDo).toFixed(4));
+          lng = Number((lngGoc + Math.cos(gocRad) * banKinhDo).toFixed(4));
+          buoc += 1;
+        }
+        dsDaDat.push([lat, lng]);
+        return [lat, lng];
+      }
+
       function capNhatMarkerBanDo(dsGiaSu) {
         if (!banDo || !lopMarker) return;
         lopMarker.clearLayers();
+        vongTronGiaSuDangChon = null;
         const diem = [];
+        const dsToaDoDaDat = [];
         let soTrongPhamVi = 0;
         let soSanSangDenNha = 0;
 
@@ -501,7 +525,10 @@
 
             soTrongPhamVi += 1;
             if (sanSangDenNha) soSanSangDenNha += 1;
-            diem.push([gs.viDoMo, gs.kinhDoMo]);
+
+            // Tách nhẹ tọa độ hiển thị nếu có nhiều gia sư cùng phường/tuyến đường để các ghim ảnh đại diện không chồng lên nhau
+            const [viDoHienThi, kinhDoHienThi] = tachToaDoChongDe(gs.viDoMo, gs.kinhDoMo, dsToaDoDaDat);
+            diem.push([viDoHienThi, kinhDoHienThi]);
 
             let textKhoangCach = '';
             if (d !== null) {
@@ -511,18 +538,6 @@
                   ${sanSangDenNha ? '<span style="color: #15803d; font-weight: 600">✓ Gia sư sẵn sàng đến tận nhà bạn</span>' : `<span style="color: #d97706; font-weight: 600">⚠️ Bán kính nhận dạy của gia sư: ${gs.banKinhPhucVuKm} km</span>`}
                 </div>
               `;
-            }
-
-            // Vòng tròn bán kính nhận dạy của gia sư (vẽ nét đứt nhạt)
-            if (gs.banKinhPhucVuKm > 0) {
-              window.L.circle([gs.viDoMo, gs.kinhDoMo], {
-                radius: gs.banKinhPhucVuKm * 1000,
-                color: sanSangDenNha ? '#10b981' : '#94a3b8',
-                fillColor: sanSangDenNha ? '#34d399' : '#cbd5e1',
-                fillOpacity: 0.08,
-                weight: 1,
-                dashArray: '4, 4',
-              }).addTo(lopMarker);
             }
 
             // Marker gia sư hiển thị ảnh đại diện và thẻ giá/khoảng cách
@@ -550,7 +565,7 @@
               popupAnchor: [0, -72],
             });
 
-            window.L.marker([gs.viDoMo, gs.kinhDoMo], { icon: iconGiaSu })
+            const markerGs = window.L.marker([viDoHienThi, kinhDoHienThi], { icon: iconGiaSu })
               .bindPopup(
                 `<div style="display: flex; gap: 0.65rem; align-items: center; min-width: 220px">
                    <img src="${escapeHtml(anhUrl)}" style="width: 46px; height: 46px; border-radius: 50%; object-fit: cover; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.15)" alt="${escapeHtml(gs.hoTen)}" />
@@ -565,6 +580,43 @@
                 { autoPan: false }
               )
               .addTo(lopMarker);
+
+            // Chỉ hiển thị vòng tròn bán kính phục vụ của RIÊNG gia sư đang được rê chuột hoặc bấm chọn (tránh vẽ 12 vòng tròn chồng chất gây rối bản đồ)
+            const hienVongTronGiaSu = () => {
+              if (vongTronGiaSuDangChon) {
+                lopMarker.removeLayer(vongTronGiaSuDangChon);
+                vongTronGiaSuDangChon = null;
+              }
+              if (gs.banKinhPhucVuKm > 0) {
+                vongTronGiaSuDangChon = window.L.circle([viDoHienThi, kinhDoHienThi], {
+                  radius: gs.banKinhPhucVuKm * 1000,
+                  color: sanSangDenNha ? '#10b981' : '#94a3b8',
+                  fillColor: sanSangDenNha ? '#34d399' : '#cbd5e1',
+                  fillOpacity: 0.08,
+                  weight: 1.5,
+                  dashArray: '5, 5',
+                  interactive: false,
+                }).addTo(lopMarker);
+              }
+            };
+
+            const anVongTronGiaSu = () => {
+              if (markerGs.isPopupOpen()) return;
+              if (vongTronGiaSuDangChon) {
+                lopMarker.removeLayer(vongTronGiaSuDangChon);
+                vongTronGiaSuDangChon = null;
+              }
+            };
+
+            markerGs.on('mouseover', hienVongTronGiaSu);
+            markerGs.on('mouseout', anVongTronGiaSu);
+            markerGs.on('popupopen', hienVongTronGiaSu);
+            markerGs.on('popupclose', () => {
+              if (vongTronGiaSuDangChon) {
+                lopMarker.removeLayer(vongTronGiaSuDangChon);
+                vongTronGiaSuDangChon = null;
+              }
+            });
           }
         });
 
@@ -572,17 +624,27 @@
         if (chuThich) {
           if (viTriHienTaiToaDo) {
             const txtBk = banKinhQuetKm > 0 ? `bán kính <strong>${banKinhQuetKm} km</strong> quanh bạn` : 'toàn khu vực quanh bạn';
-            chuThich.innerHTML = `🎯 Đang quét trong ${txtBk}: Tìm thấy <strong>${soTrongPhamVi} gia sư</strong> (${soSanSangDenNha} gia sư sẵn sàng đến tận nhà).`;
+            chuThich.innerHTML = `🎯 Đang quét trong ${txtBk}: Hiển thị <strong>${soTrongPhamVi} gia sư</strong> trên trang này (${soSanSangDenNha} gia sư sẵn sàng đến tận nhà · rê chuột hoặc bấm vào ghim để xem phạm vi nhận dạy).`;
           } else {
-            chuThich.textContent = `Đang hiển thị vị trí của ${dsGiaSu.filter((g) => g.coDayTrucTiep).length} gia sư dạy trực tiếp tại nhà. Bấm "Tìm quanh đây" để quét từ vị trí của bạn.`;
+            chuThich.textContent = `Đang hiển thị vị trí của ${dsGiaSu.filter((g) => g.coDayTrucTiep).length} gia sư dạy trực tiếp tại nhà trên trang này. Bấm "Quanh vị trí của tôi" để quét từ vị trí của bạn.`;
           }
         }
 
         if (viTriHienTaiToaDo) {
-          // Khi đã có vị trí học sinh: Học sinh là tâm quét, veViTriCuaBan tự căn giữa chính xác vị trí học sinh
-          veViTriCuaBan(viTriHienTaiToaDo.lat, viTriHienTaiToaDo.lng, banKinhQuetKm, document.getElementById('loc-khu-vuc')?.value || 'Cần Thơ');
+          // Vẽ ghim vị trí học sinh + vòng quét nhưng ưu tiên zoom sát vào cụm học sinh & các gia sư thực tế tìm được
+          veViTriCuaBan(
+            viTriHienTaiToaDo.lat,
+            viTriHienTaiToaDo.lng,
+            banKinhQuetKm,
+            document.getElementById('loc-khu-vuc')?.value || 'Cần Thơ',
+            diem.length === 0
+          );
+          if (diem.length > 0) {
+            const diemBaoGomBan = [[viTriHienTaiToaDo.lat, viTriHienTaiToaDo.lng], ...diem];
+            banDo.fitBounds(diemBaoGomBan, { padding: [52, 52], maxZoom: 14 });
+          }
         } else {
-          // Khi chưa định vị: Khớp khung nhìn bao trọn tất cả gia sư tìm được
+          // Khi chưa định vị: Khớp khung nhìn bao trọn tất cả gia sư tìm được trên trang
           if (diem.length === 1) {
             banDo.setView(diem[0], 13);
           } else if (diem.length > 1) {

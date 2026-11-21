@@ -1709,18 +1709,27 @@ public sealed class GiaSuVaMonHocService : IGiaSuVaMonHocService
         var slug = MonHoc.TaoSlug(khuVuc);
         var (baseLat, baseLng) = slug switch
         {
-            // Cần Thơ chi tiết theo phường/quận (đặc biệt quanh ĐH Nam Cần Thơ / An Bình / Ninh Kiều / Cái Răng)
-            var s when s.Contains("an-binh") || s.Contains("nam-can-tho") || s.Contains("nguyen-van-cu") => (10.009, 105.724),
-            var s when s.Contains("an-khanh") => (10.036, 105.755),
-            var s when s.Contains("xuan-khanh") => (10.029, 105.774),
-            var s when s.Contains("hung-loi") => (10.017, 105.768),
-            var s when s.Contains("an-phu") || s.Contains("tan-an") || s.Contains("an-hoa") => (10.034, 105.783),
-            var s when s.Contains("cai-rang") || s.Contains("hung-phu") || s.Contains("le-binh") => (10.005, 105.760),
-            var s when s.Contains("binh-thuy") || s.Contains("tra-noc") || s.Contains("an-thoi") => (10.068, 105.744),
-            var s when s.Contains("phong-dien") => (10.004, 105.662),
-            var s when s.Contains("o-mon") => (10.114, 105.623),
-            var s when s.Contains("thot-not") => (10.273, 105.534),
-            var s when s.Contains("ninh-kieu") || s.Contains("can-tho") => (10.031, 105.776),
+            // Cần Thơ chi tiết theo từng khu dân cư / tuyến đường / phường / quận
+            var s when s.Contains("hong-phat") => (10.0135, 105.7335),
+            var s when s.Contains("nam-can-tho") || s.Contains("nguyen-van-cu") => (10.0078, 105.7228),
+            var s when s.Contains("an-binh") => (10.0112, 105.7285),
+            var s when s.Contains("an-khanh") => (10.0355, 105.7535),
+            var s when s.Contains("xuan-khanh") || s.Contains("3-2") || s.Contains("30-4") => (10.0282, 105.7715),
+            var s when s.Contains("hung-loi") => (10.0175, 105.7665),
+            var s when s.Contains("mau-than") || s.Contains("an-phu") => (10.0348, 105.7768),
+            var s when s.Contains("tan-an") || s.Contains("hai-ba-trung") => (10.0332, 105.7862),
+            var s when s.Contains("an-hoa") || s.Contains("an-nghiep") => (10.0425, 105.7735),
+            var s when s.Contains("cai-khe") => (10.0485, 105.7845),
+            var s when s.Contains("hung-phu") || s.Contains("nam-long") => (10.0125, 105.7825),
+            var s when s.Contains("phu-thu") || s.Contains("thuong-thanh") => (9.9965, 105.7715),
+            var s when s.Contains("cai-rang") || s.Contains("le-binh") => (10.0025, 105.7545),
+            var s when s.Contains("long-tuyen") || s.Contains("long-hoa") => (10.0385, 105.7215),
+            var s when s.Contains("tra-noc") || s.Contains("an-thoi") => (10.0755, 105.7365),
+            var s when s.Contains("binh-thuy") => (10.0625, 105.7485),
+            var s when s.Contains("phong-dien") => (9.9985, 105.6825),
+            var s when s.Contains("o-mon") => (10.1140, 105.6230),
+            var s when s.Contains("thot-not") => (10.2730, 105.5340),
+            var s when s.Contains("ninh-kieu") || s.Contains("can-tho") => (10.0310, 105.7720),
 
             // TP. Hồ Chí Minh
             var s when s.Contains("thu-duc") => (10.849, 106.771),
@@ -1736,7 +1745,7 @@ public sealed class GiaSuVaMonHocService : IGiaSuVaMonHocService
             var s when s.Contains("thanh-xuan") => (20.994, 105.805),
             var s when s.Contains("ha-dong") => (20.971, 105.778),
             var s when s.Contains("long-bien") => (21.036, 105.893),
-            var s when s.Contains("ha-noi") || s.Contains("ba-dinh") || s.Contains("hoan-kiem") || s.Contains("hai-ba-trung") => (21.028, 105.845),
+            var s when s.Contains("ha-noi") || s.Contains("ba-dinh") || s.Contains("hoan-kiem") => (21.028, 105.845),
 
             // Đà Nẵng & Miền Trung
             var s when s.Contains("son-tra") || s.Contains("ngu-hanh-son") => (16.060, 108.240),
@@ -1758,12 +1767,23 @@ public sealed class GiaSuVaMonHocService : IGiaSuVaMonHocService
             var s when s.Contains("bien-hoa") || s.Contains("dong-nai") => (10.957, 106.842),
             var s when s.Contains("binh-duong") || s.Contains("thu-dau-mot") => (10.980, 106.651),
             var s when s.Contains("vung-tau") => (10.346, 107.084),
-            _ => (10.031, 105.776)
+            _ => (10.031, 105.772)
         };
 
+        // Băm toàn bộ 16 byte của Guid (bao gồm cả 2 byte cuối của các GUID tuần tự) để mỗi gia sư có tọa độ riêng biệt
         var bytes = id.ToByteArray();
-        var offsetLat = ((bytes[0] % 9) - 4) * 0.0035;
-        var offsetLng = ((bytes[1] % 9) - 4) * 0.0035;
+        uint h1 = 2166136261u;
+        uint h2 = 2166136261u ^ 0x9E3779B9u;
+        for (var i = 0; i < bytes.Length; i++)
+        {
+            h1 = (h1 ^ bytes[i]) * 16777619u;
+            h2 = (h2 ^ bytes[bytes.Length - 1 - i]) * 16777619u;
+        }
+
+        var normLat = ((int)(h1 % 41) - 20) / 20.0; // [-1.0 .. +1.0]
+        var normLng = ((int)(h2 % 41) - 20) / 20.0; // [-1.0 .. +1.0]
+        var offsetLat = normLat * 0.0095;
+        var offsetLng = normLng * 0.0095;
 
         return (
             Math.Round(baseLat + offsetLat, 4, MidpointRounding.AwayFromZero),
