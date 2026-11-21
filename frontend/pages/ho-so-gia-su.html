@@ -649,10 +649,10 @@
             <!-- Thanh Đặt lịch & Nhắn tin cố định ở đáy màn hình dành riêng cho Điện thoại dọc -->
             <div class="tutor-mobile-bottom-cta">
               <div class="tutor-mobile-cta-price-col">
-                <div class="tutor-mobile-cta-price">${dinhDangTienVnd(giaThapNhat)}<span style="font-size: 0.76rem; font-weight: 600; color: #64748b">/giờ</span></div>
+                <div class="tutor-mobile-cta-price">${dinhDangTienVnd(gs.giaThapNhat)}<span style="font-size: 0.76rem; font-weight: 600; color: #64748b">/giờ</span></div>
                 <div class="tutor-mobile-cta-meta">
                   ${gs.soLuotDanhGia > 0 ? `★ ${gs.diemDanhGiaTrungBinh.toFixed(1)} (${gs.soLuotDanhGia})` : `${gs.soNamKinhNghiem} năm KN`}
-                  ${duDieuKienHocThu ? ' · <span style="color:#15803d;font-weight:700">Học thử 0₫</span>' : ''}
+                  ${duDieuKienLanDau ? ' · <span style="color:#15803d;font-weight:700">Học thử 0₫</span>' : ''}
                 </div>
               </div>
               <div class="tutor-mobile-cta-btns">
