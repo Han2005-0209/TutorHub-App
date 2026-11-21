@@ -615,6 +615,7 @@
           qtUserPopover?.classList.remove('show');
           btnQtUserPill?.classList.remove('active');
           btnQtUserPill?.setAttribute('aria-expanded', 'false');
+          document.getElementById('modal-xu-ly-rut-tien-qt')?.classList.remove('open');
         }
       });
 
@@ -625,6 +626,7 @@
       let tongQuanCache = null;
       let dsGiaSuChoDuyetCache = [];
       let dsRutTienChoCache = [];
+      let dsRutTienDayDuQt = [];
       let dsKhieuNaiMoCache = [];
       let dsMonHocQuanTriCache = [];
       let dsThongBaoQtHienTai = [];
@@ -1252,7 +1254,6 @@
       // =========================================================================
       // TAB 4.5: DUYỆT & CHI TRẢ RÚT TIỀN GIA SƯ (VietQR + Batch CSV + Modal Maker-Checker)
       // =========================================================================
-      let dsRutTienDayDuQt = [];
 
       function saoChepNhanhQt(text, btn) {
         if (!text) return;
