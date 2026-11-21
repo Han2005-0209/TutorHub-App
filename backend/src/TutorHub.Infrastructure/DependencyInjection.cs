@@ -62,6 +62,7 @@ public static class DependencyInjection
         services.AddScoped<IHoiThoaiService, HoiThoaiService>();
         services.AddScoped<ILuuTruTepService, LuuTruTepService>();
         services.AddScoped<IVnPayClient, VnPayClient>();
+        services.AddScoped<IPayOsClient, PayOsClient>();
         services.AddHostedService<TuDongXuLyDonVaGiaiNganBackgroundService>();
 
         return services;

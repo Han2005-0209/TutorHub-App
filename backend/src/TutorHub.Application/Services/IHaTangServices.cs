@@ -1,3 +1,6 @@
+using System.Text.Json;
+using TutorHub.Application.DTOs;
+
 namespace TutorHub.Application.Services;
 
 /// <summary>
@@ -45,4 +48,35 @@ public interface IVnPayClient
 {
     string TaoUrlThanhToan(string maGiaoDichCong, int soTienVnd, string noiDung, string ipKhach);
     bool XacThucChuKyCallback(IReadOnlyDictionary<string, string> thamSoVnpay);
+}
+
+/// <summary>
+/// Giao diện tích hợp cổng VietQR tự động PayOS API v2 (HMAC-SHA256).
+/// Cài đặt cụ thể đặt tại TutorHub.Infrastructure.Payments.PayOsClient.
+/// </summary>
+public interface IPayOsClient
+{
+    bool DaCauHinh { get; }
+
+    Task<PayOsTaoLinkKetQuaDto> TaoYeuCauThanhToanAsync(
+        long orderCode,
+        int amount,
+        string description,
+        string returnUrl,
+        string cancelUrl,
+        long expiredAtUnix,
+        CancellationToken cancellationToken = default);
+
+    Task<PayOsTrangThaiDonDto?> LayThongTinDonAsync(
+        long orderCode,
+        CancellationToken cancellationToken = default);
+
+    Task HuyDonAsync(
+        long orderCode,
+        string lyDo,
+        CancellationToken cancellationToken = default);
+
+    bool XacThucChuKyWebhook(JsonElement dataElement, string signature);
+
+    string LayTenNganHangTheoBin(string? bin);
 }

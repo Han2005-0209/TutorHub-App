@@ -815,6 +815,93 @@ namespace TutorHub.Infrastructure.Migrations
                     b.ToTable("TinNhan", (string)null);
                 });
 
+            modelBuilder.Entity("TutorHub.Domain.Entities.YeuCauNapTien", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CheckoutUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("ChuTaiKhoan")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("CongThanhToan")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<Guid?>("GiaoDichViId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("HetHanLuc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("HoanThanhLuc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("MaBinNganHang")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<long>("MaDonPayOs")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("MaThamChieuNganHang")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<Guid>("NguoiDungThamGiaId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("NoiDungChuyenKhoan")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("PaymentLinkId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("QrCode")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("SoTaiKhoan")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("SoTien")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("TaoLuc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("TrangThai")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GiaoDichViId")
+                        .IsUnique()
+                        .HasFilter("[GiaoDichViId] IS NOT NULL");
+
+                    b.HasIndex("MaDonPayOs")
+                        .IsUnique();
+
+                    b.HasIndex("NguoiDungThamGiaId", "TaoLuc");
+
+                    b.ToTable("YeuCauNapTien", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_YeuCauNapTien_SoTien", "[SoTien] >= 2000 AND [SoTien] <= 50000000");
+                        });
+                });
+
             modelBuilder.Entity("TutorHub.Domain.Entities.YeuCauRutTien", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1285,6 +1372,24 @@ namespace TutorHub.Infrastructure.Migrations
                     b.Navigation("HoiThoai");
 
                     b.Navigation("NguoiGui");
+                });
+
+            modelBuilder.Entity("TutorHub.Domain.Entities.YeuCauNapTien", b =>
+                {
+                    b.HasOne("TutorHub.Domain.Entities.GiaoDichVi", "GiaoDichVi")
+                        .WithMany()
+                        .HasForeignKey("GiaoDichViId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("TutorHub.Domain.Entities.NguoiDungThamGia", "NguoiDungThamGia")
+                        .WithMany()
+                        .HasForeignKey("NguoiDungThamGiaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("GiaoDichVi");
+
+                    b.Navigation("NguoiDungThamGia");
                 });
 
             modelBuilder.Entity("TutorHub.Domain.Entities.YeuCauRutTien", b =>

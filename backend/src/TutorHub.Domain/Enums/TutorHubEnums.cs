@@ -172,3 +172,14 @@ public enum TrangThaiKhieuNai
     DA_GIAI_QUYET,
     TU_CHOI
 }
+
+/// <summary>
+/// Trạng thái yêu cầu nạp tiền vào Ví học tập qua VietQR (PayOS).
+/// </summary>
+public enum TrangThaiNapTien
+{
+    CHO_THANH_TOAN,
+    THANH_CONG,
+    DA_HUY,
+    HET_HAN
+}

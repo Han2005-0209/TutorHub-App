@@ -14,6 +14,8 @@ namespace TutorHub.Infrastructure.Services;
 public sealed class ViVaTaiChinhService : IViVaTaiChinhService
 {
     public const int SoTienRutToiThieu = 100_000;
+    public const int SoTienNapToiThieu = 2_000;
+    public const int SoTienNapToiDa = 50_000_000;
     public const int SoLanSaiMatKhauToiDa = 5;
     public const int CuaSoKhoaMatKhauPhut = 15;
 
@@ -24,17 +26,20 @@ public sealed class ViVaTaiChinhService : IViVaTaiChinhService
     private readonly BookingPolicyOptions _policy;
     private readonly IKiemDuyetNoiDungService _kiemDuyet;
     private readonly ILuuTruTepService _luuTruTep;
+    private readonly IPayOsClient? _payOsClient;
 
     public ViVaTaiChinhService(
         AppDbContext db,
         BookingPolicyOptions policy,
         IKiemDuyetNoiDungService kiemDuyet,
-        ILuuTruTepService luuTruTep)
+        ILuuTruTepService luuTruTep,
+        IPayOsClient? payOsClient = null)
     {
         _db = db;
         _policy = policy;
         _kiemDuyet = kiemDuyet;
         _luuTruTep = luuTruTep;
+        _payOsClient = payOsClient;
     }
 
     public static string CheSoTaiKhoan(string? soTaiKhoan)
@@ -2088,5 +2093,427 @@ public sealed class ViVaTaiChinhService : IViVaTaiChinhService
             HocSinhId: d.HocSinhId,
             TenHocSinh: d.HocSinh?.HoTen ?? "Học sinh",
             TrangThaiThanhToan: tt?.TrangThai);
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // VÍ HỌC SINH & NẠP TIỀN VIETQR TỰ ĐỘNG (PAYOS API V2)
+    // ══════════════════════════════════════════════════════════════════════════
+
+    public async Task<TongQuanViHocSinhDto> LayTongQuanViHocSinhAsync(
+        Guid hocSinhId,
+        CancellationToken cancellationToken = default)
+    {
+        var vi = await _db.TaiKhoanVis
+            .AsNoTracking()
+            .FirstOrDefaultAsync(v => v.NguoiDungThamGiaId == hocSinhId, cancellationToken)
+            ?? throw new LoiUngDungException("KHONG_TIM_THAY", "Không tìm thấy ví học tập của bạn.", 404);
+
+        var dsGd = await _db.GiaoDichVis
+            .AsNoTracking()
+            .Where(g => g.TaiKhoanViId == vi.Id)
+            .Select(g => new { g.Loai, g.SoTien })
+            .ToListAsync(cancellationToken);
+
+        var tongDaNap = dsGd.Where(g => g.Loai == LoaiGiaoDichVi.NAP_TIEN).Sum(g => g.SoTien);
+        var tongDaChi = dsGd.Where(g => g.Loai == LoaiGiaoDichVi.THANH_TOAN).Sum(g => Math.Abs(g.SoTien));
+        var tongDaHoan = dsGd.Where(g => g.Loai == LoaiGiaoDichVi.HOAN_TIEN).Sum(g => g.SoTien);
+
+        var dsNap = await _db.YeuCauNapTiens
+            .AsNoTracking()
+            .Where(n => n.NguoiDungThamGiaId == hocSinhId)
+            .OrderByDescending(n => n.TaoLuc)
+            .Take(8)
+            .ToListAsync(cancellationToken);
+
+        return new TongQuanViHocSinhDto(
+            SoDu: vi.SoDu,
+            TongDaNap: tongDaNap,
+            TongDaChi: tongDaChi,
+            TongDaHoan: tongDaHoan,
+            PayOsDaCauHinh: _payOsClient?.DaCauHinh == true,
+            DsNapGanDay: dsNap.Select(n => AnhXaYeuCauNapTien(n)).ToList());
+    }
+
+    public async Task<KetQuaPhanTrangDto<GiaoDichViHocSinhDto>> LayDsGiaoDichViHocSinhAsync(
+        Guid hocSinhId,
+        int trang = 1,
+        int kichThuocTrang = 20,
+        CancellationToken cancellationToken = default)
+    {
+        trang = Math.Max(1, trang);
+        kichThuocTrang = Math.Clamp(kichThuocTrang, 1, 50);
+
+        var vi = await _db.TaiKhoanVis
+            .AsNoTracking()
+            .FirstOrDefaultAsync(v => v.NguoiDungThamGiaId == hocSinhId, cancellationToken)
+            ?? throw new LoiUngDungException("KHONG_TIM_THAY", "Không tìm thấy ví học tập của bạn.", 404);
+
+        var query = _db.GiaoDichVis
+            .AsNoTracking()
+            .Where(g => g.TaiKhoanViId == vi.Id);
+
+        var tong = await query.CountAsync(cancellationToken);
+        var ds = await query
+            .OrderByDescending(g => g.SoThuTu)
+            .Skip((trang - 1) * kichThuocTrang)
+            .Take(kichThuocTrang)
+            .ToListAsync(cancellationToken);
+
+        var ketQua = ds.Select(g => new GiaoDichViHocSinhDto(
+            Id: g.Id,
+            SoThuTu: g.SoThuTu,
+            Loai: g.Loai,
+            SoTien: g.SoTien,
+            SoDuTruoc: g.SoDuSau - g.SoTien,
+            SoDuSau: g.SoDuSau,
+            GhiChu: g.GhiChu,
+            ThanhToanId: g.ThanhToanId,
+            TaoLuc: g.TaoLuc)).ToList();
+
+        var tongTrang = tong == 0 ? 0 : (int)Math.Ceiling(tong / (double)kichThuocTrang);
+        return new KetQuaPhanTrangDto<GiaoDichViHocSinhDto>(ketQua, trang, kichThuocTrang, tong, tongTrang);
+    }
+
+    public async Task<YeuCauNapTienDto> TaoYeuCauNapTienVietQrAsync(
+        Guid hocSinhId,
+        TaoYeuCauNapTienDto yeuCau,
+        string? originUrl = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (yeuCau.SoTien < SoTienNapToiThieu || yeuCau.SoTien > SoTienNapToiDa)
+        {
+            throw new LoiUngDungException(
+                "SO_TIEN_NAP_KHONG_HOP_LE",
+                $"Số tiền nạp phải nằm trong khoảng từ {SoTienNapToiThieu:N0} ₫ đến {SoTienNapToiDa:N0} ₫.",
+                422);
+        }
+
+        if (_payOsClient is null || !_payOsClient.DaCauHinh)
+        {
+            throw new LoiUngDungException(
+                "CHUA_CAU_HINH_PAYOS",
+                "Cổng nạp VietQR PayOS chưa được gắn khóa API (PayOs__ClientId, PayOs__ApiKey, PayOs__ChecksumKey). Hãy thiết lập 3 biến môi trường này trên máy chủ để kích hoạt nạp tiền thật.",
+                503);
+        }
+
+        var viExists = await _db.TaiKhoanVis
+            .AsNoTracking()
+            .AnyAsync(v => v.NguoiDungThamGiaId == hocSinhId, cancellationToken);
+        if (!viExists)
+        {
+            throw new LoiUngDungException("KHONG_TIM_THAY", "Không tìm thấy ví học tập của bạn.", 404);
+        }
+
+        var now = DateTime.UtcNow;
+        var hetHanLuc = now.AddMinutes(15);
+
+        // Sinh orderCode nguyên dương duy nhất cho PayOS (<= 15 chữ số)
+        var baseCode = DateTimeOffset.UtcNow.ToUnixTimeSeconds() * 1000L + Random.Shared.Next(100, 999);
+        var maDonPayOs = baseCode;
+        var maNgan = (maDonPayOs % 1_000_000).ToString("D6");
+        var noiDungChuyen = $"THNAP {maNgan}";
+
+        var baseFrontend = !string.IsNullOrWhiteSpace(originUrl)
+            ? originUrl.TrimEnd('/')
+            : "https://tutorhub-web-nqhn.onrender.com";
+        var returnUrl = $"{baseFrontend}/pages/hoc-sinh-tong-quan.html?tab=tab-tai-khoan&napKetQua=thanh-cong&orderCode={maDonPayOs}";
+        var cancelUrl = $"{baseFrontend}/pages/hoc-sinh-tong-quan.html?tab=tab-tai-khoan&napKetQua=huy&orderCode={maDonPayOs}";
+        var expiredAtUnix = new DateTimeOffset(hetHanLuc).ToUnixTimeSeconds();
+
+        var payOsRes = await _payOsClient.TaoYeuCauThanhToanAsync(
+            maDonPayOs,
+            yeuCau.SoTien,
+            noiDungChuyen,
+            returnUrl,
+            cancelUrl,
+            expiredAtUnix,
+            cancellationToken);
+
+        var entity = new YeuCauNapTien
+        {
+            NguoiDungThamGiaId = hocSinhId,
+            MaDonPayOs = payOsRes.OrderCode,
+            SoTien = yeuCau.SoTien,
+            CongThanhToan = "PAYOS_VIETQR",
+            TrangThai = TrangThaiNapTien.CHO_THANH_TOAN,
+            PaymentLinkId = payOsRes.PaymentLinkId,
+            CheckoutUrl = payOsRes.CheckoutUrl,
+            QrCode = payOsRes.QrCode,
+            MaBinNganHang = payOsRes.Bin,
+            SoTaiKhoan = payOsRes.AccountNumber,
+            ChuTaiKhoan = payOsRes.AccountName,
+            NoiDungChuyenKhoan = string.IsNullOrWhiteSpace(payOsRes.Description) ? noiDungChuyen : payOsRes.Description,
+            TaoLuc = now,
+            HetHanLuc = hetHanLuc
+        };
+
+        _db.YeuCauNapTiens.Add(entity);
+        await _db.SaveChangesAsync(cancellationToken);
+
+        return AnhXaYeuCauNapTien(entity);
+    }
+
+    public async Task<YeuCauNapTienDto> KiemTraVaDongBoNapTienAsync(
+        Guid hocSinhId,
+        Guid yeuCauNapTienId,
+        CancellationToken cancellationToken = default)
+    {
+        var yeuCau = await _db.YeuCauNapTiens
+            .FirstOrDefaultAsync(n => n.Id == yeuCauNapTienId, cancellationToken)
+            ?? throw new LoiUngDungException("KHONG_TIM_THAY", "Không tìm thấy yêu cầu nạp tiền.", 404);
+
+        if (yeuCau.NguoiDungThamGiaId != hocSinhId)
+        {
+            throw new LoiUngDungException("KHONG_CO_QUYEN", "Bạn không có quyền truy cập yêu cầu nạp tiền này.", 403);
+        }
+
+        if (yeuCau.TrangThai == TrangThaiNapTien.CHO_THANH_TOAN && _payOsClient is { DaCauHinh: true })
+        {
+            var trangThaiCong = await _payOsClient.LayThongTinDonAsync(yeuCau.MaDonPayOs, cancellationToken);
+            if (trangThaiCong is not null)
+            {
+                if (string.Equals(trangThaiCong.Status, "PAID", StringComparison.OrdinalIgnoreCase) &&
+                    trangThaiCong.AmountPaid >= yeuCau.SoTien)
+                {
+                    return await HoanTatNapTienTrongGiaoDichAsync(
+                        yeuCau.Id,
+                        trangThaiCong.Reference,
+                        cancellationToken);
+                }
+
+                if (string.Equals(trangThaiCong.Status, "CANCELLED", StringComparison.OrdinalIgnoreCase))
+                {
+                    yeuCau.TrangThai = TrangThaiNapTien.DA_HUY;
+                    await _db.SaveChangesAsync(cancellationToken);
+                }
+                else if (string.Equals(trangThaiCong.Status, "EXPIRED", StringComparison.OrdinalIgnoreCase) ||
+                         DateTime.UtcNow >= yeuCau.HetHanLuc)
+                {
+                    yeuCau.TrangThai = TrangThaiNapTien.HET_HAN;
+                    await _db.SaveChangesAsync(cancellationToken);
+                }
+            }
+            else if (DateTime.UtcNow >= yeuCau.HetHanLuc)
+            {
+                yeuCau.TrangThai = TrangThaiNapTien.HET_HAN;
+                await _db.SaveChangesAsync(cancellationToken);
+            }
+        }
+
+        var soDuHienTai = await _db.TaiKhoanVis
+            .AsNoTracking()
+            .Where(v => v.NguoiDungThamGiaId == hocSinhId)
+            .Select(v => (int?)v.SoDu)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        return AnhXaYeuCauNapTien(yeuCau, soDuHienTai);
+    }
+
+    public async Task<YeuCauNapTienDto> HuyYeuCauNapTienAsync(
+        Guid hocSinhId,
+        Guid yeuCauNapTienId,
+        CancellationToken cancellationToken = default)
+    {
+        var yeuCau = await _db.YeuCauNapTiens
+            .FirstOrDefaultAsync(n => n.Id == yeuCauNapTienId, cancellationToken)
+            ?? throw new LoiUngDungException("KHONG_TIM_THAY", "Không tìm thấy yêu cầu nạp tiền.", 404);
+
+        if (yeuCau.NguoiDungThamGiaId != hocSinhId)
+        {
+            throw new LoiUngDungException("KHONG_CO_QUYEN", "Bạn không có quyền hủy yêu cầu nạp tiền này.", 403);
+        }
+
+        if (yeuCau.TrangThai == TrangThaiNapTien.THANH_CONG)
+        {
+            throw new LoiUngDungException("NAP_TIEN_DA_HOAN_TAT", "Giao dịch nạp tiền đã hoàn tất, không thể hủy.", 409);
+        }
+
+        if (yeuCau.TrangThai == TrangThaiNapTien.CHO_THANH_TOAN)
+        {
+            if (_payOsClient is { DaCauHinh: true })
+            {
+                await _payOsClient.HuyDonAsync(yeuCau.MaDonPayOs, "Người dùng hủy nạp tiền", cancellationToken);
+            }
+
+            yeuCau.TrangThai = TrangThaiNapTien.DA_HUY;
+            await _db.SaveChangesAsync(cancellationToken);
+        }
+
+        return AnhXaYeuCauNapTien(yeuCau);
+    }
+
+    public async Task<bool> XuLyWebhookPayOsAsync(
+        string rawJsonBody,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(rawJsonBody))
+        {
+            return false;
+        }
+
+        using var doc = JsonDocument.Parse(rawJsonBody);
+        var root = doc.RootElement;
+        if (root.ValueKind != JsonValueKind.Object)
+        {
+            return false;
+        }
+
+        if (!root.TryGetProperty("data", out var dataEl) || dataEl.ValueKind != JsonValueKind.Object)
+        {
+            return false;
+        }
+
+        var orderCode = dataEl.TryGetProperty("orderCode", out var ocEl) && ocEl.TryGetInt64(out var ocVal)
+            ? ocVal
+            : 0L;
+
+        // PayOS gửi gói test xác nhận Webhook URL khi lưu cấu hình (orderCode = 123)
+        if (orderCode == 123L)
+        {
+            return true;
+        }
+
+        if (_payOsClient is null || !_payOsClient.DaCauHinh)
+        {
+            throw new LoiUngDungException("CHUA_CAU_HINH_PAYOS", "Chưa cấu hình khóa PayOS.", 503);
+        }
+
+        var signature = root.TryGetProperty("signature", out var sigEl) ? (sigEl.GetString() ?? string.Empty) : string.Empty;
+        if (!_payOsClient.XacThucChuKyWebhook(dataEl, signature))
+        {
+            throw new LoiUngDungException("CHU_KY_WEBHOOK_KHONG_HOP_LE", "Chữ ký HMAC-SHA256 từ PayOS không hợp lệ.", 400);
+        }
+
+        var topCode = root.TryGetProperty("code", out var tcEl) ? tcEl.GetString() : null;
+        var dataCode = dataEl.TryGetProperty("code", out var dcEl) ? dcEl.GetString() : null;
+        var thanhCong = string.Equals(topCode, "00", StringComparison.Ordinal) &&
+                        (string.IsNullOrEmpty(dataCode) || string.Equals(dataCode, "00", StringComparison.Ordinal));
+        if (!thanhCong || orderCode <= 0)
+        {
+            return true;
+        }
+
+        var yeuCau = await _db.YeuCauNapTiens
+            .AsNoTracking()
+            .FirstOrDefaultAsync(n => n.MaDonPayOs == orderCode, cancellationToken);
+        if (yeuCau is null)
+        {
+            return true;
+        }
+
+        var amount = dataEl.TryGetProperty("amount", out var amEl) && amEl.TryGetInt32(out var amVal)
+            ? amVal
+            : 0;
+        if (amount < yeuCau.SoTien)
+        {
+            return true;
+        }
+
+        var reference = dataEl.TryGetProperty("reference", out var refEl) ? refEl.GetString() : null;
+        await HoanTatNapTienTrongGiaoDichAsync(yeuCau.Id, reference, cancellationToken);
+        return true;
+    }
+
+    public async Task<YeuCauNapTienDto> HoanTatNapTienTrongGiaoDichAsync(
+        Guid yeuCauNapTienId,
+        string? maThamChieuNganHang,
+        CancellationToken cancellationToken = default)
+    {
+        var thongTin = await _db.YeuCauNapTiens
+            .AsNoTracking()
+            .Where(n => n.Id == yeuCauNapTienId)
+            .Select(n => new { n.Id, n.NguoiDungThamGiaId })
+            .FirstOrDefaultAsync(cancellationToken)
+            ?? throw new LoiUngDungException("KHONG_TIM_THAY", "Không tìm thấy yêu cầu nạp tiền.", 404);
+
+        var viId = await _db.TaiKhoanVis
+            .AsNoTracking()
+            .Where(v => v.NguoiDungThamGiaId == thongTin.NguoiDungThamGiaId)
+            .Select(v => v.Id)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (viId == Guid.Empty)
+        {
+            throw new LoiUngDungException("KHONG_TIM_THAY", "Không tìm thấy ví học tập.", 404);
+        }
+
+        await using var tx = await _db.Database.BeginTransactionAsync(cancellationToken);
+        await KhoaUngDungSqlHelper.KhoaTaiNguyenTrongGiaoDichAsync(
+            _db,
+            [$"nap:{thongTin.Id:N}", $"vi:{viId:N}"],
+            cancellationToken);
+
+        var yeuCau = await _db.YeuCauNapTiens.FirstAsync(n => n.Id == thongTin.Id, cancellationToken);
+        var vi = await _db.TaiKhoanVis.FirstAsync(v => v.Id == viId, cancellationToken);
+
+        if (yeuCau.TrangThai == TrangThaiNapTien.THANH_CONG)
+        {
+            await tx.CommitAsync(cancellationToken);
+            return AnhXaYeuCauNapTien(yeuCau, vi.SoDu);
+        }
+
+        var now = DateTime.UtcNow;
+        vi.SoDu += yeuCau.SoTien;
+
+        var soThuTu = await LaySoThuTuTiepTheoAsync(vi.Id, cancellationToken);
+        var refText = !string.IsNullOrWhiteSpace(maThamChieuNganHang)
+            ? $" · Mã NH: {maThamChieuNganHang.Trim()}"
+            : string.Empty;
+
+        var gd = new GiaoDichVi
+        {
+            TaiKhoanViId = vi.Id,
+            SoThuTu = soThuTu,
+            Loai = LoaiGiaoDichVi.NAP_TIEN,
+            SoTien = yeuCau.SoTien,
+            SoDuSau = vi.SoDu + vi.SoDuDangXuLyRut,
+            GhiChu = $"Nạp tiền VietQR PayOS ({yeuCau.NoiDungChuyenKhoan}){refText}",
+            ThanhToanId = null,
+            YeuCauRutTienId = null,
+            TaoLuc = now
+        };
+        _db.GiaoDichVis.Add(gd);
+        await _db.SaveChangesAsync(cancellationToken);
+
+        yeuCau.TrangThai = TrangThaiNapTien.THANH_CONG;
+        yeuCau.MaThamChieuNganHang = string.IsNullOrWhiteSpace(maThamChieuNganHang) ? null : maThamChieuNganHang.Trim();
+        yeuCau.GiaoDichViId = gd.Id;
+        yeuCau.HoanThanhLuc = now;
+
+        _db.ThongBaos.Add(new ThongBao
+        {
+            NguoiNhanId = thongTin.NguoiDungThamGiaId,
+            Loai = LoaiThongBao.THANH_TOAN,
+            TieuDe = "Nạp tiền vào Ví học tập thành công",
+            NoiDung = $"Bạn vừa nạp thành công {yeuCau.SoTien:N0} ₫ qua VietQR PayOS. Số dư Ví hiện tại: {vi.SoDu:N0} ₫.",
+            TaoLuc = now
+        });
+
+        await _db.SaveChangesAsync(cancellationToken);
+        await tx.CommitAsync(cancellationToken);
+
+        return AnhXaYeuCauNapTien(yeuCau, vi.SoDu);
+    }
+
+    private YeuCauNapTienDto AnhXaYeuCauNapTien(YeuCauNapTien n, int? soDuMoi = null)
+    {
+        return new YeuCauNapTienDto(
+            Id: n.Id,
+            MaDonPayOs: n.MaDonPayOs,
+            SoTien: n.SoTien,
+            CongThanhToan: n.CongThanhToan,
+            TrangThai: n.TrangThai,
+            CheckoutUrl: n.CheckoutUrl,
+            QrCode: n.QrCode,
+            MaBinNganHang: n.MaBinNganHang,
+            TenNganHang: _payOsClient?.LayTenNganHangTheoBin(n.MaBinNganHang) ?? "Ngân hàng VietQR",
+            SoTaiKhoan: n.SoTaiKhoan,
+            ChuTaiKhoan: n.ChuTaiKhoan,
+            NoiDungChuyenKhoan: n.NoiDungChuyenKhoan,
+            MaThamChieuNganHang: n.MaThamChieuNganHang,
+            TaoLuc: n.TaoLuc,
+            HetHanLuc: n.HetHanLuc,
+            HoanThanhLuc: n.HoanThanhLuc,
+            SoDuMoi: soDuMoi);
     }
 }

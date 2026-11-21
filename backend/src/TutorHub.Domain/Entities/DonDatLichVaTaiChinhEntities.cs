@@ -234,3 +234,34 @@ public sealed class NhatKyPhongHoc : ThucTheGoc
     public DateTime CapNhatCuoiLuc { get; set; } = DateTime.UtcNow;
     public bool DaRoiPhong { get; set; }
 }
+
+/// <summary>
+/// Yêu cầu nạp tiền vào Ví học tập qua VietQR tự động (PayOS API v2).
+/// Đảm bảo bất biến chống cộng trùng qua `MaDonPayOs` duy nhất và liên kết 1:1 tới bút toán `GiaoDichVi(NAP_TIEN)`.
+/// </summary>
+public sealed class YeuCauNapTien : ThucTheGoc
+{
+    public Guid NguoiDungThamGiaId { get; set; }
+    public NguoiDungThamGia? NguoiDungThamGia { get; set; }
+
+    public long MaDonPayOs { get; set; }
+    public int SoTien { get; set; }
+    public string CongThanhToan { get; set; } = "PAYOS_VIETQR";
+    public TrangThaiNapTien TrangThai { get; set; } = TrangThaiNapTien.CHO_THANH_TOAN;
+
+    public string? PaymentLinkId { get; set; }
+    public string? CheckoutUrl { get; set; }
+    public string? QrCode { get; set; }
+    public string? MaBinNganHang { get; set; }
+    public string? SoTaiKhoan { get; set; }
+    public string? ChuTaiKhoan { get; set; }
+    public string NoiDungChuyenKhoan { get; set; } = string.Empty;
+    public string? MaThamChieuNganHang { get; set; }
+
+    public Guid? GiaoDichViId { get; set; }
+    public GiaoDichVi? GiaoDichVi { get; set; }
+
+    public DateTime TaoLuc { get; set; } = DateTime.UtcNow;
+    public DateTime HetHanLuc { get; set; } = DateTime.UtcNow.AddMinutes(15);
+    public DateTime? HoanThanhLuc { get; set; }
+}

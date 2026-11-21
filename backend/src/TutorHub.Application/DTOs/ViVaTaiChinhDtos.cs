@@ -187,3 +187,63 @@ public sealed record KetQuaChuKyTuDongDto(
     int SoDonDaGiaiNgan,
     int SoDonChuyenHetHan,
     int SoDonDaHoanTienKhiHetHan);
+
+// ── Ví Học sinh & Nạp tiền VietQR tự động (PayOS API v2) ──
+public sealed record TaoYeuCauNapTienDto(
+    int SoTien);
+
+public sealed record YeuCauNapTienDto(
+    Guid Id,
+    long MaDonPayOs,
+    int SoTien,
+    string CongThanhToan,
+    TrangThaiNapTien TrangThai,
+    string? CheckoutUrl,
+    string? QrCode,
+    string? MaBinNganHang,
+    string? TenNganHang,
+    string? SoTaiKhoan,
+    string? ChuTaiKhoan,
+    string NoiDungChuyenKhoan,
+    string? MaThamChieuNganHang,
+    DateTime TaoLuc,
+    DateTime HetHanLuc,
+    DateTime? HoanThanhLuc,
+    int? SoDuMoi = null);
+
+public sealed record GiaoDichViHocSinhDto(
+    Guid Id,
+    int SoThuTu,
+    LoaiGiaoDichVi Loai,
+    int SoTien,
+    int SoDuTruoc,
+    int SoDuSau,
+    string? GhiChu,
+    Guid? ThanhToanId,
+    DateTime TaoLuc);
+
+public sealed record TongQuanViHocSinhDto(
+    int SoDu,
+    int TongDaNap,
+    int TongDaChi,
+    int TongDaHoan,
+    bool PayOsDaCauHinh,
+    IReadOnlyList<YeuCauNapTienDto> DsNapGanDay);
+
+public sealed record PayOsTaoLinkKetQuaDto(
+    long OrderCode,
+    string PaymentLinkId,
+    string CheckoutUrl,
+    string QrCode,
+    string Bin,
+    string AccountNumber,
+    string AccountName,
+    string Description,
+    string Status);
+
+public sealed record PayOsTrangThaiDonDto(
+    long OrderCode,
+    int Amount,
+    int AmountPaid,
+    string Status,
+    string? Reference);

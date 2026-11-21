@@ -701,3 +701,41 @@ public sealed class ThongBaoConfiguration : IEntityTypeConfiguration<ThongBao>
             .OnDelete(DeleteBehavior.Restrict);
     }
 }
+
+public sealed class YeuCauNapTienConfiguration : IEntityTypeConfiguration<YeuCauNapTien>
+{
+    public void Configure(EntityTypeBuilder<YeuCauNapTien> builder)
+    {
+        builder.ToTable("YeuCauNapTien", t =>
+        {
+            t.HasCheckConstraint("CK_YeuCauNapTien_SoTien", "[SoTien] >= 2000 AND [SoTien] <= 50000000");
+        });
+
+        builder.HasKey(x => x.Id);
+        builder.Property(x => x.CongThanhToan).IsRequired().HasMaxLength(30);
+        builder.Property(x => x.PaymentLinkId).HasMaxLength(100);
+        builder.Property(x => x.CheckoutUrl).HasMaxLength(500);
+        builder.Property(x => x.QrCode).HasMaxLength(1000);
+        builder.Property(x => x.MaBinNganHang).HasMaxLength(20);
+        builder.Property(x => x.SoTaiKhoan).HasMaxLength(50);
+        builder.Property(x => x.ChuTaiKhoan).HasMaxLength(150);
+        builder.Property(x => x.NoiDungChuyenKhoan).IsRequired().HasMaxLength(100);
+        builder.Property(x => x.MaThamChieuNganHang).HasMaxLength(100);
+
+        builder.HasIndex(x => x.MaDonPayOs).IsUnique();
+        builder.HasIndex(x => x.GiaoDichViId)
+            .IsUnique()
+            .HasFilter("[GiaoDichViId] IS NOT NULL");
+        builder.HasIndex(x => new { x.NguoiDungThamGiaId, x.TaoLuc });
+
+        builder.HasOne(x => x.NguoiDungThamGia)
+            .WithMany()
+            .HasForeignKey(x => x.NguoiDungThamGiaId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(x => x.GiaoDichVi)
+            .WithMany()
+            .HasForeignKey(x => x.GiaoDichViId)
+            .OnDelete(DeleteBehavior.Restrict);
+    }
+}

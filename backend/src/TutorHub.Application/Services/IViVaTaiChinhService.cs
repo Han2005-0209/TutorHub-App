@@ -151,4 +151,35 @@ public interface IViVaTaiChinhService
     Task<KetQuaChuKyTuDongDto> ChayChuKyTuDongXuLyDonVaGiaiNganAsync(
         DateTime? mocThoiGianUtc = null,
         CancellationToken cancellationToken = default);
+
+    // Ví Học sinh & Nạp tiền VietQR tự động (PayOS API v2)
+    Task<TongQuanViHocSinhDto> LayTongQuanViHocSinhAsync(
+        Guid hocSinhId,
+        CancellationToken cancellationToken = default);
+
+    Task<KetQuaPhanTrangDto<GiaoDichViHocSinhDto>> LayDsGiaoDichViHocSinhAsync(
+        Guid hocSinhId,
+        int trang = 1,
+        int kichThuocTrang = 20,
+        CancellationToken cancellationToken = default);
+
+    Task<YeuCauNapTienDto> TaoYeuCauNapTienVietQrAsync(
+        Guid hocSinhId,
+        TaoYeuCauNapTienDto yeuCau,
+        string? originUrl = null,
+        CancellationToken cancellationToken = default);
+
+    Task<YeuCauNapTienDto> KiemTraVaDongBoNapTienAsync(
+        Guid hocSinhId,
+        Guid yeuCauNapTienId,
+        CancellationToken cancellationToken = default);
+
+    Task<YeuCauNapTienDto> HuyYeuCauNapTienAsync(
+        Guid hocSinhId,
+        Guid yeuCauNapTienId,
+        CancellationToken cancellationToken = default);
+
+    Task<bool> XuLyWebhookPayOsAsync(
+        string rawJsonBody,
+        CancellationToken cancellationToken = default);
 }

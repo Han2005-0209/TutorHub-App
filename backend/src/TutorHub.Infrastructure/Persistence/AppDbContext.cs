@@ -40,6 +40,7 @@ public sealed class AppDbContext : DbContext
     public DbSet<ThanhToan> ThanhToans => Set<ThanhToan>();
     public DbSet<TaiKhoanVi> TaiKhoanVis => Set<TaiKhoanVi>();
     public DbSet<GiaoDichVi> GiaoDichVis => Set<GiaoDichVi>();
+    public DbSet<YeuCauNapTien> YeuCauNapTiens => Set<YeuCauNapTien>();
     public DbSet<YeuCauRutTien> YeuCauRutTiens => Set<YeuCauRutTien>();
     public DbSet<DanhGia> DanhGias => Set<DanhGia>();
     public DbSet<KhieuNai> KhieuNais => Set<KhieuNai>();

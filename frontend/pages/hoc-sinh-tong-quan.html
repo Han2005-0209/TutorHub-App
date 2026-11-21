@@ -227,7 +227,12 @@
                 <span class="kpi-icon blue" id="ico-kpi-vi"></span>
               </div>
               <div class="kpi-value" id="kpi-so-du-vi"><span class="sk-line" style="height: 24px; width: 120px"></span></div>
-              <div class="kpi-sub">Dùng thanh toán nhanh &amp; nhận hoàn tiền tự động</div>
+              <div class="kpi-sub" style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap">
+                <span>Thanh toán nhanh &amp; hoàn tiền tự động</span>
+                <button type="button" id="btn-kpi-nap-tien" style="background: var(--th-blush-soft); border: 1px solid var(--th-blush-border); color: var(--th-blush-text); padding: 0.2rem 0.65rem; border-radius: 9999px; font-family: inherit; font-size: 0.74rem; font-weight: 800; cursor: pointer">
+                  + Nạp tiền VietQR
+                </button>
+              </div>
             </div>
             <div class="kpi-card">
               <div class="kpi-top">
@@ -547,17 +552,56 @@
 
           <!-- TAB 5: TÀI KHOẢN & VÍ HỌC TẬP (MỞ TRỰC TIẾP BÊN PHẢI) -->
           <section id="tab-tai-khoan" class="tab-panel" style="display: none">
-            <div class="card" style="padding: 1.35rem 1.5rem; border-radius: 20px; margin-bottom: 1.25rem; background: #f8fbff; border: 1px solid #dbeafe; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem">
-              <div>
-                <div style="font-size: 0.76rem; font-weight: 700; color: #1d4ed8; text-transform: uppercase">Ví học tập của bạn</div>
-                <div id="hs-tab-so-du-vi" style="font-size: 1.55rem; font-weight: 800; color: #0f172a; margin-top: 0.15rem">0 ₫</div>
-                <div style="font-size: 0.81rem; color: #475569; margin-top: 0.2rem">
-                  Dùng thanh toán giữ chỗ nhanh và tự động nhận hoàn tiền 100% khi hủy trước giờ học, gia sư từ chối hoặc giải quyết khiếu nại.
+            <div class="card" style="padding: 1.35rem 1.5rem; border-radius: 20px; margin-bottom: 1.15rem; background: linear-gradient(135deg, #fff5f6 0%, #ffffff 55%, #f8fbff 100%); border: 1px solid #f2dfe3">
+              <div style="display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 1rem">
+                <div style="min-width: 0; flex: 1">
+                  <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap">
+                    <span style="font-size: 0.76rem; font-weight: 800; color: var(--th-blush-text); text-transform: uppercase; letter-spacing: 0.04em">Ví học tập của bạn</span>
+                    <span id="hs-payos-status-badge" class="badge badge-neutral" style="font-size: 0.7rem">Đang kiểm tra cổng VietQR...</span>
+                  </div>
+                  <div id="hs-tab-so-du-vi" style="font-size: 1.75rem; font-weight: 900; color: #0f172a; margin-top: 0.2rem; font-variant-numeric: tabular-nums">0 ₫</div>
+                  <div style="font-size: 0.81rem; color: #475569; margin-top: 0.2rem">
+                    Nạp tiền qua mã VietQR tự động cộng số dư sau 3 giây, thanh toán giữ chỗ nhanh và hoàn 100% về ví khi hủy trước giờ học.
+                  </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap">
+                  <button type="button" class="btn btn-primary btn-sm" id="btn-mo-modal-nap-tien" style="border-radius: 9999px; padding: 0 1.15rem; height: 38px">
+                    + Nạp tiền VietQR
+                  </button>
+                  <button type="button" class="btn btn-secondary btn-sm" id="btn-vi-mo-lich-hoc" style="border-radius: 9999px; height: 38px">
+                    Lịch sử đơn →
+                  </button>
                 </div>
               </div>
-              <button type="button" class="btn btn-primary btn-sm" id="btn-vi-mo-lich-hoc" style="border-radius: 9999px">
-                Quản lý đơn &amp; Thanh toán →
-              </button>
+
+              <div class="hs-vi-stats-row" style="margin-top: 1rem; padding-top: 0.9rem; border-top: 1px dashed #eedce0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.65rem">
+                <div style="background: rgba(255,255,255,0.85); border: 1px solid #f1e4e6; border-radius: 12px; padding: 0.6rem 0.75rem">
+                  <div style="font-size: 0.71rem; color: #64748b; font-weight: 600">Tổng đã nạp</div>
+                  <div id="hs-vi-tong-nap" style="font-size: 0.96rem; font-weight: 800; color: #15803d; margin-top: 2px">0 ₫</div>
+                </div>
+                <div style="background: rgba(255,255,255,0.85); border: 1px solid #f1e4e6; border-radius: 12px; padding: 0.6rem 0.75rem">
+                  <div style="font-size: 0.71rem; color: #64748b; font-weight: 600">Đã chi học phí</div>
+                  <div id="hs-vi-tong-chi" style="font-size: 0.96rem; font-weight: 800; color: #0f172a; margin-top: 2px">0 ₫</div>
+                </div>
+                <div style="background: rgba(255,255,255,0.85); border: 1px solid #f1e4e6; border-radius: 12px; padding: 0.6rem 0.75rem">
+                  <div style="font-size: 0.71rem; color: #64748b; font-weight: 600">Hoàn tiền về ví</div>
+                  <div id="hs-vi-tong-hoan" style="font-size: 0.96rem; font-weight: 800; color: #1d4ed8; margin-top: 2px">0 ₫</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sổ cái biến động Ví học tập của Học sinh -->
+            <div class="card" id="khung-lich-su-vi-hs" style="padding: 1.3rem 1.4rem; border-radius: 20px; margin-bottom: 1.25rem">
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin-bottom: 0.85rem; flex-wrap: wrap">
+                <div>
+                  <h2 style="margin: 0; font-size: 1.02rem; font-weight: 800">Lịch sử giao dịch Ví học tập</h2>
+                  <p style="margin: 0.15rem 0 0; font-size: 0.78rem; color: var(--th-text-muted)">Ghi nhận minh bạch từng bút toán nạp tiền VietQR, thanh toán học phí và hoàn tiền</p>
+                </div>
+                <button type="button" class="btn btn-secondary btn-sm" id="btn-lam-moi-vi-hs" style="border-radius: 9999px; height: 32px; font-size: 0.76rem">Làm mới</button>
+              </div>
+              <div id="hs-ds-giao-dich-vi" style="display: flex; flex-direction: column; gap: 0.55rem">
+                <div style="font-size: 0.83rem; color: var(--th-text-muted)">Đang tải lịch sử giao dịch ví...</div>
+              </div>
             </div>
             <div class="grid-2" style="gap: 1.25rem; align-items: start">
               <div class="card" style="padding: 1.5rem; border-radius: 20px">
@@ -597,6 +641,104 @@
               </div>
             </div>
           </section>
+
+          <!-- Modal Nạp tiền VietQR tự động (PayOS API v2) -->
+          <div id="modal-nap-tien-hs" class="th-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="tieu-de-modal-nap">
+            <div class="th-booking-modal" style="max-width: 470px">
+              <div class="th-modal-head">
+                <div>
+                  <h3 id="tieu-de-modal-nap" style="margin: 0; font-size: 1.06rem; font-weight: 800; color: #0f172a">Nạp tiền vào Ví qua VietQR</h3>
+                  <div style="font-size: 0.76rem; color: #64748b; margin-top: 2px">Quét mã bằng mọi app ngân hàng Việt Nam · Tự động cộng sau ~3 giây</div>
+                </div>
+                <button type="button" id="btn-dong-modal-nap" class="th-modal-close" aria-label="Đóng">×</button>
+              </div>
+
+              <div class="th-modal-scroll-body">
+                <div id="nap-hs-loi" style="display: none"></div>
+
+                <!-- Bước 1: Chọn số tiền nạp -->
+                <form id="form-nap-tien-hs" style="display: flex; flex-direction: column; gap: 0.85rem">
+                  <div>
+                    <div class="form-label" style="margin-bottom: 0.45rem">Chọn nhanh mệnh giá nạp</div>
+                    <div class="bk-pill-group" id="nhom-chon-tien-nap">
+                      <button type="button" class="bk-pill active" data-tien="5000">5.000 ₫ (Test)</button>
+                      <button type="button" class="bk-pill" data-tien="50000">50.000 ₫</button>
+                      <button type="button" class="bk-pill" data-tien="200000">200.000 ₫</button>
+                      <button type="button" class="bk-pill" data-tien="500000">500.000 ₫</button>
+                      <button type="button" class="bk-pill" data-tien="1000000">1.000.000 ₫</button>
+                    </div>
+                  </div>
+
+                  <div class="form-group" style="margin-bottom: 0">
+                    <label class="form-label" for="inp-so-tien-nap">Hoặc nhập số tiền tùy ý (VNĐ · tối thiểu 2.000 ₫)</label>
+                    <input id="inp-so-tien-nap" type="number" min="2000" max="50000000" step="1000" value="5000" required class="form-control" style="font-size: 1.05rem; font-weight: 800" />
+                  </div>
+
+                  <div style="padding: 0.7rem 0.85rem; border-radius: 12px; background: #f0fdf4; border: 1px solid #bbf7d0; font-size: 0.78rem; color: #166534; line-height: 1.45">
+                    <strong>✓ Giao dịch thật qua cổng PayOS VietQR:</strong> Miễn phí nạp tiền, hỗ trợ chuyển khoản 24/7 từ Vietcombank, MB Bank, Techcombank, BIDV, ACB, TPBank, MoMo...
+                  </div>
+
+                  <button type="submit" id="btn-tao-qr-nap" class="btn btn-primary" style="width: 100%; height: 44px; border-radius: 9999px; font-weight: 800">
+                    Tạo mã VietQR thanh toán →
+                  </button>
+                </form>
+
+                <!-- Bước 2: Hiển thị mã VietQR động + Đếm ngược + Tự động kiểm tra -->
+                <div id="nap-buoc-qr" style="display: none; flex-direction: column; gap: 0.8rem">
+                  <div style="text-align: center; padding: 0.85rem; border-radius: 16px; background: #fffafb; border: 1.5px solid var(--th-blush-border)">
+                    <div style="font-size: 0.76rem; font-weight: 700; color: var(--th-blush-text); margin-bottom: 0.5rem">
+                      Mở App Ngân hàng / MoMo và quét mã VietQR bên dưới
+                    </div>
+                    <img id="img-vietqr-nap" src="" alt="Mã VietQR nạp tiền TutorHub" width="230" height="230" style="width: 224px; height: 224px; border-radius: 14px; border: 1px solid #f1e4e6; background: #ffffff; padding: 6px; margin: 0 auto; display: block; object-fit: contain" />
+                    <div style="margin-top: 0.55rem; font-size: 1.15rem; font-weight: 900; color: #0f172a" id="nap-qr-so-tien">0 ₫</div>
+                    <div style="margin-top: 0.25rem; font-size: 0.76rem; font-weight: 700; color: #047857" id="nap-qr-trang-thai">
+                      🔄 Đang chờ ngân hàng xác nhận tự động... (<span id="nap-dem-nguoc">15:00</span>)
+                    </div>
+                  </div>
+
+                  <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 0.75rem 0.9rem; display: flex; flex-direction: column; gap: 0.42rem; font-size: 0.81rem">
+                    <div style="display: flex; justify-content: space-between; gap: 0.5rem">
+                      <span style="color: #64748b">Ngân hàng</span>
+                      <strong id="nap-qr-ngan-hang" style="color: #0f172a">—</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem">
+                      <span style="color: #64748b">Số tài khoản</span>
+                      <span style="display: inline-flex; align-items: center; gap: 0.4rem">
+                        <strong id="nap-qr-stk" style="color: #0f172a; font-variant-numeric: tabular-nums">—</strong>
+                        <button type="button" class="btn btn-ghost btn-sm btn-copy-nap" data-copy-target="nap-qr-stk" style="height: 24px; min-height: 24px; padding: 0 0.45rem; font-size: 0.71rem; border: 1px solid #cbd5e1">Copy</button>
+                      </span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; gap: 0.5rem">
+                      <span style="color: #64748b">Chủ tài khoản</span>
+                      <strong id="nap-qr-chu-tk" style="color: #0f172a; text-align: right">—</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem">
+                      <span style="color: #64748b">Nội dung CK</span>
+                      <span style="display: inline-flex; align-items: center; gap: 0.4rem">
+                        <strong id="nap-qr-noi-dung" style="color: var(--th-blush-text)">—</strong>
+                        <button type="button" class="btn btn-ghost btn-sm btn-copy-nap" data-copy-target="nap-qr-noi-dung" style="height: 24px; min-height: 24px; padding: 0 0.45rem; font-size: 0.71rem; border: 1px solid #cbd5e1">Copy</button>
+                      </span>
+                    </div>
+                  </div>
+
+                  <div style="display: flex; gap: 0.45rem; flex-wrap: wrap">
+                    <button type="button" id="btn-kiem-tra-nap-ngay" class="btn btn-emerald btn-sm" style="flex: 1; border-radius: 9999px">Tôi đã chuyển khoản</button>
+                    <a id="link-mo-trang-payos" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm" style="border-radius: 9999px">Mở PayOS ↗</a>
+                    <button type="button" id="btn-huy-qr-nap" class="btn btn-danger btn-sm" style="border-radius: 9999px">Hủy</button>
+                  </div>
+                </div>
+
+                <!-- Bước 3: Thành công -->
+                <div id="nap-buoc-thanh-cong" style="display: none; text-align: center; padding: 1.25rem 0.5rem">
+                  <div style="width: 56px; height: 56px; margin: 0 auto 0.75rem; border-radius: 50%; background: #dcfce7; color: #15803d; display: flex; align-items: center; justify-content: center; font-size: 1.7rem; font-weight: 900">✓</div>
+                  <h4 style="margin: 0; font-size: 1.15rem; font-weight: 800; color: #15803d">Nạp tiền thành công!</h4>
+                  <div id="nap-ok-so-tien" style="margin-top: 0.35rem; font-size: 1.4rem; font-weight: 900; color: #0f172a">+0 ₫</div>
+                  <p id="nap-ok-so-du" style="margin: 0.35rem 0 1.1rem; font-size: 0.85rem; color: #475569">Số dư Ví học tập đã được cập nhật tự động.</p>
+                  <button type="button" id="btn-hoan-tat-nap" class="btn btn-primary" style="width: 100%; border-radius: 9999px">Hoàn tất</button>
+                </div>
+              </div>
+            </div>
+          </div>
 
           <!-- Modal Thanh toán đơn đặt lịch (Học sinh) -->
           <div id="modal-tt-hs" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55); z-index: 1050; align-items: center; justify-content: center; padding: 1rem" role="dialog" aria-modal="true">
@@ -994,6 +1136,7 @@
         }
         if (tabId === 'tab-yeu-thich') taiYeuThichDayDu();
         if (tabId === 'tab-tin-nhan') taiDsHoiThoaiHs();
+        if (tabId === 'tab-tai-khoan') taiViVaLichSuHs();
 
         try {
           const url = new URL(window.location.href);
@@ -2369,9 +2512,316 @@
         }
       });
 
+      // =========================================================================
+      // VÍ HỌC TẬP & NẠP TIỀN VIETQR TỰ ĐỘNG (PAYOS API V2)
+      // =========================================================================
+      let yeuCauNapHienTai = null;
+      let timerPollNap = null;
+      let timerDemNguocNap = null;
+
+      function dungTheoDoiNapTien() {
+        if (timerPollNap) {
+          clearInterval(timerPollNap);
+          timerPollNap = null;
+        }
+        if (timerDemNguocNap) {
+          clearInterval(timerDemNguocNap);
+          timerDemNguocNap = null;
+        }
+      }
+
+      function dongModalNapTienHs() {
+        dungTheoDoiNapTien();
+        const m = document.getElementById('modal-nap-tien-hs');
+        if (m) m.classList.remove('open');
+      }
+
+      function moModalNapTienHs() {
+        dungTheoDoiNapTien();
+        yeuCauNapHienTai = null;
+        const m = document.getElementById('modal-nap-tien-hs');
+        const elLoi = document.getElementById('nap-hs-loi');
+        const b1 = document.getElementById('form-nap-tien-hs');
+        const b2 = document.getElementById('nap-buoc-qr');
+        const b3 = document.getElementById('nap-buoc-thanh-cong');
+        if (elLoi) elLoi.style.display = 'none';
+        if (b1) b1.style.display = 'flex';
+        if (b2) b2.style.display = 'none';
+        if (b3) b3.style.display = 'none';
+        if (m) m.classList.add('open');
+      }
+
+      async function taiViVaLichSuHs() {
+        const elList = document.getElementById('hs-ds-giao-dich-vi');
+        const elBadge = document.getElementById('hs-payos-status-badge');
+        try {
+          const [resVi, resGd] = await Promise.all([
+            api.get('/vi/hoc-sinh'),
+            api.get('/vi/hoc-sinh/giao-dich?kichThuocTrang=25'),
+          ]);
+          const vi = resVi?.duLieu;
+          if (vi) {
+            soDuViHocSinhHienTai = Number(vi.soDu || 0);
+            const txtSoDu = dinhDangTienVnd(soDuViHocSinhHienTai);
+            const elTabVi = document.getElementById('hs-tab-so-du-vi');
+            const elKpiVi = document.getElementById('kpi-so-du-vi');
+            const elPopVi = document.getElementById('pop-hs-vi');
+            if (elTabVi) elTabVi.textContent = txtSoDu;
+            if (elKpiVi) elKpiVi.textContent = txtSoDu;
+            if (elPopVi) elPopVi.textContent = txtSoDu;
+
+            const elNap = document.getElementById('hs-vi-tong-nap');
+            const elChi = document.getElementById('hs-vi-tong-chi');
+            const elHoan = document.getElementById('hs-vi-tong-hoan');
+            if (elNap) elNap.textContent = dinhDangTienVnd(vi.tongDaNap || 0);
+            if (elChi) elChi.textContent = dinhDangTienVnd(vi.tongDaChi || 0);
+            if (elHoan) elHoan.textContent = dinhDangTienVnd(vi.tongDaHoan || 0);
+
+            if (elBadge) {
+              if (vi.payOsDaCauHinh) {
+                elBadge.className = 'badge badge-success';
+                elBadge.textContent = '✓ PayOS VietQR tự động 24/7';
+              } else {
+                elBadge.className = 'badge badge-warning';
+                elBadge.textContent = 'Chờ gắn khóa PayOS trên máy chủ';
+              }
+            }
+          }
+
+          const dsGd = resGd?.duLieu || [];
+          if (!elList) return;
+          if (dsGd.length === 0) {
+            elList.innerHTML =
+              '<div style="text-align: center; padding: 1.25rem; font-size: 0.83rem; color: var(--th-text-muted)">Chưa có giao dịch ví nào. Bạn có thể bấm <strong>+ Nạp tiền VietQR</strong> để nạp vào Ví học tập.</div>';
+            return;
+          }
+
+          const nhanLoaiGd = {
+            NAP_TIEN: { text: 'Nạp tiền VietQR', cls: 'badge-success' },
+            HOAN_TIEN: { text: 'Hoàn tiền về ví', cls: 'badge-info' },
+            THANH_TOAN: { text: 'Thanh toán học phí', cls: 'badge-neutral' },
+          };
+
+          elList.innerHTML = dsGd
+            .map((g) => {
+              const info = nhanLoaiGd[g.loai] || { text: g.loai, cls: 'badge-neutral' };
+              const laCong = Number(g.soTien) > 0;
+              return `
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 0.75rem 0.9rem; border-radius: 13px; border: 1px solid #f1e4e6; background: #ffffff; flex-wrap: wrap">
+                  <div style="min-width: 0; flex: 1">
+                    <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap">
+                      <span class="badge ${info.cls}" style="font-size: 0.69rem">${escapeHtml(info.text)}</span>
+                      <span style="font-size: 0.74rem; color: #64748b">${dinhDangNgayGioVn(g.taoLuc)}</span>
+                    </div>
+                    <div style="margin-top: 0.25rem; font-size: 0.83rem; color: #1e293b; font-weight: 600">${escapeHtml(g.ghiChu || info.text)}</div>
+                  </div>
+                  <div style="text-align: right; flex-shrink: 0">
+                    <div style="font-size: 0.95rem; font-weight: 800; color: ${laCong ? '#15803d' : '#dc2626'}">${laCong ? '+' : ''}${dinhDangTienVnd(g.soTien)}</div>
+                    <div style="font-size: 0.72rem; color: #64748b; margin-top: 2px">Số dư sau: ${dinhDangTienVnd(g.soDuSau)}</div>
+                  </div>
+                </div>
+              `;
+            })
+            .join('');
+        } catch (err) {
+          if (elList) {
+            elList.innerHTML = `<div class="alert alert-danger">${escapeHtml(err.message)}</div>`;
+          }
+        }
+      }
+
+      function hienThiBuocQrNap(dto) {
+        yeuCauNapHienTai = dto;
+        document.getElementById('form-nap-tien-hs').style.display = 'none';
+        document.getElementById('nap-buoc-thanh-cong').style.display = 'none';
+        const b2 = document.getElementById('nap-buoc-qr');
+        if (b2) b2.style.display = 'flex';
+
+        const img = document.getElementById('img-vietqr-nap');
+        if (img) {
+          if (dto.qrCode) {
+            img.src = `https://api.qrserver.com/v1/create-qr-code/?size=280x280&margin=10&data=${encodeURIComponent(dto.qrCode)}`;
+          } else if (dto.maBinNganHang && dto.soTaiKhoan) {
+            img.src = `https://img.vietqr.io/image/${encodeURIComponent(dto.maBinNganHang)}-${encodeURIComponent(dto.soTaiKhoan)}-compact2.png?amount=${dto.soTien}&addInfo=${encodeURIComponent(dto.noiDungChuyenKhoan || '')}&accountName=${encodeURIComponent(dto.chuTaiKhoan || '')}`;
+          }
+        }
+
+        document.getElementById('nap-qr-so-tien').textContent = dinhDangTienVnd(dto.soTien);
+        document.getElementById('nap-qr-ngan-hang').textContent = dto.tenNganHang || 'Ngân hàng VietQR';
+        document.getElementById('nap-qr-stk').textContent = dto.soTaiKhoan || '—';
+        document.getElementById('nap-qr-chu-tk').textContent = dto.chuTaiKhoan || '—';
+        document.getElementById('nap-qr-noi-dung').textContent = dto.noiDungChuyenKhoan || '—';
+
+        const linkPayOs = document.getElementById('link-mo-trang-payos');
+        if (linkPayOs) {
+          if (dto.checkoutUrl) {
+            linkPayOs.href = dto.checkoutUrl;
+            linkPayOs.style.display = 'inline-flex';
+          } else {
+            linkPayOs.style.display = 'none';
+          }
+        }
+
+        const hetHanMs = parseUtcMs(dto.hetHanLuc);
+        const capNhatDemNguoc = () => {
+          const conGiay = Math.max(0, Math.floor((hetHanMs - Date.now()) / 1000));
+          const phut = String(Math.floor(conGiay / 60)).padStart(2, '0');
+          const giay = String(conGiay % 60).padStart(2, '0');
+          const elCd = document.getElementById('nap-dem-nguoc');
+          if (elCd) elCd.textContent = `${phut}:${giay}`;
+          if (conGiay <= 0) {
+            dungTheoDoiNapTien();
+            const elSt = document.getElementById('nap-qr-trang-thai');
+            if (elSt) elSt.textContent = '⏱ Mã VietQR đã hết hạn. Vui lòng tạo mã mới.';
+          }
+        };
+        capNhatDemNguoc();
+        timerDemNguocNap = setInterval(capNhatDemNguoc, 1000);
+        timerPollNap = setInterval(() => kiemTraTrangThaiNapTien(false), 3000);
+      }
+
+      async function kiemTraTrangThaiNapTien(thuCong = false) {
+        if (!yeuCauNapHienTai?.id) return;
+        const btnCheck = document.getElementById('btn-kiem-tra-nap-ngay');
+        if (thuCong && btnCheck) {
+          btnCheck.disabled = true;
+          btnCheck.textContent = 'Đang đối soát...';
+        }
+        try {
+          const res = await api.get(`/vi/hoc-sinh/nap-tien/${yeuCauNapHienTai.id}`);
+          const d = res?.duLieu;
+          if (!d) return;
+
+          if (d.trangThai === 'THANH_CONG') {
+            dungTheoDoiNapTien();
+            document.getElementById('nap-buoc-qr').style.display = 'none';
+            document.getElementById('nap-buoc-thanh-cong').style.display = 'block';
+            document.getElementById('nap-ok-so-tien').textContent = `+${dinhDangTienVnd(d.soTien)}`;
+            document.getElementById('nap-ok-so-du').textContent =
+              typeof d.soDuMoi === 'number'
+                ? `Số dư Ví học tập mới của bạn: ${dinhDangTienVnd(d.soDuMoi)}`
+                : 'Số dư Ví học tập đã được cộng tự động.';
+            await Promise.all([taiTongQuanHocSinh(), taiViVaLichSuHs()]);
+          } else if (d.trangThai === 'DA_HUY' || d.trangThai === 'HET_HAN') {
+            dungTheoDoiNapTien();
+            const elSt = document.getElementById('nap-qr-trang-thai');
+            if (elSt) elSt.textContent = d.trangThai === 'DA_HUY' ? 'Giao dịch đã bị hủy.' : '⏱ Mã VietQR đã hết hạn.';
+          } else if (thuCong) {
+            const elSt = document.getElementById('nap-qr-trang-thai');
+            if (elSt) {
+              elSt.innerHTML = 'Chưa thấy giao dịch mới — hệ thống vẫn đang tự động theo dõi (<span id="nap-dem-nguoc">...</span>)';
+            }
+          }
+        } catch {
+          // Bỏ qua lỗi mạng tạm thời trong lúc polling
+        } finally {
+          if (thuCong && btnCheck) {
+            btnCheck.disabled = false;
+            btnCheck.textContent = 'Tôi đã chuyển khoản';
+          }
+        }
+      }
+
+      document.getElementById('btn-mo-modal-nap-tien')?.addEventListener('click', moModalNapTienHs);
+      document.getElementById('btn-kpi-nap-tien')?.addEventListener('click', () => {
+        chuyenTabHs('tab-tai-khoan');
+        moModalNapTienHs();
+      });
+      document.getElementById('btn-dong-modal-nap')?.addEventListener('click', dongModalNapTienHs);
+      document.getElementById('btn-hoan-tat-nap')?.addEventListener('click', dongModalNapTienHs);
+      document.getElementById('btn-lam-moi-vi-hs')?.addEventListener('click', taiViVaLichSuHs);
+      document.getElementById('btn-kiem-tra-nap-ngay')?.addEventListener('click', () => kiemTraTrangThaiNapTien(true));
+
+      document.getElementById('modal-nap-tien-hs')?.addEventListener('click', (e) => {
+        if (e.target.id === 'modal-nap-tien-hs') dongModalNapTienHs();
+      });
+
+      document.querySelectorAll('#nhom-chon-tien-nap .bk-pill').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('#nhom-chon-tien-nap .bk-pill').forEach((x) => x.classList.remove('active'));
+          btn.classList.add('active');
+          const inp = document.getElementById('inp-so-tien-nap');
+          if (inp) inp.value = btn.dataset.tien || '5000';
+        });
+      });
+
+      document.getElementById('form-nap-tien-hs')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const elLoi = document.getElementById('nap-hs-loi');
+        const btnTao = document.getElementById('btn-tao-qr-nap');
+        const soTien = Number(document.getElementById('inp-so-tien-nap')?.value || 0);
+        if (elLoi) elLoi.style.display = 'none';
+        if (!Number.isFinite(soTien) || soTien < 2000 || soTien > 50000000) {
+          if (elLoi) {
+            elLoi.style.display = 'block';
+            elLoi.className = 'alert alert-danger';
+            elLoi.textContent = 'Vui lòng nhập số tiền nạp từ 2.000 ₫ đến 50.000.000 ₫.';
+          }
+          return;
+        }
+        if (btnTao) {
+          btnTao.disabled = true;
+          btnTao.textContent = 'Đang tạo mã VietQR...';
+        }
+        try {
+          const res = await api.post('/vi/hoc-sinh/nap-tien', { soTien });
+          if (res?.duLieu) {
+            hienThiBuocQrNap(res.duLieu);
+          }
+        } catch (err) {
+          if (elLoi) {
+            elLoi.style.display = 'block';
+            elLoi.className = 'alert alert-danger';
+            elLoi.textContent = err.message || 'Không thể khởi tạo mã VietQR PayOS.';
+          }
+        } finally {
+          if (btnTao) {
+            btnTao.disabled = false;
+            btnTao.textContent = 'Tạo mã VietQR thanh toán →';
+          }
+        }
+      });
+
+      document.getElementById('btn-huy-qr-nap')?.addEventListener('click', async () => {
+        if (!yeuCauNapHienTai?.id) {
+          dongModalNapTienHs();
+          return;
+        }
+        try {
+          await api.post(`/vi/hoc-sinh/nap-tien/${yeuCauNapHienTai.id}/huy`, {});
+        } catch {
+          // Bỏ qua
+        }
+        dongModalNapTienHs();
+        await taiViVaLichSuHs();
+      });
+
+      document.querySelectorAll('.btn-copy-nap').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const targetEl = document.getElementById(btn.dataset.copyTarget);
+          const text = targetEl?.textContent?.trim();
+          if (!text || text === '—') return;
+          try {
+            await navigator.clipboard.writeText(text);
+            const old = btn.textContent;
+            btn.textContent = 'Đã copy';
+            setTimeout(() => {
+              btn.textContent = old;
+            }, 1400);
+          } catch {
+            // Bỏ qua
+          }
+        });
+      });
+
       const tabUrlBanDau = new URLSearchParams(window.location.search).get('tab');
       if (tabUrlBanDau && tieuDeTabHs[tabUrlBanDau]) {
         chuyenTabHs(tabUrlBanDau);
+      }
+      const napKqUrl = new URLSearchParams(window.location.search).get('napKetQua');
+      if (napKqUrl === 'thanh-cong') {
+        hienThongBaoHs('Đã quay lại từ cổng PayOS! Đang đồng bộ số dư Ví học tập của bạn...', 'success');
+        taiViVaLichSuHs();
       }
     </script>
   </body>
