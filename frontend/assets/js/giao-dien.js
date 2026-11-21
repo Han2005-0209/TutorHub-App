@@ -516,6 +516,7 @@ export function renderFooter(selector = '#khung-footer') {
 export function taoThanhDieuHuongDayMobileHtml(user = layNguoiDungHienTai()) {
   const path = window.location.pathname || '';
   const search = window.location.search || '';
+  const params = new URLSearchParams(search);
   // Trên trang Chi tiết Hồ sơ Gia sư và Phòng học trực tuyến đã có thanh công cụ đáy chuyên biệt
   if (path.includes('ho-so-gia-su') || path.includes('phong-hoc')) {
     return '';
@@ -523,87 +524,316 @@ export function taoThanhDieuHuongDayMobileHtml(user = layNguoiDungHienTai()) {
 
   const tabDangMo =
     document.querySelector('.studio-nav-btn[data-tab].active, .admin-nav-btn[data-tab].active')?.dataset?.tab ||
-    new URLSearchParams(search).get('tab') ||
+    params.get('tab') ||
     '';
+  const cheDoLichDangMo =
+    document.body?.dataset?.cheDoLich || params.get('cheDo') || 'lich';
 
-  const laActive = (matchPath, matchQuery = '') => {
+  const laActive = (matchPath) => {
     if (matchPath === '/index.html') {
       return path === '/' || path.endsWith('/index.html') ? 'active' : '';
     }
-    const khopPath = path.includes(matchPath.replace(/\.html$/, ''));
-    if (!khopPath) return '';
-    if (matchQuery) {
-      if (matchQuery.startsWith('tab=')) {
-        const expectedTab = matchQuery.slice(4);
-        return tabDangMo === expectedTab || search.includes(matchQuery) ? 'active' : '';
-      }
-      return search.includes(matchQuery) ? 'active' : '';
-    }
-    if (matchPath.includes('tim-kiem-gia-su') && search.includes('hinhThuc=TRUC_TIEP')) return '';
-    return 'active';
+    return path.includes(matchPath.replace(/\.html$/, '')) ? 'active' : '';
   };
 
   let items = [];
+  let meMenu = null;
+
   if (!user) {
+    // 4 mục gọn gàng, gộp Tìm gia sư & Bản đồ gần tôi thành 1
     items = [
-      { href: '/index.html', icon: icons.home(19), label: 'Khám phá', active: laActive('/index.html') },
+      { href: '/index.html', icon: icons.home(19), label: 'Trang chủ', active: laActive('/index.html') },
       { href: '/pages/tim-kiem-gia-su.html', icon: icons.search(19), label: 'Tìm gia sư', active: laActive('tim-kiem-gia-su') },
-      { href: '/pages/tim-kiem-gia-su.html?hinhThuc=TRUC_TIEP', icon: icons.map(19), label: 'Gần tôi', active: laActive('tim-kiem-gia-su', 'hinhThuc=TRUC_TIEP') },
       { href: '/pages/tro-thanh-gia-su.html', icon: icons.graduationCap(19), label: 'Dạy học', active: laActive('tro-thanh-gia-su') },
       { href: '/pages/dang-nhap.html', icon: icons.user(19), label: 'Đăng nhập', active: laActive('dang-nhap') },
     ];
   } else if (user.vaiTro === 'HOC_SINH') {
-    const dangOLichHoc = path.includes('hoc-sinh-tong-quan') && (tabDangMo === 'tab-lich-hoc' || search.includes('tab-lich-hoc'));
-    const dangOCuaToi = path.includes('hoc-sinh-tong-quan') && !dangOLichHoc;
+    const oCongHs = path.includes('hoc-sinh-tong-quan');
+    const dangOLichHoc = oCongHs && tabDangMo === 'tab-lich-hoc' && cheDoLichDangMo !== 'don-hang';
+    const dangOTinNhan = oCongHs && tabDangMo === 'tab-tin-nhan';
+    const dangOCuaToi = oCongHs && !dangOLichHoc && !dangOTinNhan;
+
     items = [
       { href: '/index.html', icon: icons.home(19), label: 'Trang chủ', active: laActive('/index.html') },
       { href: '/pages/tim-kiem-gia-su.html', icon: icons.search(19), label: 'Tìm gia sư', active: laActive('tim-kiem-gia-su') },
-      { href: '/pages/tim-kiem-gia-su.html?hinhThuc=TRUC_TIEP', icon: icons.map(19), label: 'Gần tôi', active: laActive('tim-kiem-gia-su', 'hinhThuc=TRUC_TIEP') },
-      { href: '/pages/hoc-sinh-tong-quan.html?tab=tab-lich-hoc', tab: 'tab-lich-hoc', icon: icons.calendar(19), label: 'Lịch học', active: dangOLichHoc ? 'active' : '' },
-      { href: '/pages/hoc-sinh-tong-quan.html?tab=tab-tong-quan', tab: 'tab-tong-quan', icon: icons.user(19), label: 'Của tôi', active: dangOCuaToi ? 'active' : '' },
+      {
+        href: '/pages/hoc-sinh-tong-quan.html?tab=tab-lich-hoc&cheDo=lich',
+        tab: 'tab-lich-hoc',
+        cheDo: 'lich',
+        icon: icons.calendar(19),
+        label: 'Lịch học',
+        active: dangOLichHoc ? 'active' : '',
+      },
+      {
+        href: '/pages/hoc-sinh-tong-quan.html?tab=tab-tin-nhan',
+        tab: 'tab-tin-nhan',
+        icon: icons.messageCircle(19),
+        label: 'Tin nhắn',
+        active: dangOTinNhan ? 'active' : '',
+      },
     ];
+
+    meMenu = {
+      label: 'Của tôi',
+      active: dangOCuaToi ? 'active' : '',
+      name: user.hoTen || 'Học sinh',
+      role: 'Tài khoản Học sinh',
+      links: [
+        {
+          href: '/pages/hoc-sinh-tong-quan.html?tab=tab-tong-quan',
+          tab: 'tab-tong-quan',
+          icon: icons.layoutDashboard(16),
+          label: 'Tổng quan học tập',
+          active: oCongHs && (tabDangMo === 'tab-tong-quan' || !tabDangMo),
+        },
+        {
+          href: '/pages/hoc-sinh-tong-quan.html?tab=tab-yeu-thich',
+          tab: 'tab-yeu-thich',
+          icon: icons.heart(16, false),
+          label: 'Gia sư đã lưu',
+          active: oCongHs && tabDangMo === 'tab-yeu-thich',
+        },
+        {
+          href: '/pages/hoc-sinh-tong-quan.html?tab=tab-lich-hoc&cheDo=don-hang',
+          tab: 'tab-lich-hoc',
+          cheDo: 'don-hang',
+          icon: icons.fileText ? icons.fileText(16) : icons.list(16),
+          label: 'Lịch sử đơn & Học phí',
+          active: oCongHs && tabDangMo === 'tab-lich-hoc' && cheDoLichDangMo === 'don-hang',
+        },
+        {
+          href: '/pages/hoc-sinh-tong-quan.html?tab=tab-tai-khoan',
+          tab: 'tab-tai-khoan',
+          icon: icons.wallet(16),
+          label: 'Ví học tập & Cài đặt',
+          active: oCongHs && tabDangMo === 'tab-tai-khoan',
+        },
+        { divider: true },
+        {
+          href: '/pages/tro-thanh-gia-su.html',
+          icon: icons.graduationCap(16),
+          label: 'Đăng ký làm Gia sư',
+        },
+        {
+          action: 'logout',
+          icon: icons.logout(16),
+          label: 'Đăng xuất',
+          danger: true,
+        },
+      ],
+    };
   } else if (user.vaiTro === 'GIA_SU') {
+    const oCongGs = path.includes('quan-ly-gia-su');
     const tabGs = tabDangMo || 'tab-tong-quan';
+    const dangOCuaToiGs = oCongGs && !['tab-tong-quan', 'tab-lich-ranh', 'tab-tin-nhan'].includes(tabGs);
+
     items = [
-      { href: '/pages/quan-ly-gia-su.html?tab=tab-tong-quan', tab: 'tab-tong-quan', icon: icons.layoutDashboard(19), label: 'Tổng quan', active: path.includes('quan-ly-gia-su') && tabGs === 'tab-tong-quan' ? 'active' : '' },
-      { href: '/pages/quan-ly-gia-su.html?tab=tab-lich-ranh', tab: 'tab-lich-ranh', icon: icons.calendar(19), label: 'Lịch dạy', active: path.includes('quan-ly-gia-su') && tabGs === 'tab-lich-ranh' ? 'active' : '' },
-      { href: '/pages/quan-ly-gia-su.html?tab=tab-tin-nhan', tab: 'tab-tin-nhan', icon: icons.messageCircle(19), label: 'Tin nhắn', active: path.includes('quan-ly-gia-su') && tabGs === 'tab-tin-nhan' ? 'active' : '' },
-      { href: '/pages/quan-ly-gia-su.html?tab=tab-vi-giao-dich', tab: 'tab-vi-giao-dich', icon: icons.wallet(19), label: 'Thu nhập', active: path.includes('quan-ly-gia-su') && tabGs === 'tab-vi-giao-dich' ? 'active' : '' },
-      { href: '/pages/quan-ly-gia-su.html?tab=tab-ho-so', tab: 'tab-ho-so', icon: icons.user(19), label: 'Hồ sơ', active: path.includes('quan-ly-gia-su') && ['tab-ho-so', 'tab-giay-to', 'tab-mon-hoc'].includes(tabGs) ? 'active' : '' },
+      {
+        href: '/pages/quan-ly-gia-su.html?tab=tab-tong-quan',
+        tab: 'tab-tong-quan',
+        icon: icons.layoutDashboard(19),
+        label: 'Tổng quan',
+        active: oCongGs && tabGs === 'tab-tong-quan' ? 'active' : '',
+      },
+      {
+        href: '/pages/quan-ly-gia-su.html?tab=tab-lich-ranh',
+        tab: 'tab-lich-ranh',
+        icon: icons.calendar(19),
+        label: 'Lịch dạy',
+        active: oCongGs && tabGs === 'tab-lich-ranh' ? 'active' : '',
+      },
+      {
+        href: '/pages/quan-ly-gia-su.html?tab=tab-tin-nhan',
+        tab: 'tab-tin-nhan',
+        icon: icons.messageCircle(19),
+        label: 'Tin nhắn',
+        active: oCongGs && tabGs === 'tab-tin-nhan' ? 'active' : '',
+      },
     ];
+
+    meMenu = {
+      label: 'Của tôi',
+      active: dangOCuaToiGs ? 'active' : '',
+      name: user.hoTen || 'Gia sư',
+      role: 'Cổng Gia sư',
+      links: [
+        {
+          href: '/pages/quan-ly-gia-su.html?tab=tab-vi-giao-dich',
+          tab: 'tab-vi-giao-dich',
+          icon: icons.wallet(16),
+          label: 'Ví & Thu nhập',
+          active: oCongGs && tabGs === 'tab-vi-giao-dich',
+        },
+        {
+          href: '/pages/quan-ly-gia-su.html?tab=tab-ho-so',
+          tab: 'tab-ho-so',
+          icon: icons.user(16),
+          label: 'Hồ sơ & Hình thức dạy',
+          active: oCongGs && tabGs === 'tab-ho-so',
+        },
+        {
+          href: '/pages/quan-ly-gia-su.html?tab=tab-mon-hoc',
+          tab: 'tab-mon-hoc',
+          icon: icons.bookOpen(16),
+          label: 'Môn dạy & Học phí',
+          active: oCongGs && tabGs === 'tab-mon-hoc',
+        },
+        {
+          href: '/pages/quan-ly-gia-su.html?tab=tab-giay-to',
+          tab: 'tab-giay-to',
+          icon: icons.shieldCheck(16),
+          label: 'Giấy tờ & Bằng cấp',
+          active: oCongGs && tabGs === 'tab-giay-to',
+        },
+        { divider: true },
+        { href: '/index.html', icon: icons.home(16), label: 'Về Trang chủ' },
+        { action: 'logout', icon: icons.logout(16), label: 'Đăng xuất', danger: true },
+      ],
+    };
   } else {
+    const oCongQt = path.includes('quan-tri');
     items = [
       { href: '/pages/quan-tri.html', icon: icons.shieldCheck(19), label: 'Quản trị', active: laActive('quan-tri') },
       { href: '/pages/tim-kiem-gia-su.html', icon: icons.search(19), label: 'Gia sư', active: laActive('tim-kiem-gia-su') },
       { href: '/index.html', icon: icons.home(19), label: 'Trang chủ', active: laActive('/index.html') },
-      { href: '/pages/ho-so-tai-khoan.html', icon: icons.user(19), label: 'Tài khoản', active: laActive('ho-so-tai-khoan') },
     ];
+    meMenu = {
+      label: 'Của tôi',
+      active: laActive('ho-so-tai-khoan'),
+      name: user.hoTen || 'Quản trị viên',
+      role: 'Quản trị hệ thống',
+      links: [
+        ...(oCongQt
+          ? [...document.querySelectorAll('.admin-nav-btn[data-tab]')].map((b) => ({
+              href: '/pages/quan-tri.html',
+              tab: b.dataset.tab,
+              icon: icons.list(16),
+              label: (b.textContent || '').replace(/\d+$/, '').trim(),
+              active: b.classList.contains('active'),
+            }))
+          : [{ href: '/pages/quan-tri.html', icon: icons.shieldCheck(16), label: 'Bảng điều khiển quản trị' }]),
+        { divider: true },
+        { href: '/pages/ho-so-tai-khoan.html', icon: icons.user(16), label: 'Tài khoản của tôi' },
+        { action: 'logout', icon: icons.logout(16), label: 'Đăng xuất', danger: true },
+      ],
+    };
   }
 
+  const tongCot = items.length + (meMenu ? 1 : 0);
+
   return `
-    <nav class="th-mobile-bottom-nav" id="th-mobile-bottom-nav" aria-label="Điều hướng nhanh trên điện thoại">
+    <div class="th-mobile-me-backdrop" id="th-mobile-me-backdrop"></div>
+    <nav class="th-mobile-bottom-nav" id="th-mobile-bottom-nav" style="--th-mob-cols: ${tongCot}" aria-label="Điều hướng nhanh trên điện thoại">
       ${items
         .map(
           (it) => `
-        <a href="${it.href}" class="th-mobile-nav-item ${it.active}" ${it.tab ? `data-portal-tab="${it.tab}"` : ''}>
+        <a href="${it.href}" class="th-mobile-nav-item ${it.active}" ${it.tab ? `data-portal-tab="${it.tab}"` : ''} ${it.cheDo ? `data-portal-che-do="${it.cheDo}"` : ''}>
           <span class="th-mobile-nav-icon">${it.icon}</span>
           <span class="th-mobile-nav-label">${escapeHtml(it.label)}</span>
         </a>
       `
         )
         .join('')}
+      ${
+        meMenu
+          ? `
+        <div class="th-mobile-me-wrap" id="th-mobile-me-wrap">
+          <button type="button" class="th-mobile-nav-item th-mobile-me-trigger ${meMenu.active}" id="btn-th-mobile-me" aria-haspopup="true" aria-expanded="false">
+            <span class="th-mobile-nav-icon">${icons.user(19)}</span>
+            <span class="th-mobile-nav-label">${escapeHtml(meMenu.label)} ▴</span>
+          </button>
+          <div class="th-mobile-me-menu" id="th-mobile-me-menu" role="menu" aria-label="Tùy chọn tài khoản cá nhân">
+            <div class="th-mobile-me-head">
+              <span class="th-mobile-me-avatar">${escapeHtml(layChuCaiDau(meMenu.name))}</span>
+              <div style="min-width: 0; flex: 1">
+                <div class="th-mobile-me-name">${escapeHtml(meMenu.name)}</div>
+                <div class="th-mobile-me-role">${escapeHtml(meMenu.role)}</div>
+              </div>
+            </div>
+            <div class="th-mobile-me-list">
+              ${meMenu.links
+                .map((lk) => {
+                  if (lk.divider) return '<div class="th-mobile-me-divider"></div>';
+                  if (lk.action === 'logout') {
+                    return `
+                      <button type="button" class="th-mobile-me-item danger" data-mobile-action="logout" role="menuitem">
+                        <span class="th-mobile-me-ico">${lk.icon}</span>
+                        <span>${escapeHtml(lk.label)}</span>
+                      </button>
+                    `;
+                  }
+                  return `
+                    <a href="${lk.href}" class="th-mobile-me-item ${lk.active ? 'active' : ''}" ${lk.tab ? `data-portal-tab="${lk.tab}"` : ''} ${lk.cheDo ? `data-portal-che-do="${lk.cheDo}"` : ''} role="menuitem">
+                      <span class="th-mobile-me-ico">${lk.icon}</span>
+                      <span>${escapeHtml(lk.label)}</span>
+                    </a>
+                  `;
+                })
+                .join('')}
+            </div>
+          </div>
+        </div>
+      `
+          : ''
+      }
     </nav>
   `;
 }
 
 export function ganThanhDieuHuongDayMobile(user = layNguoiDungHienTai()) {
   if (typeof document === 'undefined' || !document.body) return;
+  // Gỡ bỏ thanh pill cũ dưới header nếu còn sót lại
+  document.getElementById('portal-mobile-subtabs')?.remove();
+
   const html = taoThanhDieuHuongDayMobileHtml(user);
-  document.querySelectorAll('.th-mobile-bottom-nav').forEach((el) => el.remove());
+  document.querySelectorAll('.th-mobile-bottom-nav, .th-mobile-me-backdrop').forEach((el) => el.remove());
   if (!html) return;
   document.body.insertAdjacentHTML('beforeend', html);
   const navEl = document.getElementById('th-mobile-bottom-nav');
   if (!navEl) return;
+
+  const meWrap = document.getElementById('th-mobile-me-wrap');
+  const btnMe = document.getElementById('btn-th-mobile-me');
+  const backdrop = document.getElementById('th-mobile-me-backdrop');
+  let hoverCloseTimer = null;
+
+  const setMeOpen = (open) => {
+    if (!meWrap) return;
+    meWrap.classList.toggle('open', open);
+    backdrop?.classList.toggle('open', open);
+    btnMe?.setAttribute('aria-expanded', open ? 'true' : 'false');
+  };
+
+  if (meWrap && btnMe) {
+    // Mở menu khi chạm/click (điện thoại cảm ứng)
+    btnMe.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setMeOpen(!meWrap.classList.contains('open'));
+    });
+
+    // Mở menu ngay khi đưa trỏ chuột vào (PC / DevTools / Máy tính bảng có trỏ)
+    meWrap.addEventListener('mouseenter', () => {
+      if (hoverCloseTimer) {
+        clearTimeout(hoverCloseTimer);
+        hoverCloseTimer = null;
+      }
+      setMeOpen(true);
+    });
+
+    meWrap.addEventListener('mouseleave', () => {
+      hoverCloseTimer = setTimeout(() => setMeOpen(false), 180);
+    });
+
+    backdrop?.addEventListener('click', () => setMeOpen(false));
+  }
+
+  navEl.querySelectorAll('[data-mobile-action="logout"]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      setMeOpen(false);
+      dangXuatHeThong();
+    });
+  });
 
   navEl.querySelectorAll('a[data-portal-tab]').forEach((a) => {
     a.addEventListener('click', (e) => {
@@ -611,11 +841,17 @@ export function ganThanhDieuHuongDayMobile(user = layNguoiDungHienTai()) {
       const samePage =
         window.location.pathname.replace(/\.html$/, '') === targetUrl.pathname.replace(/\.html$/, '');
       const tabId = a.dataset.portalTab;
+      const cheDo = a.dataset.portalCheDo || '';
       const sideBtn = tabId
         ? document.querySelector(`.studio-nav-btn[data-tab="${tabId}"], .admin-nav-btn[data-tab="${tabId}"]`)
         : null;
+      setMeOpen(false);
       if (samePage && sideBtn) {
         e.preventDefault();
+        if (cheDo) {
+          document.body.dataset.cheDoLich = cheDo;
+          window.dispatchEvent(new CustomEvent('tutorhub:doi-che-do-lich', { detail: { cheDo } }));
+        }
         sideBtn.click();
         window.scrollTo({ top: 0, behavior: 'smooth' });
         ganThanhDieuHuongDayMobile(user);
@@ -628,72 +864,15 @@ let daKhoiTaoObserverPortalMobile = false;
 
 export function khoiTaoThanhTabNgangMobilePortal() {
   if (typeof document === 'undefined') return;
+  document.getElementById('portal-mobile-subtabs')?.remove();
   const appShell = document.querySelector('.app-shell');
-  const topbar = appShell?.querySelector('.app-topbar');
   const sideBtns = [...(appShell?.querySelectorAll('.studio-nav-btn[data-tab], .admin-nav-btn[data-tab]') || [])];
-  if (!appShell || !topbar || sideBtns.length === 0) return;
-
-  let strip = document.getElementById('portal-mobile-subtabs');
-  if (!strip) {
-    strip = document.createElement('nav');
-    strip.id = 'portal-mobile-subtabs';
-    strip.className = 'portal-mobile-subtabs';
-    strip.setAttribute('aria-label', 'Chuyển nhanh mục trong bảng điều khiển trên điện thoại');
-    topbar.insertAdjacentElement('afterend', strip);
-  }
-
-  const nhanGonMap = {
-    'tab-tong-quan': 'Tổng quan',
-    'tab-kham-pha': 'Tìm nhanh',
-    'tab-lich-hoc': 'Lịch học',
-    'tab-yeu-thich': 'Đã lưu',
-    'tab-tin-nhan': 'Tin nhắn',
-    'tab-tai-khoan': 'Ví & Tôi',
-    'tab-ho-so': 'Hồ sơ',
-    'tab-giay-to': 'Bằng cấp',
-    'tab-mon-hoc': 'Môn dạy',
-    'tab-lich-ranh': 'Lịch dạy',
-    'tab-vi-giao-dich': 'Ví & Thu nhập',
-  };
-
-  const dongBoSubtabs = () => {
-    strip.innerHTML = sideBtns
-      .map((btn) => {
-        const tabId = btn.dataset.tab;
-        const isAct = btn.classList.contains('active');
-        const rawText = (btn.querySelector('.studio-nav-btn-left')?.textContent || btn.textContent || '').trim();
-        const label = nhanGonMap[tabId] || rawText;
-        return `
-          <button type="button" class="portal-mobile-subtab-pill ${isAct ? 'active' : ''}" data-target-tab="${escapeHtml(tabId)}">
-            <span>${escapeHtml(label)}</span>
-          </button>
-        `;
-      })
-      .join('');
-
-    strip.querySelectorAll('.portal-mobile-subtab-pill').forEach((pill) => {
-      pill.addEventListener('click', () => {
-        const targetBtn = appShell.querySelector(
-          `.studio-nav-btn[data-tab="${pill.dataset.targetTab}"], .admin-nav-btn[data-tab="${pill.dataset.targetTab}"]`
-        );
-        if (targetBtn) {
-          targetBtn.click();
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-      });
-    });
-
-    const activePill = strip.querySelector('.portal-mobile-subtab-pill.active');
-    activePill?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
-    ganThanhDieuHuongDayMobile();
-  };
-
-  dongBoSubtabs();
+  if (!appShell || sideBtns.length === 0) return;
 
   if (!daKhoiTaoObserverPortalMobile) {
     daKhoiTaoObserverPortalMobile = true;
     const obs = new MutationObserver(() => {
-      dongBoSubtabs();
+      ganThanhDieuHuongDayMobile();
     });
     sideBtns.forEach((b) => obs.observe(b, { attributes: true, attributeFilter: ['class'] }));
   }
