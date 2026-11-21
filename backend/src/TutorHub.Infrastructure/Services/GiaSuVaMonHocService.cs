@@ -774,7 +774,7 @@ public sealed class GiaSuVaMonHocService : IGiaSuVaMonHocService
         CancellationToken cancellationToken = default)
     {
         var trang = Math.Max(1, boLoc.Trang);
-        var kichThuocTrang = Math.Clamp(boLoc.KichThuocTrang, 1, 36);
+        var kichThuocTrang = Math.Clamp(boLoc.KichThuocTrang, 1, 200);
 
         // 1. Đẩy toàn bộ bộ lọc có cấu trúc trực tiếp xuống SQL Server (phòng thủ nghẽn khi dữ liệu lớn)
         var truyVan = _db.GiaSus
