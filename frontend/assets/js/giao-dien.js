@@ -18,8 +18,16 @@ const ANH_CHAN_DUNG_MAC_DINH = {
   '30000000-0000-0000-0000-000000000008': '/assets/img/tutors/tutor-ngoc-mai.jpg',
 };
 
+export function toiUuUrlCloudinary(url) {
+  if (!url || typeof url !== 'string') return url;
+  if (url.includes('res.cloudinary.com/') && url.includes('/image/upload/') && !url.includes('/image/upload/f_auto')) {
+    return url.replace('/image/upload/', '/image/upload/f_auto,q_auto,w_520,h_520,c_fill,g_face/');
+  }
+  return url;
+}
+
 export function layAnhGiaSu(gs) {
-  if (gs?.anhDaiDienUrl) return gs.anhDaiDienUrl;
+  if (gs?.anhDaiDienUrl) return toiUuUrlCloudinary(gs.anhDaiDienUrl);
   const id = String(gs?.id || '').toLowerCase();
   if (ANH_CHAN_DUNG_MAC_DINH[id]) return ANH_CHAN_DUNG_MAC_DINH[id];
   const ten = (gs?.hoTen || '').toLowerCase();

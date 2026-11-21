@@ -25,6 +25,7 @@ public sealed class MonHocController : ControllerBase
 
     [HttpGet]
     [AllowAnonymous]
+    [ResponseCache(Duration = 120, Location = ResponseCacheLocation.Any)]
     [ProducesResponseType(typeof(PhanHoiApi<IReadOnlyList<MonHocDto>>), StatusCodes.Status200OK)]
     public async Task<ActionResult<PhanHoiApi<IReadOnlyList<MonHocDto>>>> LayDsMonHoc(CancellationToken cancellationToken)
     {
@@ -68,6 +69,9 @@ public sealed class GiaSuController : ControllerBase
         [FromQuery] string? sapXep = "phu_hop",
         [FromQuery] int trang = 1,
         [FromQuery] int kichThuocTrang = 12,
+        [FromQuery] double? viDo = null,
+        [FromQuery] double? kinhDo = null,
+        [FromQuery] double? banKinhQuetKm = null,
         CancellationToken cancellationToken = default)
     {
         var hocSinhId = User.LayNguoiDungIdTuyChon();
@@ -82,7 +86,10 @@ public sealed class GiaSuController : ControllerBase
             CoHocThu: coHocThu,
             SapXep: sapXep,
             Trang: trang,
-            KichThuocTrang: kichThuocTrang);
+            KichThuocTrang: kichThuocTrang,
+            ViDo: viDo,
+            KinhDo: kinhDo,
+            BanKinhQuetKm: banKinhQuetKm);
 
         var kq = await _service.TimKiemGiaSuAsync(boLoc, hocSinhId, cancellationToken);
         return Ok(new PhanHoiApi<IReadOnlyList<ThongTinGiaSuTomTatDto>>(

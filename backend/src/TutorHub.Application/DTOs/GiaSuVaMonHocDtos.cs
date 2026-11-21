@@ -243,7 +243,10 @@ public sealed record BoLocTimKiemGiaSuDto(
     bool? CoHocThu = null,
     string? SapXep = "phu_hop",
     int Trang = 1,
-    int KichThuocTrang = 12);
+    int KichThuocTrang = 12,
+    double? ViDo = null,
+    double? KinhDo = null,
+    double? BanKinhQuetKm = null);
 
 public sealed record KetQuaPhanTrangDto<T>(
     IReadOnlyList<T> DuLieu,

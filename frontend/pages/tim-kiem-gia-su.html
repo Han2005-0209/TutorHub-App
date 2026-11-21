@@ -683,6 +683,11 @@
         if (sapXep) params.set('sapXep', sapXep);
         if (chiDaXacMinh) params.set('chiDaXacMinh', 'true');
         if (coHocThu) params.set('coHocThu', 'true');
+        if (viTriHienTaiToaDo && hinhThuc !== 'TRUC_TUYEN') {
+          params.set('viDo', String(viTriHienTaiToaDo.lat));
+          params.set('kinhDo', String(viTriHienTaiToaDo.lng));
+          if (banKinhQuetKm > 0) params.set('banKinhQuetKm', String(banKinhQuetKm));
+        }
         params.set('trang', String(trang));
         params.set('kichThuocTrang', '12');
 
@@ -693,9 +698,9 @@
         try {
           const res = await api.get(`/gia-su?${params.toString()}`);
           let ds = res?.duLieu || [];
-          const meta = res?.meta || { trang: 1, tong: ds.length, tongTrang: 1 };
+          const meta = res?.meta || { trang: 1, kichThuocTrang: 12, tong: ds.length, tongTrang: 1 };
 
-          // Tính khoảng cách và lọc/sắp xếp theo bán kính quét của học sinh
+          // Gắn khoảng cách km hiển thị trên thẻ khi học sinh bật định vị (lọc & phân trang đã xử lý tại máy chủ)
           if (viTriHienTaiToaDo) {
             ds.forEach((gs) => {
               if (gs.coDayTrucTiep && typeof gs.viDoMo === 'number' && typeof gs.kinhDoMo === 'number') {
@@ -703,21 +708,6 @@
                 gs._khoangCachKm = d;
                 gs._sanSangDenNha = d <= (gs.banKinhPhucVuKm || 10);
               }
-            });
-
-            // Lọc gia sư trực tiếp trong bán kính quét của học sinh (3km, 5km, 10km, 15km)
-            if (banKinhQuetKm > 0 && hinhThuc !== 'TRUC_TUYEN') {
-              ds = ds.filter((gs) => {
-                if (!gs.coDayTrucTiep) return hinhThuc !== 'TRUC_TIEP';
-                return typeof gs._khoangCachKm === 'number' && gs._khoangCachKm <= banKinhQuetKm;
-              });
-            }
-
-            // Sắp xếp tăng dần theo khoảng cách (gần nhất lên đầu)
-            ds.sort((a, b) => {
-              const dA = typeof a._khoangCachKm === 'number' ? a._khoangCachKm : 9999;
-              const dB = typeof b._khoangCachKm === 'number' ? b._khoangCachKm : 9999;
-              return dA - dB;
             });
           }
 
@@ -730,10 +720,15 @@
                 ? 'học trực tiếp tại nhà'
                 : 'phù hợp';
 
+          const tongSo = typeof meta.tong === 'number' ? meta.tong : ds.length;
+          const tuIdx = tongSo === 0 ? 0 : (meta.trang - 1) * (meta.kichThuocTrang || 12) + 1;
+          const denIdx = tuIdx === 0 ? 0 : tuIdx + ds.length - 1;
+          const chuThichTrang = meta.tongTrang > 1 ? ` · Hiển thị ${tuIdx}–${denIdx} (Trang ${meta.trang}/${meta.tongTrang})` : '';
+
           if (viTriHienTaiToaDo && banKinhQuetKm > 0 && hinhThuc !== 'TRUC_TUYEN') {
-            moTa.innerHTML = `🎯 Tìm thấy <strong>${ds.length} gia sư</strong> trong bán kính <strong>${banKinhQuetKm} km</strong> quanh bạn`;
+            moTa.innerHTML = `🎯 Tìm thấy <strong>${tongSo} gia sư</strong> trong bán kính <strong>${banKinhQuetKm} km</strong> quanh bạn${chuThichTrang}`;
           } else {
-            moTa.textContent = `Tìm thấy ${ds.length} gia sư ${nhanCheDo}`;
+            moTa.textContent = `Tìm thấy ${tongSo} gia sư ${nhanCheDo}${chuThichTrang}`;
           }
 
           if (cheDoXem === 'ban_do' && hinhThuc !== 'TRUC_TUYEN') {
@@ -767,13 +762,36 @@
           el.innerHTML = '';
           return;
         }
-        let html = '';
-        for (let i = 1; i <= meta.tongTrang; i++) {
-          html += `<button type="button" class="btn btn-sm ${i === meta.trang ? 'btn-primary' : 'btn-secondary'}" data-trang="${i}">Trang ${i}</button>`;
+        const cur = meta.trang;
+        const total = meta.tongTrang;
+        const pages = [];
+        const add = (p) => { if (!pages.includes(p)) pages.push(p); };
+        add(1);
+        for (let p = Math.max(2, cur - 2); p <= Math.min(total - 1, cur + 2); p++) add(p);
+        if (total > 1) add(total);
+        pages.sort((a, b) => a - b);
+
+        let html = `<button type="button" class="btn btn-sm btn-secondary" data-trang="${cur - 1}" ${cur <= 1 ? 'disabled' : ''}>‹ Trước</button>`;
+        let prev = 0;
+        for (const p of pages) {
+          if (prev && p - prev > 1) {
+            html += `<span style="padding: 0 0.35rem; color: var(--th-text-muted); align-self: center">…</span>`;
+          }
+          html += `<button type="button" class="btn btn-sm ${p === cur ? 'btn-primary' : 'btn-secondary'}" data-trang="${p}">${p}</button>`;
+          prev = p;
         }
+        html += `<button type="button" class="btn btn-sm btn-secondary" data-trang="${cur + 1}" ${cur >= total ? 'disabled' : ''}>Sau ›</button>`;
+        html += `<span style="font-size: 0.8rem; color: var(--th-text-muted); margin-left: 0.45rem; align-self: center">Trang ${cur}/${total} (${meta.tong} gia sư)</span>`;
+
         el.innerHTML = html;
-        el.querySelectorAll('button').forEach((b) => {
-          b.addEventListener('click', () => timKiem(Number(b.dataset.trang)));
+        el.querySelectorAll('button[data-trang]').forEach((b) => {
+          b.addEventListener('click', () => {
+            const p = Number(b.dataset.trang);
+            if (p >= 1 && p <= total && p !== cur) {
+              timKiem(p);
+              document.getElementById('mo-ta-ket-qua')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+          });
         });
       }
 

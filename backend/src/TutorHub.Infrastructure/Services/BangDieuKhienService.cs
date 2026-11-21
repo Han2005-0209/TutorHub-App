@@ -191,27 +191,52 @@ public sealed class BangDieuKhienService : IBangDieuKhienService
             TongGiaTriGiaoDich: tongGiaTriGiaoDich);
     }
 
-    public async Task<IReadOnlyList<GiaSuQuanTriDto>> LayDsGiaSuQuanTriAsync(
+    public async Task<KetQuaPhanTrangDto<GiaSuQuanTriDto>> LayDsGiaSuQuanTriAsync(
         TrangThaiHoSoGiaSu? trangThai = null,
+        string? tuKhoa = null,
+        int trang = 1,
+        int kichThuocTrang = 12,
         CancellationToken cancellationToken = default)
     {
-        var truyVan = _db.GiaSus
-            .AsNoTracking()
-            .Include(g => g.DsGiayTo)
-            .Include(g => g.DsMonDay)
-            .AsQueryable();
+        var trangChuan = Math.Max(1, trang);
+        var kichThuocChuan = Math.Clamp(kichThuocTrang, 1, 50);
+
+        var truyVan = _db.GiaSus.AsNoTracking().AsQueryable();
 
         if (trangThai.HasValue)
         {
             truyVan = truyVan.Where(g => g.TrangThaiHoSo == trangThai.Value);
         }
 
+        if (!string.IsNullOrWhiteSpace(tuKhoa))
+        {
+            var tk = tuKhoa.Trim();
+            truyVan = truyVan.Where(g =>
+                g.HoTen.Contains(tk) ||
+                g.Email.Contains(tk) ||
+                g.TieuDe.Contains(tk) ||
+                (g.KhuVuc != null && g.KhuVuc.Contains(tk)));
+        }
+
+        var tong = await truyVan.CountAsync(cancellationToken);
+        var tongTrang = tong == 0 ? 0 : (int)Math.Ceiling(tong / (double)kichThuocChuan);
+
         var ds = await truyVan
+            .Include(g => g.DsGiayTo)
+            .Include(g => g.DsMonDay)
+            .AsSplitQuery()
             .OrderBy(g => g.TrangThaiHoSo == TrangThaiHoSoGiaSu.CHO_DUYET ? 0 : 1)
             .ThenByDescending(g => g.TaoLuc)
+            .Skip((trangChuan - 1) * kichThuocChuan)
+            .Take(kichThuocChuan)
             .ToListAsync(cancellationToken);
 
-        return ds.Select(AnhXaGiaSuQuanTri).ToList();
+        return new KetQuaPhanTrangDto<GiaSuQuanTriDto>(
+            DuLieu: ds.Select(AnhXaGiaSuQuanTri).ToList(),
+            Trang: trangChuan,
+            KichThuocTrang: kichThuocChuan,
+            Tong: tong,
+            TongTrang: tongTrang);
     }
 
     public async Task<GiaSuQuanTriDto> DuyetHoSoGiaSuAsync(
@@ -274,36 +299,51 @@ public sealed class BangDieuKhienService : IBangDieuKhienService
             giayTo.DuyetLuc);
     }
 
-    public async Task<IReadOnlyList<NguoiDungQuanTriDto>> LayDsNguoiDungQuanTriAsync(
+    public async Task<KetQuaPhanTrangDto<NguoiDungQuanTriDto>> LayDsNguoiDungQuanTriAsync(
         VaiTro? vaiTro = null,
         string? tuKhoa = null,
+        int trang = 1,
+        int kichThuocTrang = 15,
         CancellationToken cancellationToken = default)
     {
-        var ds = await _db.NguoiDungs
-            .AsNoTracking()
-            .OrderByDescending(u => u.TaoLuc)
-            .ToListAsync(cancellationToken);
+        var trangChuan = Math.Max(1, trang);
+        var kichThuocChuan = Math.Clamp(kichThuocTrang, 1, 50);
 
-        var dsVi = await _db.TaiKhoanVis
-            .AsNoTracking()
-            .ToDictionaryAsync(v => v.NguoiDungThamGiaId, v => v.SoDu, cancellationToken);
-
-        IEnumerable<NguoiDung> ketQua = ds;
-        if (vaiTro.HasValue)
+        IQueryable<NguoiDung> truyVan = vaiTro switch
         {
-            ketQua = ketQua.Where(u => u.VaiTro == vaiTro.Value);
-        }
+            VaiTro.HOC_SINH => _db.HocSinhs.AsNoTracking(),
+            VaiTro.GIA_SU => _db.GiaSus.AsNoTracking(),
+            VaiTro.QUAN_TRI => _db.QuanTriViens.AsNoTracking(),
+            _ => _db.NguoiDungs.AsNoTracking()
+        };
 
         if (!string.IsNullOrWhiteSpace(tuKhoa))
         {
             var tk = tuKhoa.Trim();
-            ketQua = ketQua.Where(u =>
-                u.HoTen.Contains(tk, StringComparison.OrdinalIgnoreCase) ||
-                u.Email.Contains(tk, StringComparison.OrdinalIgnoreCase) ||
-                (u.KhuVuc?.Contains(tk, StringComparison.OrdinalIgnoreCase) ?? false));
+            truyVan = truyVan.Where(u =>
+                u.HoTen.Contains(tk) ||
+                u.Email.Contains(tk) ||
+                (u.KhuVuc != null && u.KhuVuc.Contains(tk)));
         }
 
-        return ketQua.Select(u => new NguoiDungQuanTriDto(
+        var tong = await truyVan.CountAsync(cancellationToken);
+        var tongTrang = tong == 0 ? 0 : (int)Math.Ceiling(tong / (double)kichThuocChuan);
+
+        var ds = await truyVan
+            .OrderByDescending(u => u.TaoLuc)
+            .Skip((trangChuan - 1) * kichThuocChuan)
+            .Take(kichThuocChuan)
+            .ToListAsync(cancellationToken);
+
+        var dsIds = ds.Select(u => u.Id).ToList();
+        var dsVi = dsIds.Count == 0
+            ? new Dictionary<Guid, int>()
+            : await _db.TaiKhoanVis
+                .AsNoTracking()
+                .Where(v => dsIds.Contains(v.NguoiDungThamGiaId))
+                .ToDictionaryAsync(v => v.NguoiDungThamGiaId, v => v.SoDu, cancellationToken);
+
+        var duLieu = ds.Select(u => new NguoiDungQuanTriDto(
             Id: u.Id,
             HoTen: u.HoTen,
             Email: u.Email,
@@ -313,6 +353,13 @@ public sealed class BangDieuKhienService : IBangDieuKhienService
             TrangThai: u.TrangThai,
             SoDuVi: dsVi.TryGetValue(u.Id, out var soDu) ? soDu : null,
             TaoLuc: u.TaoLuc)).ToList();
+
+        return new KetQuaPhanTrangDto<NguoiDungQuanTriDto>(
+            DuLieu: duLieu,
+            Trang: trangChuan,
+            KichThuocTrang: kichThuocChuan,
+            Tong: tong,
+            TongTrang: tongTrang);
     }
 
     public async Task<NguoiDungQuanTriDto> KhoaTaiKhoanAsync(

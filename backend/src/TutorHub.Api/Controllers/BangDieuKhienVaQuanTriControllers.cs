@@ -88,10 +88,15 @@ public sealed class QuanTriController : ControllerBase
     [HttpGet("gia-su")]
     public async Task<ActionResult<PhanHoiApi<IReadOnlyList<GiaSuQuanTriDto>>>> LayDsGiaSu(
         [FromQuery] TrangThaiHoSoGiaSu? trangThai,
-        CancellationToken cancellationToken)
+        [FromQuery] string? tuKhoa = null,
+        [FromQuery] int trang = 1,
+        [FromQuery] int kichThuocTrang = 12,
+        CancellationToken cancellationToken = default)
     {
-        var ds = await _service.LayDsGiaSuQuanTriAsync(trangThai, cancellationToken);
-        return Ok(new PhanHoiApi<IReadOnlyList<GiaSuQuanTriDto>>(ds));
+        var kq = await _service.LayDsGiaSuQuanTriAsync(trangThai, tuKhoa, trang, kichThuocTrang, cancellationToken);
+        return Ok(new PhanHoiApi<IReadOnlyList<GiaSuQuanTriDto>>(
+            kq.DuLieu,
+            new MetaPhanTrangDto(kq.Trang, kq.KichThuocTrang, kq.Tong, kq.TongTrang)));
     }
 
     [HttpPost("gia-su/{id:guid}/duyet")]
@@ -120,10 +125,14 @@ public sealed class QuanTriController : ControllerBase
     public async Task<ActionResult<PhanHoiApi<IReadOnlyList<NguoiDungQuanTriDto>>>> LayDsNguoiDung(
         [FromQuery] VaiTro? vaiTro,
         [FromQuery] string? tuKhoa,
-        CancellationToken cancellationToken)
+        [FromQuery] int trang = 1,
+        [FromQuery] int kichThuocTrang = 15,
+        CancellationToken cancellationToken = default)
     {
-        var ds = await _service.LayDsNguoiDungQuanTriAsync(vaiTro, tuKhoa, cancellationToken);
-        return Ok(new PhanHoiApi<IReadOnlyList<NguoiDungQuanTriDto>>(ds));
+        var kq = await _service.LayDsNguoiDungQuanTriAsync(vaiTro, tuKhoa, trang, kichThuocTrang, cancellationToken);
+        return Ok(new PhanHoiApi<IReadOnlyList<NguoiDungQuanTriDto>>(
+            kq.DuLieu,
+            new MetaPhanTrangDto(kq.Trang, kq.KichThuocTrang, kq.Tong, kq.TongTrang)));
     }
 
     [HttpPost("nguoi-dung/{id:guid}/khoa")]

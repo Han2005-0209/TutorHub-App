@@ -13,8 +13,11 @@ public interface IBangDieuKhienService
     Task<TongQuanGiaSuDto> LayTongQuanGiaSuAsync(Guid giaSuId, CancellationToken cancellationToken = default);
 
     Task<TongQuanQuanTriDto> LayTongQuanQuanTriAsync(CancellationToken cancellationToken = default);
-    Task<IReadOnlyList<GiaSuQuanTriDto>> LayDsGiaSuQuanTriAsync(
+    Task<KetQuaPhanTrangDto<GiaSuQuanTriDto>> LayDsGiaSuQuanTriAsync(
         TrangThaiHoSoGiaSu? trangThai = null,
+        string? tuKhoa = null,
+        int trang = 1,
+        int kichThuocTrang = 12,
         CancellationToken cancellationToken = default);
     Task<GiaSuQuanTriDto> DuyetHoSoGiaSuAsync(
         Guid quanTriId,
@@ -27,9 +30,11 @@ public interface IBangDieuKhienService
         DuyetGiayToYeuCauDto yeuCau,
         CancellationToken cancellationToken = default);
 
-    Task<IReadOnlyList<NguoiDungQuanTriDto>> LayDsNguoiDungQuanTriAsync(
+    Task<KetQuaPhanTrangDto<NguoiDungQuanTriDto>> LayDsNguoiDungQuanTriAsync(
         VaiTro? vaiTro = null,
         string? tuKhoa = null,
+        int trang = 1,
+        int kichThuocTrang = 15,
         CancellationToken cancellationToken = default);
     Task<NguoiDungQuanTriDto> KhoaTaiKhoanAsync(
         Guid quanTriId,

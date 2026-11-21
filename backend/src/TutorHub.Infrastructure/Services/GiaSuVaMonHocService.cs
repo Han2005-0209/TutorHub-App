@@ -774,122 +774,312 @@ public sealed class GiaSuVaMonHocService : IGiaSuVaMonHocService
         CancellationToken cancellationToken = default)
     {
         var trang = Math.Max(1, boLoc.Trang);
-        var kichThuocTrang = Math.Clamp(boLoc.KichThuocTrang, 1, 50);
+        var kichThuocTrang = Math.Clamp(boLoc.KichThuocTrang, 1, 36);
 
-        var dsGiaSu = await _db.GiaSus
+        // 1. Đẩy toàn bộ bộ lọc có cấu trúc trực tiếp xuống SQL Server (phòng thủ nghẽn khi dữ liệu lớn)
+        var truyVan = _db.GiaSus
             .AsNoTracking()
-            .Include(g => g.DsMonDay)
-                .ThenInclude(m => m.MonHoc)
-            .Include(g => g.DsMonDay)
-                .ThenInclude(m => m.DsDonDatLich)
-                    .ThenInclude(d => d.DanhGia)
-            .Include(g => g.DsGiayTo)
             .Where(g => g.TrangThai == TrangThaiNguoiDung.HOAT_DONG &&
-                        g.TrangThaiHoSo == TrangThaiHoSoGiaSu.DA_DUYET)
-            .ToListAsync(cancellationToken);
-
-        var tapYeuThich = hocSinhHienTaiId.HasValue
-            ? (await _db.MucYeuThichs
-                .AsNoTracking()
-                .Where(y => y.HocSinhId == hocSinhHienTaiId.Value)
-                .Select(y => y.GiaSuId)
-                .ToListAsync(cancellationToken)).ToHashSet()
-            : new HashSet<Guid>();
-
-        IEnumerable<GiaSu> ketQuaLoc = dsGiaSu;
-
-        if (!string.IsNullOrWhiteSpace(boLoc.TuKhoa))
-        {
-            var tk = boLoc.TuKhoa.Trim();
-            var tkSlug = MonHoc.TaoSlug(tk);
-            var cacTuKhoa = tk.Split(new[] { ' ', ',', '-', ';', '.', '/', '(', ')' }, StringSplitOptions.RemoveEmptyEntries)
-                .Select(MonHoc.TaoSlug)
-                .Where(s => !string.IsNullOrWhiteSpace(s) && s.Length >= 2 && !new[] { "tai", "cho", "can", "tim", "gia", "su", "day", "hoc", "o" }.Contains(s))
-                .ToList();
-
-            ketQuaLoc = ketQuaLoc.Where(g =>
-            {
-                // 1. Khớp nguyên cụm từ trước
-                if (ChuaKhongDau(g.HoTen, tkSlug) ||
-                    ChuaKhongDau(g.TieuDe, tkSlug) ||
-                    ChuaKhongDau(g.GioiThieu, tkSlug) ||
-                    ChuaKhongDau(g.KhuVuc, tkSlug) ||
-                    g.DsMonDay.Any(m => m.MonHoc != null && ChuaKhongDau(m.MonHoc.Ten, tkSlug)))
-                {
-                    return true;
-                }
-
-                // 2. Nếu có các từ khóa ý nghĩa riêng lẻ, kiểm tra từng từ phải khớp với ít nhất một trường thông tin
-                if (cacTuKhoa.Count > 0)
-                {
-                    return cacTuKhoa.All(tu =>
-                        ChuaKhongDau(g.HoTen, tu) ||
-                        ChuaKhongDau(g.TieuDe, tu) ||
-                        ChuaKhongDau(g.GioiThieu, tu) ||
-                        ChuaKhongDau(g.KhuVuc, tu) ||
-                        g.DsMonDay.Any(m => m.MonHoc != null && ChuaKhongDau(m.MonHoc.Ten, tu)));
-                }
-
-                return false;
-            });
-        }
+                        g.TrangThaiHoSo == TrangThaiHoSoGiaSu.DA_DUYET);
 
         if (boLoc.MonHocId.HasValue)
         {
-            ketQuaLoc = ketQuaLoc.Where(g => g.DsMonDay.Any(m => m.MonHocId == boLoc.MonHocId.Value));
+            var monHocId = boLoc.MonHocId.Value;
+            truyVan = truyVan.Where(g => g.DsMonDay.Any(m => m.MonHocId == monHocId));
         }
 
-        if (boLoc.HinhThuc.HasValue)
+        if (boLoc.HinhThuc == HinhThucBuoiHoc.TRUC_TUYEN)
         {
-            ketQuaLoc = ketQuaLoc.Where(g => g.HinhThucDay.Contains(boLoc.HinhThuc.Value));
+            truyVan = truyVan.Where(g => g.DayTrucTuyen);
         }
-
-        // Lọc theo khu vực: chỉ bắt buộc lọc cứng khi có nhập khu vực
-        if (!string.IsNullOrWhiteSpace(boLoc.KhuVuc))
+        else if (boLoc.HinhThuc == HinhThucBuoiHoc.TRUC_TIEP)
         {
-            var kvSlug = MonHoc.TaoSlug(boLoc.KhuVuc);
-            ketQuaLoc = ketQuaLoc.Where(g => ChuaKhongDau(g.KhuVuc, kvSlug));
+            truyVan = truyVan.Where(g => g.DayTrucTiep);
         }
 
         if (boLoc.GiaToiThieu.HasValue)
         {
-            ketQuaLoc = ketQuaLoc.Where(g => g.DsMonDay.Any(m => m.GiaMoiGio >= boLoc.GiaToiThieu.Value));
+            var giaMin = boLoc.GiaToiThieu.Value;
+            truyVan = truyVan.Where(g => g.DsMonDay.Any(m => m.GiaMoiGio >= giaMin));
         }
 
         if (boLoc.GiaToiDa.HasValue)
         {
-            ketQuaLoc = ketQuaLoc.Where(g => g.DsMonDay.Any(m => m.GiaMoiGio <= boLoc.GiaToiDa.Value));
-        }
-
-        if (boLoc.ChiDaXacMinh == true)
-        {
-            ketQuaLoc = ketQuaLoc.Where(g => g.DaXacMinh);
+            var giaMax = boLoc.GiaToiDa.Value;
+            truyVan = truyVan.Where(g => g.DsMonDay.Any(m => m.GiaMoiGio <= giaMax));
         }
 
         if (boLoc.CoHocThu == true)
         {
-            ketQuaLoc = ketQuaLoc.Where(g => g.CoHocThu && g.DayTrucTuyen);
+            truyVan = truyVan.Where(g => g.CoHocThu && g.DayTrucTuyen);
         }
 
-        var dsDto = ketQuaLoc
-            .Select(g => AnhXaGiaSuTomTatDto(g, tapYeuThich.Contains(g.Id), boLoc.GiaToiDa))
-            .ToList();
-
-        dsDto = (boLoc.SapXep?.ToLowerInvariant()) switch
+        if (boLoc.ChiDaXacMinh == true)
         {
-            "gia_tang" => dsDto.OrderBy(x => x.GiaThapNhat).ThenByDescending(x => x.DiemXepHang).ToList(),
-            "gia_giam" => dsDto.OrderByDescending(x => x.GiaThapNhat).ThenByDescending(x => x.DiemXepHang).ToList(),
-            "danh_gia" => dsDto.OrderByDescending(x => x.DiemDanhGiaTrungBinh).ThenByDescending(x => x.SoLuotDanhGia).ToList(),
-            "kinh_nghiem" => dsDto.OrderByDescending(x => x.SoNamKinhNghiem).ThenByDescending(x => x.DiemXepHang).ToList(),
-            _ => dsDto.OrderByDescending(x => x.DiemXepHang).ThenByDescending(x => x.DiemDanhGiaTrungBinh).ToList()
-        };
+            truyVan = truyVan.Where(g => g.DsGiayTo.Any(gt =>
+                (gt.Loai == LoaiGiayTo.BANG_CAP || gt.Loai == LoaiGiayTo.CHUNG_CHI) &&
+                gt.TrangThai == TrangThaiGiayTo.DA_DUYET));
+        }
 
-        var tong = dsDto.Count;
+        // 2. Chiếu tổng hợp siêu nhẹ tại SQL Server (KHÔNG Include bảng DonDatLich/DanhGia/GiayTo tránh Cartesian explosion)
+        var truyVanChiSo = truyVan.Select(g => new ChiSoGiaSuSql
+        {
+            Id = g.Id,
+            HoTen = g.HoTen,
+            TieuDe = g.TieuDe,
+            KhuVuc = g.KhuVuc,
+            SoNamKinhNghiem = g.SoNamKinhNghiem,
+            DayTrucTuyen = g.DayTrucTuyen,
+            DayTrucTiep = g.DayTrucTiep,
+            CoHocThu = g.CoHocThu,
+            BanKinhPhucVuKm = g.BanKinhPhucVuKm,
+            GiaThapNhat = g.DsMonDay.Select(m => (int?)m.GiaMoiGio).Min() ?? 0,
+            GiaCaoNhat = g.DsMonDay.Select(m => (int?)m.GiaMoiGio).Max() ?? 0,
+            DaXacMinh = g.DsGiayTo.Any(gt =>
+                (gt.Loai == LoaiGiayTo.BANG_CAP || gt.Loai == LoaiGiayTo.CHUNG_CHI) &&
+                gt.TrangThai == TrangThaiGiayTo.DA_DUYET),
+            SoBuoiHoanThanh = g.DsMonDay
+                .SelectMany(m => m.DsDonDatLich)
+                .Count(d => d.TrangThai == TrangThaiDonDatLich.HOAN_THANH),
+            SoLuotDanhGia = g.DsMonDay
+                .SelectMany(m => m.DsDonDatLich)
+                .Count(d => d.DanhGia != null && d.DanhGia.LyDoAn == null),
+            TongDiemDanhGia = g.DsMonDay
+                .SelectMany(m => m.DsDonDatLich)
+                .Where(d => d.DanhGia != null && d.DanhGia.LyDoAn == null)
+                .Sum(d => (int?)d.DanhGia!.Diem) ?? 0
+        });
+
+        var coLocTuKhoa = !string.IsNullOrWhiteSpace(boLoc.TuKhoa);
+        var coLocKhuVuc = !string.IsNullOrWhiteSpace(boLoc.KhuVuc);
+        var coLocToaDo = boLoc.ViDo.HasValue && boLoc.KinhDo.HasValue;
+        var sapXep = boLoc.SapXep?.ToLowerInvariant() ?? "phu_hop";
+
+        int tong;
+        List<ChiSoGiaSuSql> dsTrangChiSo;
+
+        if (!coLocTuKhoa && !coLocKhuVuc && !coLocToaDo)
+        {
+            // Nhánh phân trang thuần SQL Server: chỉ truyền đúng kichThuocTrang (12) dòng qua mạng!
+            tong = await truyVan.CountAsync(cancellationToken);
+            if (tong == 0)
+            {
+                return new KetQuaPhanTrangDto<ThongTinGiaSuTomTatDto>([], trang, kichThuocTrang, 0, 0);
+            }
+
+            IQueryable<ChiSoGiaSuSql> truyVanSapXep = sapXep switch
+            {
+                "gia_tang" => truyVanChiSo
+                    .OrderBy(x => x.GiaThapNhat)
+                    .ThenByDescending(x => x.SoLuotDanhGia > 0 ? (double)x.TongDiemDanhGia / x.SoLuotDanhGia : 0.0)
+                    .ThenByDescending(x => x.SoBuoiHoanThanh),
+                "gia_giam" => truyVanChiSo
+                    .OrderByDescending(x => x.GiaThapNhat)
+                    .ThenByDescending(x => x.SoLuotDanhGia > 0 ? (double)x.TongDiemDanhGia / x.SoLuotDanhGia : 0.0),
+                "danh_gia" => truyVanChiSo
+                    .OrderByDescending(x => x.SoLuotDanhGia > 0 ? (double)x.TongDiemDanhGia / x.SoLuotDanhGia : 0.0)
+                    .ThenByDescending(x => x.SoLuotDanhGia)
+                    .ThenByDescending(x => x.SoBuoiHoanThanh),
+                "kinh_nghiem" => truyVanChiSo
+                    .OrderByDescending(x => x.SoNamKinhNghiem)
+                    .ThenByDescending(x => x.SoBuoiHoanThanh),
+                _ => truyVanChiSo
+                    .OrderByDescending(x =>
+                        0.35 * ((x.SoLuotDanhGia > 0 ? (double)x.TongDiemDanhGia / x.SoLuotDanhGia : 0.0) / 5.0) +
+                        0.25 * ((x.SoBuoiHoanThanh > 100 ? 100 : x.SoBuoiHoanThanh) / 100.0) +
+                        (x.DaXacMinh ? 0.20 : 0.0))
+                    .ThenByDescending(x => x.SoBuoiHoanThanh)
+                    .ThenBy(x => x.Id)
+            };
+
+            dsTrangChiSo = await truyVanSapXep
+                .Skip((trang - 1) * kichThuocTrang)
+                .Take(kichThuocTrang)
+                .ToListAsync(cancellationToken);
+        }
+        else
+        {
+            // Nhánh tìm kiếm tiếng Việt không dấu / khu vực / quét tọa độ quanh học sinh trên tập chỉ số siêu nhẹ
+            var dsNhe = await truyVanChiSo.ToListAsync(cancellationToken);
+
+            Dictionary<Guid, List<string>>? mapTenMon = null;
+            if (coLocTuKhoa && dsNhe.Count > 0)
+            {
+                var ids = dsNhe.Select(x => x.Id).ToList();
+                var pairs = await _db.GiaSuMonHocs
+                    .AsNoTracking()
+                    .Where(m => ids.Contains(m.GiaSuId) && m.MonHoc != null)
+                    .Select(m => new { m.GiaSuId, TenMon = m.MonHoc!.Ten })
+                    .ToListAsync(cancellationToken);
+
+                mapTenMon = pairs
+                    .GroupBy(p => p.GiaSuId)
+                    .ToDictionary(g => g.Key, g => g.Select(x => x.TenMon).ToList());
+            }
+
+            IEnumerable<ChiSoGiaSuSql> loc = dsNhe;
+
+            if (coLocTuKhoa)
+            {
+                var tk = boLoc.TuKhoa!.Trim();
+                var tkSlug = MonHoc.TaoSlug(tk);
+                var cacTuKhoa = tk.Split(new[] { ' ', ',', '-', ';', '.', '/', '(', ')' }, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(MonHoc.TaoSlug)
+                    .Where(s => !string.IsNullOrWhiteSpace(s) && s.Length >= 2 && !new[] { "tai", "cho", "can", "tim", "gia", "su", "day", "hoc", "o" }.Contains(s))
+                    .ToList();
+
+                loc = loc.Where(g =>
+                {
+                    var dsMon = mapTenMon != null && mapTenMon.TryGetValue(g.Id, out var ms) ? ms : null;
+                    if (ChuaKhongDau(g.HoTen, tkSlug) ||
+                        ChuaKhongDau(g.TieuDe, tkSlug) ||
+                        ChuaKhongDau(g.KhuVuc, tkSlug) ||
+                        (dsMon != null && dsMon.Any(ten => ChuaKhongDau(ten, tkSlug))))
+                    {
+                        return true;
+                    }
+
+                    if (cacTuKhoa.Count > 0)
+                    {
+                        return cacTuKhoa.All(tu =>
+                            ChuaKhongDau(g.HoTen, tu) ||
+                            ChuaKhongDau(g.TieuDe, tu) ||
+                            ChuaKhongDau(g.KhuVuc, tu) ||
+                            (dsMon != null && dsMon.Any(ten => ChuaKhongDau(ten, tu))));
+                    }
+
+                    return false;
+                });
+            }
+
+            if (coLocKhuVuc)
+            {
+                var kvSlug = MonHoc.TaoSlug(boLoc.KhuVuc);
+                loc = loc.Where(g => ChuaKhongDau(g.KhuVuc, kvSlug));
+            }
+
+            var danhSachLoc = loc.ToList();
+
+            if (coLocToaDo)
+            {
+                var lat = boLoc.ViDo!.Value;
+                var lng = boLoc.KinhDo!.Value;
+                var banKinh = boLoc.BanKinhQuetKm ?? 0;
+
+                foreach (var item in danhSachLoc)
+                {
+                    if (item.DayTrucTiep)
+                    {
+                        var (vLat, vLng) = TinhToaDoMo(item.Id, item.KhuVuc);
+                        if (vLat.HasValue && vLng.HasValue)
+                        {
+                            item.KhoangCachKm = TinhKhoangCachHaversineKm(lat, lng, vLat.Value, vLng.Value);
+                        }
+                    }
+                }
+
+                if (banKinh > 0 && boLoc.HinhThuc != HinhThucBuoiHoc.TRUC_TUYEN)
+                {
+                    danhSachLoc = danhSachLoc
+                        .Where(x => x.DayTrucTiep
+                            ? (x.KhoangCachKm.HasValue && x.KhoangCachKm.Value <= banKinh)
+                            : boLoc.HinhThuc != HinhThucBuoiHoc.TRUC_TIEP)
+                        .ToList();
+                }
+
+                danhSachLoc = danhSachLoc
+                    .OrderBy(x => x.KhoangCachKm ?? 9999.0)
+                    .ThenByDescending(x => TinhDiemXepHang(x, boLoc.GiaToiDa))
+                    .ToList();
+            }
+            else
+            {
+                danhSachLoc = sapXep switch
+                {
+                    "gia_tang" => danhSachLoc.OrderBy(x => x.GiaThapNhat).ThenByDescending(x => TinhDiemXepHang(x, boLoc.GiaToiDa)).ToList(),
+                    "gia_giam" => danhSachLoc.OrderByDescending(x => x.GiaThapNhat).ThenByDescending(x => TinhDiemXepHang(x, boLoc.GiaToiDa)).ToList(),
+                    "danh_gia" => danhSachLoc.OrderByDescending(x => x.DiemTb).ThenByDescending(x => x.SoLuotDanhGia).ToList(),
+                    "kinh_nghiem" => danhSachLoc.OrderByDescending(x => x.SoNamKinhNghiem).ThenByDescending(x => TinhDiemXepHang(x, boLoc.GiaToiDa)).ToList(),
+                    _ => danhSachLoc.OrderByDescending(x => TinhDiemXepHang(x, boLoc.GiaToiDa)).ThenByDescending(x => x.DiemTb).ToList()
+                };
+            }
+
+            tong = danhSachLoc.Count;
+            dsTrangChiSo = danhSachLoc
+                .Skip((trang - 1) * kichThuocTrang)
+                .Take(kichThuocTrang)
+                .ToList();
+        }
+
         var tongTrang = tong == 0 ? 0 : (int)Math.Ceiling(tong / (double)kichThuocTrang);
-        var duLieuTrang = dsDto
-            .Skip((trang - 1) * kichThuocTrang)
-            .Take(kichThuocTrang)
-            .ToList();
+        if (dsTrangChiSo.Count == 0)
+        {
+            return new KetQuaPhanTrangDto<ThongTinGiaSuTomTatDto>([], trang, kichThuocTrang, tong, tongTrang);
+        }
+
+        // 3. Chỉ tải hồ sơ chi tiết + danh sách môn dạy cho đúng <= 12 gia sư thuộc trang hiện tại!
+        var pageIds = dsTrangChiSo.Select(x => x.Id).ToList();
+        var mapChiSo = dsTrangChiSo.ToDictionary(x => x.Id);
+
+        var dsGiaSuTrang = await _db.GiaSus
+            .AsNoTracking()
+            .Include(g => g.DsMonDay)
+                .ThenInclude(m => m.MonHoc)
+            .AsSplitQuery()
+            .Where(g => pageIds.Contains(g.Id))
+            .ToDictionaryAsync(g => g.Id, cancellationToken);
+
+        var tapYeuThich = hocSinhHienTaiId.HasValue
+            ? (await _db.MucYeuThichs
+                .AsNoTracking()
+                .Where(y => y.HocSinhId == hocSinhHienTaiId.Value && pageIds.Contains(y.GiaSuId))
+                .Select(y => y.GiaSuId)
+                .ToListAsync(cancellationToken)).ToHashSet()
+            : new HashSet<Guid>();
+
+        var duLieuTrang = new List<ThongTinGiaSuTomTatDto>(pageIds.Count);
+        foreach (var id in pageIds)
+        {
+            if (!dsGiaSuTrang.TryGetValue(id, out var gs))
+            {
+                continue;
+            }
+
+            var cs = mapChiSo[id];
+            var dsMonDayDto = gs.DsMonDay
+                .OrderBy(m => m.MonHoc?.Ten)
+                .Select(AnhXaGiaSuMonHocDto)
+                .ToList();
+
+            var (viDoMo, kinhDoMo) = gs.DayTrucTiep ? TinhToaDoMo(gs.Id, gs.KhuVuc) : ((double?)null, (double?)null);
+
+            duLieuTrang.Add(new ThongTinGiaSuTomTatDto(
+                Id: gs.Id,
+                HoTen: gs.HoTen,
+                AnhDaiDienUrl: gs.AnhDaiDienUrl,
+                KhuVuc: gs.KhuVuc,
+                TieuDe: gs.TieuDe,
+                GioiThieu: gs.GioiThieu,
+                HocVan: gs.HocVan,
+                SoNamKinhNghiem: gs.SoNamKinhNghiem,
+                HinhThucDay: gs.HinhThucDay,
+                CoDayTrucTuyen: gs.DayTrucTuyen,
+                CoDayTrucTiep: gs.DayTrucTiep,
+                MoTaHinhThucDay: TaoMoTaHinhThucDay(gs),
+                DaXacMinh: cs.DaXacMinh,
+                CoHocThu: gs.CoHocThu,
+                BanKinhPhucVuKm: gs.DayTrucTiep ? gs.BanKinhPhucVuKm : 0,
+                GiaThapNhat: cs.GiaThapNhat,
+                GiaCaoNhat: cs.GiaCaoNhat,
+                DiemDanhGiaTrungBinh: cs.DiemTb,
+                SoLuotDanhGia: cs.SoLuotDanhGia,
+                SoBuoiHoanThanh: cs.SoBuoiHoanThanh,
+                DiemXepHang: TinhDiemXepHang(cs, boLoc.GiaToiDa),
+                ViDoMo: viDoMo,
+                KinhDoMo: kinhDoMo,
+                DaYeuThich: tapYeuThich.Contains(gs.Id),
+                DsMonDay: dsMonDayDto));
+        }
 
         return new KetQuaPhanTrangDto<ThongTinGiaSuTomTatDto>(
             DuLieu: duLieuTrang,
@@ -897,6 +1087,57 @@ public sealed class GiaSuVaMonHocService : IGiaSuVaMonHocService
             KichThuocTrang: kichThuocTrang,
             Tong: tong,
             TongTrang: tongTrang);
+    }
+
+    private sealed class ChiSoGiaSuSql
+    {
+        public Guid Id { get; set; }
+        public string HoTen { get; set; } = string.Empty;
+        public string TieuDe { get; set; } = string.Empty;
+        public string? KhuVuc { get; set; }
+        public int SoNamKinhNghiem { get; set; }
+        public bool DayTrucTuyen { get; set; }
+        public bool DayTrucTiep { get; set; }
+        public bool CoHocThu { get; set; }
+        public int BanKinhPhucVuKm { get; set; }
+        public int GiaThapNhat { get; set; }
+        public int GiaCaoNhat { get; set; }
+        public bool DaXacMinh { get; set; }
+        public int SoBuoiHoanThanh { get; set; }
+        public int SoLuotDanhGia { get; set; }
+        public int TongDiemDanhGia { get; set; }
+        public double? KhoangCachKm { get; set; }
+
+        public double DiemTb => SoLuotDanhGia == 0
+            ? 0.0
+            : Math.Round((double)TongDiemDanhGia / SoLuotDanhGia, 1, MidpointRounding.AwayFromZero);
+    }
+
+    private static double TinhDiemXepHang(ChiSoGiaSuSql cs, int? giaMucTieu)
+    {
+        var diemPhuHopGia = giaMucTieu.HasValue && giaMucTieu.Value > 0 && cs.GiaThapNhat > 0
+            ? Math.Clamp(1.0 - Math.Max(0, cs.GiaThapNhat - giaMucTieu.Value) / (double)giaMucTieu.Value, 0.0, 1.0)
+            : 1.0;
+
+        return Math.Round(
+            0.35 * (cs.DiemTb / 5.0) +
+            0.25 * (Math.Min(cs.SoBuoiHoanThanh, 100) / 100.0) +
+            0.20 * (cs.DaXacMinh ? 1.0 : 0.0) +
+            0.10 * 1.0 +
+            0.10 * diemPhuHopGia,
+            4,
+            MidpointRounding.AwayFromZero);
+    }
+
+    private static double TinhKhoangCachHaversineKm(double lat1, double lng1, double lat2, double lng2)
+    {
+        const double r = 6371.0;
+        var dLat = (lat2 - lat1) * Math.PI / 180.0;
+        var dLng = (lng2 - lng1) * Math.PI / 180.0;
+        var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
+                Math.Cos(lat1 * Math.PI / 180.0) * Math.Cos(lat2 * Math.PI / 180.0) *
+                Math.Sin(dLng / 2) * Math.Sin(dLng / 2);
+        return r * 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
     }
 
     public async Task<IReadOnlyList<ThongTinGiaSuTomTatDto>> LayDsGiaSuGoiYAsync(
@@ -1468,20 +1709,65 @@ public sealed class GiaSuVaMonHocService : IGiaSuVaMonHocService
         var slug = MonHoc.TaoSlug(khuVuc);
         var (baseLat, baseLng) = slug switch
         {
-            var s when s.Contains("ho-chi-minh") || s.Contains("quan-1") => (10.77, 106.70),
-            var s when s.Contains("ha-noi") || s.Contains("cau-giay") => (21.03, 105.79),
-            var s when s.Contains("da-nang") => (16.05, 108.20),
-            var s when s.Contains("binh-thuy") => (10.06, 105.74),
-            _ => (10.03, 105.78)
+            // Cần Thơ chi tiết theo phường/quận (đặc biệt quanh ĐH Nam Cần Thơ / An Bình / Ninh Kiều / Cái Răng)
+            var s when s.Contains("an-binh") || s.Contains("nam-can-tho") || s.Contains("nguyen-van-cu") => (10.009, 105.724),
+            var s when s.Contains("an-khanh") => (10.036, 105.755),
+            var s when s.Contains("xuan-khanh") => (10.029, 105.774),
+            var s when s.Contains("hung-loi") => (10.017, 105.768),
+            var s when s.Contains("an-phu") || s.Contains("tan-an") || s.Contains("an-hoa") => (10.034, 105.783),
+            var s when s.Contains("cai-rang") || s.Contains("hung-phu") || s.Contains("le-binh") => (10.005, 105.760),
+            var s when s.Contains("binh-thuy") || s.Contains("tra-noc") || s.Contains("an-thoi") => (10.068, 105.744),
+            var s when s.Contains("phong-dien") => (10.004, 105.662),
+            var s when s.Contains("o-mon") => (10.114, 105.623),
+            var s when s.Contains("thot-not") => (10.273, 105.534),
+            var s when s.Contains("ninh-kieu") || s.Contains("can-tho") => (10.031, 105.776),
+
+            // TP. Hồ Chí Minh
+            var s when s.Contains("thu-duc") => (10.849, 106.771),
+            var s when s.Contains("binh-thanh") => (10.803, 106.710),
+            var s when s.Contains("quan-7") => (10.734, 106.721),
+            var s when s.Contains("tan-binh") || s.Contains("phu-nhuan") => (10.799, 106.654),
+            var s when s.Contains("go-vap") => (10.838, 106.665),
+            var s when s.Contains("ho-chi-minh") || s.Contains("quan-1") || s.Contains("quan-3") || s.Contains("quan-5") || s.Contains("quan-10") => (10.775, 106.695),
+
+            // Hà Nội
+            var s when s.Contains("cau-giay") => (21.036, 105.790),
+            var s when s.Contains("dong-da") => (21.018, 105.829),
+            var s when s.Contains("thanh-xuan") => (20.994, 105.805),
+            var s when s.Contains("ha-dong") => (20.971, 105.778),
+            var s when s.Contains("long-bien") => (21.036, 105.893),
+            var s when s.Contains("ha-noi") || s.Contains("ba-dinh") || s.Contains("hoan-kiem") || s.Contains("hai-ba-trung") => (21.028, 105.845),
+
+            // Đà Nẵng & Miền Trung
+            var s when s.Contains("son-tra") || s.Contains("ngu-hanh-son") => (16.060, 108.240),
+            var s when s.Contains("da-nang") || s.Contains("hai-chau") || s.Contains("thanh-khe") || s.Contains("lien-chieu") => (16.054, 108.202),
+            var s when s.Contains("hue") => (16.463, 107.590),
+            var s when s.Contains("nha-trang") => (12.238, 109.196),
+            var s when s.Contains("da-lat") => (11.940, 108.458),
+
+            // Miền Tây & Các tỉnh thành khác
+            var s when s.Contains("vinh-long") => (10.253, 105.972),
+            var s when s.Contains("hau-giang") || s.Contains("vi-thanh") => (9.784, 105.470),
+            var s when s.Contains("an-giang") || s.Contains("long-xuyen") => (10.386, 105.435),
+            var s when s.Contains("kien-giang") || s.Contains("rach-gia") => (10.012, 105.080),
+            var s when s.Contains("soc-trang") => (9.603, 105.974),
+            var s when s.Contains("dong-thap") || s.Contains("cao-lanh") => (10.459, 105.632),
+            var s when s.Contains("tien-giang") || s.Contains("my-tho") => (10.360, 106.360),
+            var s when s.Contains("ben-tre") => (10.243, 106.375),
+            var s when s.Contains("hai-phong") => (20.844, 106.688),
+            var s when s.Contains("bien-hoa") || s.Contains("dong-nai") => (10.957, 106.842),
+            var s when s.Contains("binh-duong") || s.Contains("thu-dau-mot") => (10.980, 106.651),
+            var s when s.Contains("vung-tau") => (10.346, 107.084),
+            _ => (10.031, 105.776)
         };
 
         var bytes = id.ToByteArray();
-        var offsetLat = ((bytes[0] % 5) - 2) * 0.01;
-        var offsetLng = ((bytes[1] % 5) - 2) * 0.01;
+        var offsetLat = ((bytes[0] % 9) - 4) * 0.0035;
+        var offsetLng = ((bytes[1] % 9) - 4) * 0.0035;
 
         return (
-            Math.Round(baseLat + offsetLat, 2, MidpointRounding.AwayFromZero),
-            Math.Round(baseLng + offsetLng, 2, MidpointRounding.AwayFromZero));
+            Math.Round(baseLat + offsetLat, 4, MidpointRounding.AwayFromZero),
+            Math.Round(baseLng + offsetLng, 4, MidpointRounding.AwayFromZero));
     }
 
     public static int ChuyenSangThuTrongTuanV4(DayOfWeek dayOfWeek) =>
