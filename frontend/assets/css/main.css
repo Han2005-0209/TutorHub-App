@@ -6483,7 +6483,9 @@ body.theme-tutor .chat-inbox-main {
 .th-mobile-bottom-nav,
 .sp-tutor-mobile-head,
 .search-mobile-filter-btn,
-.tutor-mobile-bottom-cta {
+.tutor-mobile-bottom-cta,
+.portal-mobile-subtabs,
+.lesson-mobile-price {
   display: none;
 }
 
@@ -6501,6 +6503,100 @@ body.theme-tutor .chat-inbox-main {
   /* Chừa khoảng trống đáy trang cho Thanh điều hướng đáy / Thanh đặt lịch cố định */
   body {
     padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .app-shell.portal-hoc-sinh,
+  .app-shell.portal-gia-su,
+  .app-shell.portal-quan-tri {
+    background-attachment: scroll !important;
+  }
+
+  /* 0. Thanh Đầu Trang & Thanh Chuyển Tab Ngang cho Cổng Học sinh / Gia sư / Quản trị trên Điện thoại dọc */
+  .app-topbar {
+    height: auto !important;
+    min-height: 54px !important;
+    padding: 0.45rem 0.85rem !important;
+    gap: 0.5rem !important;
+    flex-wrap: nowrap !important;
+  }
+
+  #form-tim-topbar,
+  .portal-topbar-home-btn,
+  .portal-topbar-eyebrow,
+  .app-topbar > div:first-child > div > div:first-child {
+    display: none !important;
+  }
+
+  .app-topbar h1,
+  .portal-topbar-title {
+    font-size: 1.02rem !important;
+    line-height: 1.25 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    max-width: calc(100vw - 120px) !important;
+  }
+
+  .portal-mobile-subtabs {
+    display: flex !important;
+    align-items: center;
+    gap: 0.4rem;
+    overflow-x: auto;
+    padding: 0.5rem 0.85rem;
+    background: rgba(255, 255, 255, 0.97);
+    border-bottom: 1px solid #f1e4e6;
+    position: sticky;
+    top: 54px;
+    z-index: 28;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .portal-mobile-subtabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .portal-mobile-subtab-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 32px;
+    padding: 0 0.82rem;
+    border-radius: 9999px;
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 700;
+    white-space: nowrap;
+    flex-shrink: 0;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .portal-mobile-subtab-pill.active {
+    background: var(--th-blush);
+    color: #ffffff;
+    border-color: var(--th-blush);
+    box-shadow: 0 2px 8px rgba(240, 101, 109, 0.24);
+  }
+
+  .portal-gia-su .portal-mobile-subtab-pill.active {
+    background: var(--th-tutor);
+    border-color: var(--th-tutor);
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.24);
+  }
+
+  .portal-quan-tri .portal-mobile-subtab-pill.active {
+    background: #4f46e5;
+    border-color: #4f46e5;
+    box-shadow: 0 2px 8px rgba(79, 70, 229, 0.24);
+  }
+
+  .app-canvas {
+    padding: 0.85rem 0.85rem 5.2rem !important;
+    gap: 0.95rem !important;
   }
 
   /* 1. Thanh Điều hướng Đáy kiểu Ứng dụng Di động (Mobile Bottom Tab Bar) */
@@ -6554,7 +6650,8 @@ body.theme-tutor .chat-inbox-main {
     font-weight: 800;
   }
 
-  body.theme-tutor .th-mobile-nav-item.active {
+  body.theme-tutor .th-mobile-nav-item.active,
+  .portal-gia-su ~ .th-mobile-bottom-nav .th-mobile-nav-item.active {
     color: var(--th-tutor-text);
   }
 
@@ -6633,20 +6730,36 @@ body.theme-tutor .chat-inbox-main {
     border-radius: 22px 22px 0 0 !important;
   }
 
-  /* 4. Bảng điều khiển (Học sinh / Gia sư / Quản trị) dạng Lưới 2x2 gọn cho màn hình dọc */
+  /* 4. Bảng điều khiển (Học sinh / Gia sư / Quản trị) dạng Lưới cân đối trên màn hình dọc (Không để 1 ô lẻ nửa dòng) */
   .kpi-grid-3,
   .kpi-grid-4 {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 0.65rem !important;
+    gap: 0.6rem !important;
+  }
+
+  .kpi-grid-3 > .kpi-card:first-child {
+    grid-column: 1 / -1;
   }
 
   .kpi-card {
-    padding: 0.85rem 0.95rem !important;
-    min-height: 96px !important;
+    padding: 0.8rem 0.9rem !important;
+    min-height: 0 !important;
+    gap: 0.35rem !important;
+  }
+
+  .kpi-top {
+    min-height: 28px !important;
   }
 
   .kpi-value {
-    font-size: 1.22rem !important;
+    font-size: 1.15rem !important;
+    min-height: 0 !important;
+  }
+
+  .kpi-sub {
+    font-size: 0.73rem !important;
+    min-height: 0 !important;
+    line-height: 1.35 !important;
   }
 }
 
@@ -6654,6 +6767,183 @@ body.theme-tutor .chat-inbox-main {
   .container,
   .container-narrow {
     padding: 0 0.9rem;
+  }
+
+  /* 4b. Bố cục "Của tôi" (#tab-tong-quan) & "Lịch học" (#tab-lich-hoc) thiết kế riêng cho màn hình điện thoại dọc */
+  #tab-tong-quan {
+    gap: 0.9rem !important;
+  }
+
+  #khung-buoi-sap-toi {
+    order: 1;
+  }
+
+  #khung-kpi-hs {
+    order: 2;
+  }
+
+  #khung-lich-hoc-don {
+    order: 3;
+    gap: 0.9rem !important;
+  }
+
+  #khung-goi-y-gia-su {
+    order: 4;
+  }
+
+  .hs-dashboard-ai-banner {
+    order: 5;
+    padding: 1rem 1.05rem !important;
+    gap: 0.75rem !important;
+  }
+
+  .hs-dashboard-quick-search {
+    display: none !important;
+  }
+
+  .portal-hoc-sinh .up-next-card,
+  .up-next-card {
+    padding: 1rem 1.05rem !important;
+    min-height: 0 !important;
+    gap: 0.8rem !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    border-radius: 18px !important;
+  }
+
+  .up-next-card h2 {
+    font-size: 1.1rem !important;
+    line-height: 1.32 !important;
+    margin-top: 0.4rem !important;
+  }
+
+  .up-next-card > div:last-child {
+    width: 100%;
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .up-next-card > div:last-child > a {
+    flex: 1;
+    justify-content: center;
+    padding: 0.5rem 0.75rem !important;
+    font-size: 0.81rem !important;
+    text-align: center;
+  }
+
+  /* Thanh lọc trạng thái trong Tab Lịch học: Cuộn ngang 1 dòng gọn gàng trên điện thoại dọc */
+  .lich-hoc-filter-card {
+    padding: 0.75rem 0.85rem !important;
+    border-radius: 16px !important;
+    gap: 0.55rem !important;
+  }
+
+  #nhom-loc-trang-thai-don {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    width: 100% !important;
+    gap: 0.38rem !important;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  #nhom-loc-trang-thai-don::-webkit-scrollbar {
+    display: none;
+  }
+
+  #nhom-loc-trang-thai-don .bk-pill {
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+    padding: 0.32rem 0.75rem !important;
+    font-size: 0.77rem !important;
+  }
+
+  #btn-dat-them-lich-tab {
+    width: 100% !important;
+    justify-content: center !important;
+    height: 36px !important;
+  }
+
+  .lich-hoc-list-card {
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Thẻ Buổi học trên Điện thoại dọc (Vertical Mobile Lesson Card) */
+  .lesson-list-item {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.6rem !important;
+    padding: 0.9rem 0.95rem !important;
+    border-radius: 16px !important;
+    background: #ffffff !important;
+    border: 1px solid #f1e4e6 !important;
+    box-shadow: 0 3px 12px rgba(15, 23, 42, 0.04) !important;
+  }
+
+  .lesson-item-info {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  .lesson-item-top-row {
+    align-items: flex-start !important;
+  }
+
+  .lesson-mobile-price {
+    display: inline-block !important;
+    font-size: 0.94rem;
+    font-weight: 800;
+    color: var(--th-blush-text);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .lesson-desktop-price {
+    display: none !important;
+  }
+
+  .lesson-item-meta {
+    flex-direction: column !important;
+    gap: 0.2rem !important;
+    margin-top: 0.42rem !important;
+    font-size: 0.79rem !important;
+  }
+
+  .lesson-item-actions {
+    width: 100% !important;
+    padding-top: 0.6rem !important;
+    border-top: 1px dashed #eef2f6 !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 0.4rem !important;
+  }
+
+  .lesson-primary-cta {
+    width: 100% !important;
+    height: 38px !important;
+    font-size: 0.84rem !important;
+    justify-content: center !important;
+    order: -1;
+  }
+
+  .lesson-secondary-btn {
+    flex: 1 1 auto !important;
+    min-width: 74px !important;
+    height: 34px !important;
+    font-size: 0.77rem !important;
+    justify-content: center !important;
+    border-radius: 9999px !important;
+  }
+
+  #ds-gia-su-goi-y.grid-3,
+  #ds-kham-pha-portal.grid-3,
+  #ds-yeu-thich-day-du.grid-3 {
+    gap: 0.75rem !important;
   }
 
   /* 5. Trang Tìm kiếm Gia sư trên màn hình dọc: Không tràn ngang, gom gọn bộ lọc */

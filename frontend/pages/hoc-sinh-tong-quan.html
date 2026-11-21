@@ -149,20 +149,20 @@
       <!-- CỘT PHẢI: App Content Column (Top bar nhỏ gọn + Các Tab nội dung mở ngay bên phải) -->
       <div class="app-content-col">
         <header class="app-topbar" style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0 1.5rem">
-          <div style="min-width: 0; display: flex; align-items: center; gap: 0.75rem">
+          <div class="portal-topbar-left" style="min-width: 0; display: flex; align-items: center; gap: 0.75rem; flex: 1">
             <button type="button" class="btn-sidebar-toggle" id="btn-toggle-sidebar-hs" title="Thu gọn / Mở rộng bảng điều khiển" aria-label="Thu gọn hoặc mở rộng bảng điều khiển"></button>
-            <div style="min-width: 0">
-              <div style="font-size: 0.72rem; font-weight: 700; color: var(--th-blush-text); letter-spacing: 0.03em; text-transform: uppercase">
+            <div style="min-width: 0; flex: 1">
+              <div class="portal-topbar-eyebrow" style="font-size: 0.72rem; font-weight: 700; color: var(--th-blush-text); letter-spacing: 0.03em; text-transform: uppercase">
                 Cổng Học sinh · Không gian học tập cá nhân
               </div>
-              <h1 id="loi-chao-hs" style="margin: 0; font-size: 1.15rem; font-weight: 800; color: var(--th-text)">
+              <h1 id="loi-chao-hs" class="portal-topbar-title" style="margin: 0; font-size: 1.15rem; font-weight: 800; color: var(--th-text)">
                 Không gian học tập
               </h1>
             </div>
           </div>
 
           <!-- Thanh tìm kiếm nhanh trên Topbar + Các nút hành động -->
-          <div style="display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap">
+          <div class="portal-topbar-right" style="display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap; flex-shrink: 0">
             <form id="form-tim-topbar" style="display: flex; align-items: center; position: relative">
               <span id="ico-topbar-search" style="position: absolute; left: 0.75rem; color: var(--th-text-muted); display: inline-flex"></span>
               <input
@@ -172,7 +172,7 @@
                 style="height: 36px; padding-left: 2.2rem; padding-right: 0.85rem; border-radius: 9999px; border: 1px solid var(--th-border); font-size: 0.83rem; width: 210px; transition: all 0.2s ease"
               />
             </form>
-            <a href="/index.html" class="btn btn-secondary btn-sm" style="height: 36px; border-radius: 9999px; font-size: 0.79rem">
+            <a href="/index.html" class="btn btn-secondary btn-sm portal-topbar-home-btn" style="height: 36px; border-radius: 9999px; font-size: 0.79rem">
               Trang chủ ↗
             </a>
             <!-- Nút Chuông Thông báo Topbar có chấm đỏ & dropdown -->
@@ -252,7 +252,7 @@
           </section>
 
           <!-- Khung tìm kiếm nhanh & Môn học thịnh hành ngay trên Cổng Học sinh -->
-          <section class="card" style="padding: 1.35rem 1.6rem; background: #ffffff; border: 1px solid #f1f5f9; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); border-radius: 20px" aria-label="Tìm kiếm gia sư nhanh">
+          <section class="card hs-dashboard-quick-search" style="padding: 1.35rem 1.6rem; background: #ffffff; border: 1px solid #f1f5f9; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); border-radius: 20px" aria-label="Tìm kiếm gia sư nhanh">
             <form id="form-tim-kiem-dashboard" style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center">
               <div style="flex: 2; min-width: 240px; position: relative">
                 <span style="position: absolute; left: 1.15rem; top: 50%; transform: translateY(-50%); color: var(--th-text-muted); display: inline-flex" id="ico-search-input"></span>
@@ -340,7 +340,7 @@
           </section>
 
           <!-- Banner Trợ lý AI Matchmaker & Trang chủ -->
-          <section class="card" style="padding: 1.4rem 1.6rem; background: #ffffff; border: 1px solid #f1f5f9; display: flex; align-items: center; justify-content: space-between; gap: 1.25rem; flex-wrap: wrap; border-radius: 20px; box-shadow: 0 4px 18px rgba(0, 0, 0, 0.03)">
+          <section class="card hs-dashboard-ai-banner" style="padding: 1.4rem 1.6rem; background: #ffffff; border: 1px solid #f1f5f9; display: flex; align-items: center; justify-content: space-between; gap: 1.25rem; flex-wrap: wrap; border-radius: 20px; box-shadow: 0 4px 18px rgba(0, 0, 0, 0.03)">
             <div style="display: flex; align-items: center; gap: 1rem; min-width: 260px; flex: 1">
               <div style="width: 44px; height: 44px; border-radius: 12px; background: var(--th-blush-soft); color: var(--th-blush); border: 1px solid var(--th-blush-border); display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0">
                 ✦
@@ -455,7 +455,7 @@
 
           <!-- TAB 2: LỊCH HỌC CỦA TÔI (MỞ TRỰC TIẾP BÊN PHẢI) -->
           <section id="tab-lich-hoc" class="tab-panel" style="display: none; flex-direction: column; gap: 1.15rem">
-            <div class="card" style="padding: 1.1rem 1.35rem; border-radius: 18px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem">
+            <div class="card lich-hoc-filter-card" style="padding: 1.1rem 1.35rem; border-radius: 18px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem">
               <div class="bk-pill-group" id="nhom-loc-trang-thai-don">
                 <button type="button" class="bk-pill active" data-tt="">Tất cả</button>
                 <button type="button" class="bk-pill" data-tt="CHO_XAC_NHAN">Chờ xác nhận</button>
@@ -465,7 +465,7 @@
               </div>
               <button type="button" class="btn btn-primary btn-sm" id="btn-dat-them-lich-tab" style="border-radius: 9999px">+ Đặt buổi học mới</button>
             </div>
-            <div id="ds-tat-ca-don-hs" class="card" style="padding: 1.35rem; border-radius: 20px">
+            <div id="ds-tat-ca-don-hs" class="card lich-hoc-list-card" style="padding: 1.35rem; border-radius: 20px">
               <div style="font-size: 0.85rem; color: var(--th-text-muted)">Đang tải lịch học của bạn...</div>
             </div>
           </section>
@@ -1374,20 +1374,23 @@
             const knDon = dsKhieuNaiHs.find((k) => k.donDatLichId === d.id || k.maDon === d.maDon);
 
             return `
-              <div class="lesson-list-item" style="align-items: center; gap: 1rem; flex-wrap: wrap">
-                <div style="min-width: 220px; flex: 1">
-                  <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap">
-                    <strong style="font-size: 0.96rem; color: var(--th-text)">${escapeHtml(d.tenMonHoc)}</strong>
-                    <span class="tag-mode ${laOnline ? 'online' : 'offline'}">
-                      ${laOnline ? icons.video(12) : icons.home(12)}
-                      <span>${laOnline ? 'Online' : 'Tại nhà'}</span>
-                    </span>
-                    ${d.laBuoiHocThu ? '<span class="badge" style="background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0">Học thử Online 0 ₫</span>' : ''}
-                    <span class="badge ${tt.lopBadge}">${escapeHtml(tt.nhan)}</span>
-                    ${d.trangThai === 'DA_XAC_NHAN' && daKetThuc ? '<span class="badge" style="background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; font-size: 0.69rem">Đã kết thúc</span>' : ''}
-                    ${ttTien ? `<span class="badge ${ttTien.lopBadge}" style="font-size: 0.69rem">${escapeHtml(ttTien.nhan)}</span>` : canThanhToan ? '<span class="badge badge-warning" style="font-size: 0.69rem">Chờ thanh toán</span>' : ''}
+              <div class="lesson-list-item lesson-card-responsive" style="align-items: center; gap: 1rem; flex-wrap: wrap">
+                <div class="lesson-item-info" style="min-width: 220px; flex: 1">
+                  <div class="lesson-item-top-row" style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem">
+                    <div class="lesson-item-head" style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap">
+                      <strong class="lesson-item-subject" style="font-size: 0.96rem; color: var(--th-text)">${escapeHtml(d.tenMonHoc)}</strong>
+                      <span class="tag-mode ${laOnline ? 'online' : 'offline'}">
+                        ${laOnline ? icons.video(12) : icons.home(12)}
+                        <span>${laOnline ? 'Online' : 'Tại nhà'}</span>
+                      </span>
+                      ${d.laBuoiHocThu ? '<span class="badge" style="background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0">Học thử Online 0 ₫</span>' : ''}
+                      <span class="badge ${tt.lopBadge}">${escapeHtml(tt.nhan)}</span>
+                      ${d.trangThai === 'DA_XAC_NHAN' && daKetThuc ? '<span class="badge" style="background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; font-size: 0.69rem">Đã kết thúc</span>' : ''}
+                      ${ttTien ? `<span class="badge ${ttTien.lopBadge}" style="font-size: 0.69rem">${escapeHtml(ttTien.nhan)}</span>` : canThanhToan ? '<span class="badge badge-warning" style="font-size: 0.69rem">Chờ thanh toán</span>' : ''}
+                    </div>
+                    <strong class="lesson-mobile-price">${d.tongTien === 0 ? 'Miễn phí (0 ₫)' : dinhDangTienVnd(d.tongTien)}</strong>
                   </div>
-                  <div style="margin-top: 0.38rem; font-size: 0.82rem; color: var(--th-text-muted); display: flex; flex-wrap: wrap; gap: 0.35rem 1.1rem">
+                  <div class="lesson-item-meta" style="margin-top: 0.38rem; font-size: 0.82rem; color: var(--th-text-muted); display: flex; flex-wrap: wrap; gap: 0.35rem 1.1rem">
                     <span>Gia sư: <strong style="color: var(--th-text-secondary)">${escapeHtml(d.tenGiaSu)}</strong></span>
                     <span>Thời gian: ${dinhDangNgayGioVn(d.batDauLuc)}</span>
                     <span>Mã đơn: ${escapeHtml(d.maDon)}</span>
@@ -1403,35 +1406,35 @@
                       : ''
                   }
                 </div>
-                <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap">
-                  <strong style="font-size: 0.94rem; color: #1e293b; margin-right: 0.3rem">${d.tongTien === 0 ? 'Miễn phí (0 ₫)' : dinhDangTienVnd(d.tongTien)}</strong>
+                <div class="lesson-item-actions" style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap">
+                  <strong class="lesson-desktop-price" style="font-size: 0.94rem; color: #1e293b; margin-right: 0.3rem">${d.tongTien === 0 ? 'Miễn phí (0 ₫)' : dinhDangTienVnd(d.tongTien)}</strong>
                   ${
                     canThanhToan
-                      ? `<button type="button" class="btn btn-primary btn-sm btn-thanh-toan-don-hs" data-don-id="${d.id}">Thanh toán giữ chỗ</button>`
+                      ? `<button type="button" class="btn btn-primary btn-sm lesson-primary-cta btn-thanh-toan-don-hs" data-don-id="${d.id}">Thanh toán giữ chỗ</button>`
                       : ''
                   }
                   ${
                     laOnline && d.trangThai === 'DA_XAC_NHAN' && !daKetThuc
-                      ? `<a class="btn btn-primary btn-sm" href="/pages/phong-hoc.html?donId=${encodeURIComponent(d.id)}">Vào phòng học</a>`
+                      ? `<a class="btn btn-primary btn-sm lesson-primary-cta" href="/pages/phong-hoc.html?donId=${encodeURIComponent(d.id)}">Vào phòng học</a>`
                       : ''
                   }
                   ${
                     coTheHoanThanhSom
-                      ? `<button type="button" class="btn btn-emerald btn-sm btn-hoan-thanh-som-hs" data-don-id="${d.id}" data-ma-don="${escapeHtml(d.maDon)}">Xác nhận hoàn thành</button>`
+                      ? `<button type="button" class="btn btn-emerald btn-sm lesson-primary-cta btn-hoan-thanh-som-hs" data-don-id="${d.id}" data-ma-don="${escapeHtml(d.maDon)}">Xác nhận hoàn thành</button>`
                       : ''
                   }
                   ${
                     coTheKhieuNai
-                      ? `<button type="button" class="btn btn-secondary btn-sm btn-mo-khieu-nai-hs" data-don-id="${d.id}" style="color: #b91c1c; border-color: #fecaca; font-weight: 700">Khiếu nại</button>`
+                      ? `<button type="button" class="btn btn-secondary btn-sm lesson-secondary-btn btn-mo-khieu-nai-hs" data-don-id="${d.id}" style="color: #b91c1c; border-color: #fecaca; font-weight: 700">Khiếu nại</button>`
                       : choMoKhieuNai
-                        ? `<button type="button" class="btn btn-secondary btn-sm" disabled title="Nút Khiếu nại chỉ mở khi buổi học đã bắt đầu (trong vòng 24 giờ sau khi kết thúc). Trước giờ học bạn có thể bấm Hủy lịch để hoàn 100%." style="opacity: 0.55; cursor: not-allowed">Khiếu nại</button>`
+                        ? `<button type="button" class="btn btn-secondary btn-sm lesson-secondary-btn" disabled title="Nút Khiếu nại chỉ mở khi buổi học đã bắt đầu (trong vòng 24 giờ sau khi kết thúc). Trước giờ học bạn có thể bấm Hủy lịch để hoàn 100%." style="opacity: 0.55; cursor: not-allowed">Khiếu nại</button>`
                         : ''
                   }
-                  <button type="button" class="btn btn-secondary btn-sm btn-nhan-tin-don-hs" data-gs-id="${d.giaSuId}">Nhắn tin</button>
-                  <a class="btn btn-ghost btn-sm" href="/pages/ho-so-gia-su.html?id=${d.giaSuId}">Hồ sơ</a>
+                  <button type="button" class="btn btn-secondary btn-sm lesson-secondary-btn btn-nhan-tin-don-hs" data-gs-id="${d.giaSuId}">Nhắn tin</button>
+                  <a class="btn btn-ghost btn-sm lesson-secondary-btn" href="/pages/ho-so-gia-su.html?id=${d.giaSuId}">Hồ sơ</a>
                   ${
                     coTheHuy
-                      ? `<button type="button" class="btn btn-danger btn-sm btn-huy-don-hs" data-don-id="${d.id}" data-dang-giu="${d.trangThaiThanhToan === 'DANG_GIU' ? '1' : '0'}">Hủy lịch</button>`
+                      ? `<button type="button" class="btn btn-danger btn-sm lesson-secondary-btn btn-huy-don-hs" data-don-id="${d.id}" data-dang-giu="${d.trangThaiThanhToan === 'DANG_GIU' ? '1' : '0'}">Hủy lịch</button>`
                       : ''
                   }
                 </div>

@@ -107,18 +107,24 @@ export async function dongBoNguoiDungTuApi() {
   const token = layAccessToken();
   if (!token) {
     luuNguoiDungHienTai(null);
+    ganThanhDieuHuongDayMobile(null);
     return null;
   }
   try {
     const res = await api.get('/nguoi-dung/toi');
     if (res?.duLieu) {
       luuNguoiDungHienTai(res.duLieu);
+      ganThanhDieuHuongDayMobile(res.duLieu);
+      khoiTaoThanhTabNgangMobilePortal();
       return res.duLieu;
     }
   } catch {
     // Nếu 401 đã được api.js xóa token
   }
-  return layNguoiDungHienTai();
+  const u = layNguoiDungHienTai();
+  ganThanhDieuHuongDayMobile(u);
+  khoiTaoThanhTabNgangMobilePortal();
+  return u;
 }
 
 export function layChuCaiDau(hoTen) {
@@ -503,8 +509,8 @@ export function renderFooter(selector = '#khung-footer') {
         </div>
       </div>
     </footer>
-    ${taoThanhDieuHuongDayMobileHtml(user)}
   `;
+  ganThanhDieuHuongDayMobile(user);
 }
 
 export function taoThanhDieuHuongDayMobileHtml(user = layNguoiDungHienTai()) {
@@ -515,13 +521,24 @@ export function taoThanhDieuHuongDayMobileHtml(user = layNguoiDungHienTai()) {
     return '';
   }
 
+  const tabDangMo =
+    document.querySelector('.studio-nav-btn[data-tab].active, .admin-nav-btn[data-tab].active')?.dataset?.tab ||
+    new URLSearchParams(search).get('tab') ||
+    '';
+
   const laActive = (matchPath, matchQuery = '') => {
     if (matchPath === '/index.html') {
       return path === '/' || path.endsWith('/index.html') ? 'active' : '';
     }
     const khopPath = path.includes(matchPath.replace(/\.html$/, ''));
     if (!khopPath) return '';
-    if (matchQuery) return search.includes(matchQuery) ? 'active' : '';
+    if (matchQuery) {
+      if (matchQuery.startsWith('tab=')) {
+        const expectedTab = matchQuery.slice(4);
+        return tabDangMo === expectedTab || search.includes(matchQuery) ? 'active' : '';
+      }
+      return search.includes(matchQuery) ? 'active' : '';
+    }
     if (matchPath.includes('tim-kiem-gia-su') && search.includes('hinhThuc=TRUC_TIEP')) return '';
     return 'active';
   };
@@ -536,20 +553,23 @@ export function taoThanhDieuHuongDayMobileHtml(user = layNguoiDungHienTai()) {
       { href: '/pages/dang-nhap.html', icon: icons.user(19), label: 'Đăng nhập', active: laActive('dang-nhap') },
     ];
   } else if (user.vaiTro === 'HOC_SINH') {
+    const dangOLichHoc = path.includes('hoc-sinh-tong-quan') && (tabDangMo === 'tab-lich-hoc' || search.includes('tab-lich-hoc'));
+    const dangOCuaToi = path.includes('hoc-sinh-tong-quan') && !dangOLichHoc;
     items = [
       { href: '/index.html', icon: icons.home(19), label: 'Trang chủ', active: laActive('/index.html') },
       { href: '/pages/tim-kiem-gia-su.html', icon: icons.search(19), label: 'Tìm gia sư', active: laActive('tim-kiem-gia-su') },
       { href: '/pages/tim-kiem-gia-su.html?hinhThuc=TRUC_TIEP', icon: icons.map(19), label: 'Gần tôi', active: laActive('tim-kiem-gia-su', 'hinhThuc=TRUC_TIEP') },
-      { href: '/pages/hoc-sinh-tong-quan.html?tab=tab-lich-hoc', icon: icons.calendar(19), label: 'Lịch học', active: laActive('hoc-sinh-tong-quan', 'tab-lich-hoc') },
-      { href: '/pages/hoc-sinh-tong-quan.html', icon: icons.user(19), label: 'Của tôi', active: path.includes('hoc-sinh-tong-quan') && !search.includes('tab-lich-hoc') ? 'active' : '' },
+      { href: '/pages/hoc-sinh-tong-quan.html?tab=tab-lich-hoc', tab: 'tab-lich-hoc', icon: icons.calendar(19), label: 'Lịch học', active: dangOLichHoc ? 'active' : '' },
+      { href: '/pages/hoc-sinh-tong-quan.html?tab=tab-tong-quan', tab: 'tab-tong-quan', icon: icons.user(19), label: 'Của tôi', active: dangOCuaToi ? 'active' : '' },
     ];
   } else if (user.vaiTro === 'GIA_SU') {
+    const tabGs = tabDangMo || 'tab-tong-quan';
     items = [
-      { href: '/pages/quan-ly-gia-su.html', icon: icons.layoutDashboard(19), label: 'Tổng quan', active: path.includes('quan-ly-gia-su') && !search.includes('tab=') ? 'active' : '' },
-      { href: '/pages/quan-ly-gia-su.html?tab=tab-lich-ranh', icon: icons.calendar(19), label: 'Lịch dạy', active: laActive('quan-ly-gia-su', 'tab-lich-ranh') },
-      { href: '/pages/quan-ly-gia-su.html?tab=tab-tin-nhan', icon: icons.messageCircle(19), label: 'Tin nhắn', active: laActive('quan-ly-gia-su', 'tab-tin-nhan') },
-      { href: '/pages/tim-kiem-gia-su.html', icon: icons.search(19), label: 'Tìm kiếm', active: laActive('tim-kiem-gia-su') },
-      { href: '/pages/quan-ly-gia-su.html?tab=tab-ho-so', icon: icons.user(19), label: 'Hồ sơ', active: laActive('quan-ly-gia-su', 'tab-ho-so') },
+      { href: '/pages/quan-ly-gia-su.html?tab=tab-tong-quan', tab: 'tab-tong-quan', icon: icons.layoutDashboard(19), label: 'Tổng quan', active: path.includes('quan-ly-gia-su') && tabGs === 'tab-tong-quan' ? 'active' : '' },
+      { href: '/pages/quan-ly-gia-su.html?tab=tab-lich-ranh', tab: 'tab-lich-ranh', icon: icons.calendar(19), label: 'Lịch dạy', active: path.includes('quan-ly-gia-su') && tabGs === 'tab-lich-ranh' ? 'active' : '' },
+      { href: '/pages/quan-ly-gia-su.html?tab=tab-tin-nhan', tab: 'tab-tin-nhan', icon: icons.messageCircle(19), label: 'Tin nhắn', active: path.includes('quan-ly-gia-su') && tabGs === 'tab-tin-nhan' ? 'active' : '' },
+      { href: '/pages/quan-ly-gia-su.html?tab=tab-vi-giao-dich', tab: 'tab-vi-giao-dich', icon: icons.wallet(19), label: 'Thu nhập', active: path.includes('quan-ly-gia-su') && tabGs === 'tab-vi-giao-dich' ? 'active' : '' },
+      { href: '/pages/quan-ly-gia-su.html?tab=tab-ho-so', tab: 'tab-ho-so', icon: icons.user(19), label: 'Hồ sơ', active: path.includes('quan-ly-gia-su') && ['tab-ho-so', 'tab-giay-to', 'tab-mon-hoc'].includes(tabGs) ? 'active' : '' },
     ];
   } else {
     items = [
@@ -561,11 +581,11 @@ export function taoThanhDieuHuongDayMobileHtml(user = layNguoiDungHienTai()) {
   }
 
   return `
-    <nav class="th-mobile-bottom-nav" aria-label="Điều hướng nhanh trên điện thoại">
+    <nav class="th-mobile-bottom-nav" id="th-mobile-bottom-nav" aria-label="Điều hướng nhanh trên điện thoại">
       ${items
         .map(
           (it) => `
-        <a href="${it.href}" class="th-mobile-nav-item ${it.active}">
+        <a href="${it.href}" class="th-mobile-nav-item ${it.active}" ${it.tab ? `data-portal-tab="${it.tab}"` : ''}>
           <span class="th-mobile-nav-icon">${it.icon}</span>
           <span class="th-mobile-nav-label">${escapeHtml(it.label)}</span>
         </a>
@@ -574,6 +594,121 @@ export function taoThanhDieuHuongDayMobileHtml(user = layNguoiDungHienTai()) {
         .join('')}
     </nav>
   `;
+}
+
+export function ganThanhDieuHuongDayMobile(user = layNguoiDungHienTai()) {
+  if (typeof document === 'undefined' || !document.body) return;
+  const html = taoThanhDieuHuongDayMobileHtml(user);
+  document.querySelectorAll('.th-mobile-bottom-nav').forEach((el) => el.remove());
+  if (!html) return;
+  document.body.insertAdjacentHTML('beforeend', html);
+  const navEl = document.getElementById('th-mobile-bottom-nav');
+  if (!navEl) return;
+
+  navEl.querySelectorAll('a[data-portal-tab]').forEach((a) => {
+    a.addEventListener('click', (e) => {
+      const targetUrl = new URL(a.href, window.location.origin);
+      const samePage =
+        window.location.pathname.replace(/\.html$/, '') === targetUrl.pathname.replace(/\.html$/, '');
+      const tabId = a.dataset.portalTab;
+      const sideBtn = tabId
+        ? document.querySelector(`.studio-nav-btn[data-tab="${tabId}"], .admin-nav-btn[data-tab="${tabId}"]`)
+        : null;
+      if (samePage && sideBtn) {
+        e.preventDefault();
+        sideBtn.click();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        ganThanhDieuHuongDayMobile(user);
+      }
+    });
+  });
+}
+
+let daKhoiTaoObserverPortalMobile = false;
+
+export function khoiTaoThanhTabNgangMobilePortal() {
+  if (typeof document === 'undefined') return;
+  const appShell = document.querySelector('.app-shell');
+  const topbar = appShell?.querySelector('.app-topbar');
+  const sideBtns = [...(appShell?.querySelectorAll('.studio-nav-btn[data-tab], .admin-nav-btn[data-tab]') || [])];
+  if (!appShell || !topbar || sideBtns.length === 0) return;
+
+  let strip = document.getElementById('portal-mobile-subtabs');
+  if (!strip) {
+    strip = document.createElement('nav');
+    strip.id = 'portal-mobile-subtabs';
+    strip.className = 'portal-mobile-subtabs';
+    strip.setAttribute('aria-label', 'Chuyển nhanh mục trong bảng điều khiển trên điện thoại');
+    topbar.insertAdjacentElement('afterend', strip);
+  }
+
+  const nhanGonMap = {
+    'tab-tong-quan': 'Tổng quan',
+    'tab-kham-pha': 'Tìm nhanh',
+    'tab-lich-hoc': 'Lịch học',
+    'tab-yeu-thich': 'Đã lưu',
+    'tab-tin-nhan': 'Tin nhắn',
+    'tab-tai-khoan': 'Ví & Tôi',
+    'tab-ho-so': 'Hồ sơ',
+    'tab-giay-to': 'Bằng cấp',
+    'tab-mon-hoc': 'Môn dạy',
+    'tab-lich-ranh': 'Lịch dạy',
+    'tab-vi-giao-dich': 'Ví & Thu nhập',
+  };
+
+  const dongBoSubtabs = () => {
+    strip.innerHTML = sideBtns
+      .map((btn) => {
+        const tabId = btn.dataset.tab;
+        const isAct = btn.classList.contains('active');
+        const rawText = (btn.querySelector('.studio-nav-btn-left')?.textContent || btn.textContent || '').trim();
+        const label = nhanGonMap[tabId] || rawText;
+        return `
+          <button type="button" class="portal-mobile-subtab-pill ${isAct ? 'active' : ''}" data-target-tab="${escapeHtml(tabId)}">
+            <span>${escapeHtml(label)}</span>
+          </button>
+        `;
+      })
+      .join('');
+
+    strip.querySelectorAll('.portal-mobile-subtab-pill').forEach((pill) => {
+      pill.addEventListener('click', () => {
+        const targetBtn = appShell.querySelector(
+          `.studio-nav-btn[data-tab="${pill.dataset.targetTab}"], .admin-nav-btn[data-tab="${pill.dataset.targetTab}"]`
+        );
+        if (targetBtn) {
+          targetBtn.click();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      });
+    });
+
+    const activePill = strip.querySelector('.portal-mobile-subtab-pill.active');
+    activePill?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+    ganThanhDieuHuongDayMobile();
+  };
+
+  dongBoSubtabs();
+
+  if (!daKhoiTaoObserverPortalMobile) {
+    daKhoiTaoObserverPortalMobile = true;
+    const obs = new MutationObserver(() => {
+      dongBoSubtabs();
+    });
+    sideBtns.forEach((b) => obs.observe(b, { attributes: true, attributeFilter: ['class'] }));
+  }
+}
+
+if (typeof document !== 'undefined') {
+  const khoiChayMobileUi = () => {
+    ganThanhDieuHuongDayMobile();
+    khoiTaoThanhTabNgangMobilePortal();
+  };
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', khoiChayMobileUi);
+  } else {
+    khoiChayMobileUi();
+  }
 }
 
 export function renderCardGiaSu(gs, { choPhepYeuThich = true } = {}) {
