@@ -645,6 +645,27 @@
                 <div id="thong-bao-dat-lich" style="display: none; font-size: 0.78rem; padding: 0.5rem 0.7rem; border-radius: 10px; background: var(--th-blush-soft); border: 1px solid var(--th-blush-border); color: var(--th-blush-text); line-height: 1.45"></div>
               </aside>
             </div>
+
+            <!-- Thanh Đặt lịch & Nhắn tin cố định ở đáy màn hình dành riêng cho Điện thoại dọc -->
+            <div class="tutor-mobile-bottom-cta">
+              <div class="tutor-mobile-cta-price-col">
+                <div class="tutor-mobile-cta-price">${dinhDangTienVnd(giaThapNhat)}<span style="font-size: 0.76rem; font-weight: 600; color: #64748b">/giờ</span></div>
+                <div class="tutor-mobile-cta-meta">
+                  ${gs.soLuotDanhGia > 0 ? `★ ${gs.diemDanhGiaTrungBinh.toFixed(1)} (${gs.soLuotDanhGia})` : `${gs.soNamKinhNghiem} năm KN`}
+                  ${duDieuKienHocThu ? ' · <span style="color:#15803d;font-weight:700">Học thử 0₫</span>' : ''}
+                </div>
+              </div>
+              <div class="tutor-mobile-cta-btns">
+                <button id="btn-nhan-tin-gs-mobile" type="button" class="tutor-btn-chat" style="height: 42px; padding: 0 0.85rem">
+                  ${icons.messageCircle(15)}
+                  <span>Nhắn tin</span>
+                </button>
+                <button id="btn-dat-lich-ngay-mobile" type="button" class="btn btn-primary" style="height: 42px; padding: 0 1rem; font-weight: 700">
+                  ${icons.calendar(15)}
+                  <span>Đặt lịch</span>
+                </button>
+              </div>
+            </div>
           `;
 
           // Nút mở rộng / thu gọn bằng cấp khi có nhiều hơn 6 mục
@@ -688,6 +709,13 @@
             } catch (err) {
               alert(err.message);
             }
+          });
+
+          document.getElementById('btn-dat-lich-ngay-mobile')?.addEventListener('click', () => {
+            document.getElementById('btn-dat-lich-ngay')?.click();
+          });
+          document.getElementById('btn-nhan-tin-gs-mobile')?.addEventListener('click', () => {
+            document.getElementById('btn-nhan-tin-gs')?.click();
           });
 
           // Nút Đặt lịch học -> Mở Modal đặt lịch thật

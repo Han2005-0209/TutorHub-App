@@ -503,6 +503,76 @@ export function renderFooter(selector = '#khung-footer') {
         </div>
       </div>
     </footer>
+    ${taoThanhDieuHuongDayMobileHtml(user)}
+  `;
+}
+
+export function taoThanhDieuHuongDayMobileHtml(user = layNguoiDungHienTai()) {
+  const path = window.location.pathname || '';
+  const search = window.location.search || '';
+  // Trên trang Chi tiết Hồ sơ Gia sư và Phòng học trực tuyến đã có thanh công cụ đáy chuyên biệt
+  if (path.includes('ho-so-gia-su') || path.includes('phong-hoc')) {
+    return '';
+  }
+
+  const laActive = (matchPath, matchQuery = '') => {
+    if (matchPath === '/index.html') {
+      return path === '/' || path.endsWith('/index.html') ? 'active' : '';
+    }
+    const khopPath = path.includes(matchPath.replace(/\.html$/, ''));
+    if (!khopPath) return '';
+    if (matchQuery) return search.includes(matchQuery) ? 'active' : '';
+    if (matchPath.includes('tim-kiem-gia-su') && search.includes('hinhThuc=TRUC_TIEP')) return '';
+    return 'active';
+  };
+
+  let items = [];
+  if (!user) {
+    items = [
+      { href: '/index.html', icon: icons.home(19), label: 'Khám phá', active: laActive('/index.html') },
+      { href: '/pages/tim-kiem-gia-su.html', icon: icons.search(19), label: 'Tìm gia sư', active: laActive('tim-kiem-gia-su') },
+      { href: '/pages/tim-kiem-gia-su.html?hinhThuc=TRUC_TIEP', icon: icons.map(19), label: 'Gần tôi', active: laActive('tim-kiem-gia-su', 'hinhThuc=TRUC_TIEP') },
+      { href: '/pages/tro-thanh-gia-su.html', icon: icons.graduationCap(19), label: 'Dạy học', active: laActive('tro-thanh-gia-su') },
+      { href: '/pages/dang-nhap.html', icon: icons.user(19), label: 'Đăng nhập', active: laActive('dang-nhap') },
+    ];
+  } else if (user.vaiTro === 'HOC_SINH') {
+    items = [
+      { href: '/index.html', icon: icons.home(19), label: 'Trang chủ', active: laActive('/index.html') },
+      { href: '/pages/tim-kiem-gia-su.html', icon: icons.search(19), label: 'Tìm gia sư', active: laActive('tim-kiem-gia-su') },
+      { href: '/pages/tim-kiem-gia-su.html?hinhThuc=TRUC_TIEP', icon: icons.map(19), label: 'Gần tôi', active: laActive('tim-kiem-gia-su', 'hinhThuc=TRUC_TIEP') },
+      { href: '/pages/hoc-sinh-tong-quan.html?tab=tab-lich-hoc', icon: icons.calendar(19), label: 'Lịch học', active: laActive('hoc-sinh-tong-quan', 'tab-lich-hoc') },
+      { href: '/pages/hoc-sinh-tong-quan.html', icon: icons.user(19), label: 'Của tôi', active: path.includes('hoc-sinh-tong-quan') && !search.includes('tab-lich-hoc') ? 'active' : '' },
+    ];
+  } else if (user.vaiTro === 'GIA_SU') {
+    items = [
+      { href: '/pages/quan-ly-gia-su.html', icon: icons.layoutDashboard(19), label: 'Tổng quan', active: path.includes('quan-ly-gia-su') && !search.includes('tab=') ? 'active' : '' },
+      { href: '/pages/quan-ly-gia-su.html?tab=tab-lich-ranh', icon: icons.calendar(19), label: 'Lịch dạy', active: laActive('quan-ly-gia-su', 'tab-lich-ranh') },
+      { href: '/pages/quan-ly-gia-su.html?tab=tab-tin-nhan', icon: icons.messageCircle(19), label: 'Tin nhắn', active: laActive('quan-ly-gia-su', 'tab-tin-nhan') },
+      { href: '/pages/tim-kiem-gia-su.html', icon: icons.search(19), label: 'Tìm kiếm', active: laActive('tim-kiem-gia-su') },
+      { href: '/pages/quan-ly-gia-su.html?tab=tab-ho-so', icon: icons.user(19), label: 'Hồ sơ', active: laActive('quan-ly-gia-su', 'tab-ho-so') },
+    ];
+  } else {
+    items = [
+      { href: '/pages/quan-tri.html', icon: icons.shieldCheck(19), label: 'Quản trị', active: laActive('quan-tri') },
+      { href: '/pages/tim-kiem-gia-su.html', icon: icons.search(19), label: 'Gia sư', active: laActive('tim-kiem-gia-su') },
+      { href: '/index.html', icon: icons.home(19), label: 'Trang chủ', active: laActive('/index.html') },
+      { href: '/pages/ho-so-tai-khoan.html', icon: icons.user(19), label: 'Tài khoản', active: laActive('ho-so-tai-khoan') },
+    ];
+  }
+
+  return `
+    <nav class="th-mobile-bottom-nav" aria-label="Điều hướng nhanh trên điện thoại">
+      ${items
+        .map(
+          (it) => `
+        <a href="${it.href}" class="th-mobile-nav-item ${it.active}">
+          <span class="th-mobile-nav-icon">${it.icon}</span>
+          <span class="th-mobile-nav-label">${escapeHtml(it.label)}</span>
+        </a>
+      `
+        )
+        .join('')}
+    </nav>
   `;
 }
 
@@ -552,7 +622,7 @@ export function renderCardGiaSu(gs, { choPhepYeuThich = true } = {}) {
           <div class="sp-tutor-scrim"></div>
           ${
             gs.daXacMinh
-              ? `<span class="sp-verified-pill">${icons.checkCircle(12)} Đã xác minh</span>`
+              ? `<span class="sp-verified-pill">${icons.checkCircle(12)} <span class="sp-verified-text">Đã xác minh</span></span>`
               : ''
           }
           <div class="sp-tutor-overlay">
@@ -562,17 +632,26 @@ export function renderCardGiaSu(gs, { choPhepYeuThich = true } = {}) {
         </div>
 
         <div class="sp-tutor-body">
+          <!-- Đầu thẻ dành riêng cho giao diện Thẻ Ngang trên Điện thoại dọc (ẩn trên PC) -->
+          <div class="sp-tutor-mobile-head">
+            <div class="sp-tutor-mobile-name-row">
+              <span class="sp-tutor-mobile-name">${escapeHtml(gs.hoTen)}</span>
+              ${gs.daXacMinh ? `<span class="sp-tutor-mobile-verified" title="Đã xác minh bằng cấp">${icons.checkCircle(13)}</span>` : ''}
+            </div>
+            <div class="sp-tutor-mobile-loc">${escapeHtml(dongViTriCheDo)}</div>
+          </div>
+
           <div class="sp-tutor-meta-row">
             <span class="sp-tutor-rating">
               ${
                 gs.soLuotDanhGia > 0
                   ? `<span style="color: var(--th-amber); display: inline-flex">${icons.star(14)}</span>
                      <span>${gs.diemDanhGiaTrungBinh.toFixed(1)}</span>
-                     <span style="font-weight: 500; color: var(--th-text-muted)">(${gs.soLuotDanhGia} đánh giá)</span>`
-                  : `<span style="font-weight: 600; color: var(--th-text-muted)">${gs.soNamKinhNghiem} năm kinh nghiệm</span>`
+                     <span class="sp-rating-count" style="font-weight: 500; color: var(--th-text-muted)">(${gs.soLuotDanhGia} đánh giá)</span>`
+                  : `<span style="font-weight: 600; color: var(--th-text-muted)">${gs.soNamKinhNghiem} năm KN</span>`
               }
             </span>
-            <div style="display: flex; gap: 0.3rem; flex-shrink: 0">
+            <div class="sp-tutor-subject-tags" style="display: flex; gap: 0.3rem; flex-shrink: 0; flex-wrap: wrap">
               ${dsTenMon.slice(0, 2).map((m) => `<span class="tag-subject">${escapeHtml(m)}</span>`).join('')}
             </div>
           </div>

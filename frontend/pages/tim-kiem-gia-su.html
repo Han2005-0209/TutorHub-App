@@ -30,21 +30,26 @@
         </div>
       </div>
 
-      <!-- Thanh lọc tinh gọn (Bộ lọc nâng cao thu gọn mặc định) -->
-      <form id="form-bo-loc" class="card" style="margin-bottom: 1.15rem; padding: 1.1rem 1.25rem">
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(185px, 1fr)); gap: 0.75rem">
-          <div>
-            <label class="form-label" for="loc-tu-khoa">Từ khóa</label>
-            <input id="loc-tu-khoa" type="text" class="form-control" list="ds-mon-hoc-goi-y" autocomplete="off" placeholder="Gõ vài ký tự môn học, tên gia sư..." />
+      <!-- Thanh lọc tinh gọn (Trên PC dàn 3 cột ngang; trên Mobile dọc thu gọn thành 1 thanh tìm nhanh + ngăn kéo Bộ lọc) -->
+      <form id="form-bo-loc" class="card search-filter-card" style="margin-bottom: 1.15rem; padding: 1.1rem 1.25rem">
+        <div class="search-filter-top-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(185px, 1fr)); gap: 0.75rem">
+          <div class="search-filter-field-keyword">
+            <label class="form-label search-keyword-label" for="loc-tu-khoa">Từ khóa</label>
+            <div class="search-mobile-keyword-row">
+              <input id="loc-tu-khoa" type="text" class="form-control" list="ds-mon-hoc-goi-y" autocomplete="off" placeholder="Tìm môn học, tên gia sư..." />
+              <button type="button" id="btn-mo-loc-mobile" class="btn btn-secondary btn-sm search-mobile-filter-btn" aria-expanded="false">
+                Bộ lọc
+              </button>
+            </div>
             <datalist id="ds-mon-hoc-goi-y"></datalist>
           </div>
-          <div>
+          <div class="search-filter-field-extra">
             <label class="form-label" for="loc-mon-hoc">Môn học</label>
             <select id="loc-mon-hoc" class="form-control">
               <option value="">Tất cả môn học</option>
             </select>
           </div>
-          <div id="nhom-loc-khu-vuc">
+          <div id="nhom-loc-khu-vuc" class="search-filter-field-extra">
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.35rem">
               <label class="form-label" for="loc-khu-vuc" style="margin: 0">Khu vực (Học trực tiếp)</label>
               <button type="button" id="btn-gps-loc-nhanh" style="border: none; background: transparent; padding: 0; cursor: pointer; color: var(--th-blush-text); font-size: 0.78rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.25rem">
@@ -59,6 +64,7 @@
         <!-- Vùng bộ lọc nâng cao (thu gọn mặc định, mở khi bấm) -->
         <div
           id="vung-loc-nang-cao"
+          class="search-filter-advanced"
           style="display: none; margin-top: 0.9rem; padding-top: 0.9rem; border-top: 1px solid #f1f5f9; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 0.75rem; align-items: end"
         >
           <div>
@@ -91,11 +97,11 @@
 
         <input id="loc-hinh-thuc" type="hidden" value="" />
 
-        <div style="margin-top: 0.9rem; padding-top: 0.85rem; border-top: 1px solid #f1f5f9; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.65rem">
+        <div class="search-filter-actions-row" style="margin-top: 0.9rem; padding-top: 0.85rem; border-top: 1px solid #f1f5f9; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.65rem">
           <button id="btn-loc-nang-cao" type="button" class="btn btn-secondary btn-sm">
             Bộ lọc nâng cao
           </button>
-          <div style="display: flex; gap: 0.5rem">
+          <div style="display: flex; gap: 0.5rem; flex: 1; justify-content: flex-end">
             <button id="btn-dat-lai" type="button" class="btn btn-ghost btn-sm">Đặt lại</button>
             <button type="submit" class="btn btn-primary btn-sm">Áp dụng bộ lọc</button>
           </div>
@@ -1135,6 +1141,20 @@
         });
       });
 
+      const btnMoLocMobile = document.getElementById('btn-mo-loc-mobile');
+      const formBoLoc = document.getElementById('form-bo-loc');
+      if (btnMoLocMobile) {
+        btnMoLocMobile.innerHTML = `${icons.sliders(14)} <span>Bộ lọc</span>`;
+        btnMoLocMobile.addEventListener('click', () => {
+          const dangMo = formBoLoc?.classList.toggle('mobile-filters-open');
+          btnMoLocMobile.setAttribute('aria-expanded', String(Boolean(dangMo)));
+          if (dangMo && window.innerWidth <= 680) {
+            dangMoNangCao = true;
+            dongBoBoLocNangCao();
+          }
+        });
+      }
+
       document.getElementById('btn-loc-nang-cao')?.addEventListener('click', () => {
         dangMoNangCao = !dangMoNangCao;
         dongBoBoLocNangCao();
@@ -1152,6 +1172,8 @@
 
       document.getElementById('form-bo-loc')?.addEventListener('submit', (e) => {
         e.preventDefault();
+        formBoLoc?.classList.remove('mobile-filters-open');
+        btnMoLocMobile?.setAttribute('aria-expanded', 'false');
         timKiem(1);
       });
 
