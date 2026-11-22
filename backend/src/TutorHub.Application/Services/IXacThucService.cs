@@ -11,9 +11,9 @@ public interface IXacThucService
     Task<KetQuaDangNhapDto> DangNhapAsync(DangNhapYeuCauDto yeuCau, CancellationToken cancellationToken = default);
     Task<KetQuaDangNhapDto> LamMoiTokenAsync(LamMoiTokenYeuCauDto yeuCau, CancellationToken cancellationToken = default);
     Task DangXuatAsync(Guid nguoiDungId, CancellationToken cancellationToken = default);
-    Task<NguoiDungHienTaiDto> XacThucEmailAsync(string token, CancellationToken cancellationToken = default);
-    Task<string> GuiLaiXacThucEmailAsync(Guid nguoiDungId, CancellationToken cancellationToken = default);
-    Task<string?> QuenMatKhauAsync(string email, CancellationToken cancellationToken = default);
+    Task<NguoiDungHienTaiDto> XacThucEmailAsync(Guid? nguoiDungId, string token, CancellationToken cancellationToken = default);
+    Task<KetQuaGuiEmailOtpDto> GuiLaiXacThucEmailAsync(Guid nguoiDungId, CancellationToken cancellationToken = default);
+    Task<KetQuaGuiEmailOtpDto> QuenMatKhauAsync(string email, CancellationToken cancellationToken = default);
     Task DatLaiMatKhauAsync(DatLaiMatKhauYeuCauDto yeuCau, CancellationToken cancellationToken = default);
 
     Task<NguoiDungHienTaiDto> LayThongTinToiAsync(Guid nguoiDungId, CancellationToken cancellationToken = default);

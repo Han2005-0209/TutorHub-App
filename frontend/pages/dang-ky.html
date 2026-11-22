@@ -143,6 +143,13 @@
           });
 
           luuPhienDangNhapDayDu(res?.duLieu);
+          if (res?.duLieu?.daGuiEmailXacThuc) {
+            try {
+              sessionStorage.setItem('tutorhub_flash_toast', 'Đăng ký thành công! Mã OTP xác thực email đã được gửi tới hộp thư của bạn — bạn có thể xác nhận trong mục Tài khoản & Bảo mật.');
+            } catch {
+              // Bỏ qua nếu sessionStorage bị khóa
+            }
+          }
           window.location.href = layTrangChinhTheoVaiTro(vaiTro);
         } catch (err) {
           hopThongBao.style.display = 'block';

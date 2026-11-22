@@ -42,7 +42,8 @@ public sealed record DonDatLichChiTietDto(
     string TenGiaSu,
     Guid HocSinhId,
     string TenHocSinh,
-    TrangThaiThanhToan? TrangThaiThanhToan = null);
+    TrangThaiThanhToan? TrangThaiThanhToan = null,
+    DanhGiaDonTomTatDto? DanhGia = null);
 
 // ── Nhắn tin & Hội thoại (Module 8 — HoiThoai & TinNhan) ──
 

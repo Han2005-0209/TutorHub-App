@@ -378,6 +378,7 @@ public sealed class DonDatLichService : IDonDatLichService
             .Include(d => d.GiaSuMonHoc)!.ThenInclude(m => m!.GiaSu)
             .Include(d => d.GiaSuMonHoc)!.ThenInclude(m => m!.MonHoc)
             .Include(d => d.DsThanhToan)
+            .Include(d => d.DanhGia)
             .AsQueryable();
 
         truyVan = vaiTro == VaiTro.GIA_SU
@@ -667,6 +668,17 @@ public sealed class DonDatLichService : IDonDatLichService
             TenGiaSu: d.GiaSuMonHoc?.GiaSu?.HoTen ?? "Gia sư",
             HocSinhId: d.HocSinhId,
             TenHocSinh: d.HocSinh?.HoTen ?? "Học sinh",
-            TrangThaiThanhToan: tt?.TrangThai);
+            TrangThaiThanhToan: tt?.TrangThai,
+            DanhGia: d.DanhGia is null
+                ? null
+                : new DanhGiaDonTomTatDto(
+                    Id: d.DanhGia.Id,
+                    Diem: d.DanhGia.Diem,
+                    BinhLuan: d.DanhGia.BinhLuan,
+                    PhanHoiGiaSu: d.DanhGia.PhanHoiGiaSu,
+                    BiAn: d.DanhGia.BiAn,
+                    LyDoAn: d.DanhGia.LyDoAn,
+                    TaoLuc: d.DanhGia.TaoLuc,
+                    CoTheSua: !d.DanhGia.BiAn && DateTime.UtcNow <= d.DanhGia.TaoLuc.AddHours(48)));
     }
 }

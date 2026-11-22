@@ -66,37 +66,33 @@ public sealed class XacThucController : ControllerBase
     }
 
     [HttpPost("xac-thuc-email")]
-    [AllowAnonymous]
+    [Authorize]
     public async Task<ActionResult<PhanHoiApi<NguoiDungHienTaiDto>>> XacThucEmail(
         [FromBody] XacThucEmailYeuCauDto yeuCau,
         CancellationToken cancellationToken)
     {
-        var dto = await _xacThucService.XacThucEmailAsync(yeuCau.Token, cancellationToken);
+        var userId = User.LayNguoiDungId();
+        var dto = await _xacThucService.XacThucEmailAsync(userId, yeuCau.Token, cancellationToken);
         return Ok(new PhanHoiApi<NguoiDungHienTaiDto>(dto));
     }
 
     [HttpPost("gui-lai-xac-thuc")]
     [Authorize]
-    public async Task<ActionResult<PhanHoiApi<object>>> GuiLaiXacThuc(CancellationToken cancellationToken)
+    public async Task<ActionResult<PhanHoiApi<KetQuaGuiEmailOtpDto>>> GuiLaiXacThuc(CancellationToken cancellationToken)
     {
         var userId = User.LayNguoiDungId();
-        var tokenDemo = await _xacThucService.GuiLaiXacThucEmailAsync(userId, cancellationToken);
-        return Ok(new PhanHoiApi<object>(new { daGui = true, tokenDemo }));
+        var kq = await _xacThucService.GuiLaiXacThucEmailAsync(userId, cancellationToken);
+        return Ok(new PhanHoiApi<KetQuaGuiEmailOtpDto>(kq));
     }
 
     [HttpPost("quen-mat-khau")]
     [AllowAnonymous]
-    public async Task<ActionResult<PhanHoiApi<object>>> QuenMatKhau(
+    public async Task<ActionResult<PhanHoiApi<KetQuaGuiEmailOtpDto>>> QuenMatKhau(
         [FromBody] QuenMatKhauYeuCauDto yeuCau,
         CancellationToken cancellationToken)
     {
-        var tokenDemo = await _xacThucService.QuenMatKhauAsync(yeuCau.Email, cancellationToken);
-        return Ok(new PhanHoiApi<object>(new
-        {
-            daGui = true,
-            thongBao = "Nếu email tồn tại trên hệ thống, hướng dẫn đặt lại mật khẩu đã được tạo.",
-            tokenDemo
-        }));
+        var kq = await _xacThucService.QuenMatKhauAsync(yeuCau.Email, cancellationToken);
+        return Ok(new PhanHoiApi<KetQuaGuiEmailOtpDto>(kq));
     }
 
     [HttpPost("dat-lai-mat-khau")]

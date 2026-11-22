@@ -25,7 +25,15 @@ public sealed record QuenMatKhauYeuCauDto(
 
 public sealed record DatLaiMatKhauYeuCauDto(
     string Token,
-    string MatKhauMoi);
+    string MatKhauMoi,
+    string? Email = null);
+
+public sealed record KetQuaGuiEmailOtpDto(
+    bool DaGui,
+    bool DaGuiEmailThat,
+    string ThongBao,
+    int ThoiGianHetHanPhut = 15,
+    int CooldownGiay = 60);
 
 public sealed record CapNhatHoSoNguoiDungDto(
     string HoTen,
@@ -55,4 +63,4 @@ public sealed record KetQuaDangNhapDto(
     string RefreshToken,
     DateTime HetHanLuc,
     NguoiDungHienTaiDto NguoiDung,
-    string? TokenXacThucEmailDemo = null);
+    bool DaGuiEmailXacThuc = false);

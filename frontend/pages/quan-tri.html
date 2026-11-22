@@ -281,6 +281,9 @@
 
           <div class="admin-nav-section-label">An toàn &amp; Kiểm duyệt</div>
           <nav class="admin-nav">
+            <button type="button" class="admin-nav-btn" data-tab="qt-danh-gia" id="qt-nav-danh-gia">
+              <span class="studio-nav-btn-left">Kiểm duyệt đánh giá</span>
+            </button>
             <button type="button" class="admin-nav-btn" data-tab="qt-kiem-duyet" id="qt-nav-kiem-duyet">
               <span class="studio-nav-btn-left">Kiểm duyệt nội dung web</span>
             </button>
@@ -853,6 +856,32 @@
             </div>
           </section>
 
+          <!-- TAB 4.8: Kiểm duyệt đánh giá học viên -->
+          <section id="qt-danh-gia" class="qt-panel" style="display: none">
+            <div class="card" style="padding: 1.35rem; margin-bottom: 1rem">
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap">
+                <div>
+                  <h2 style="margin: 0; font-size: 1.08rem; font-weight: 700">Kiểm duyệt đánh giá buổi học</h2>
+                  <p style="margin: 0.2rem 0 0; font-size: 0.82rem; color: var(--th-text-muted)">
+                    Ẩn các đánh giá vi phạm quy chuẩn cộng đồng (điểm trung bình gia sư sẽ tự động tính lại) hoặc khôi phục đánh giá hợp lệ.
+                  </p>
+                </div>
+                <div style="display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center">
+                  <input id="qt-tim-dg" type="text" class="form-control" style="width: 210px; height: 36px" placeholder="Tìm mã đơn, học sinh, gia sư..." />
+                  <div class="mode-switcher" role="tablist" aria-label="Lọc trạng thái đánh giá">
+                    <button type="button" class="mode-pill active btn-loc-dg-qt" data-an="">Tất cả</button>
+                    <button type="button" class="mode-pill btn-loc-dg-qt" data-an="false">Đang hiển thị</button>
+                    <button type="button" class="mode-pill btn-loc-dg-qt" data-an="true">Đã ẩn</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div id="qt-ds-danh-gia" style="display: flex; flex-direction: column; gap: 0.85rem">
+              <div class="card" style="padding: 1.25rem; font-size: 0.85rem; color: var(--th-text-muted)">Đang tải danh sách đánh giá...</div>
+            </div>
+            <div id="qt-phan-trang-dg" style="display: flex; justify-content: center; gap: 0.4rem; flex-wrap: wrap; margin-top: 1rem"></div>
+          </section>
+
           <!-- TAB 5: Kiểm duyệt nội dung hiển thị web & nội dung người dùng -->
           <section id="qt-kiem-duyet" class="qt-panel" style="display: none">
             <div class="card" style="padding: 1.5rem">
@@ -891,7 +920,7 @@
       import { dinhDangNgayGioVn, dinhDangTienVnd } from '/assets/js/dinh-dang.js';
       import { icons } from '/assets/js/icons.js';
       import { boDauTiengViet } from '/assets/js/mon-hoc-goi-y.js';
-      import { hienToast, nhapLyDoModal } from '/assets/js/thong-bao-ui.js';
+      import { hienToast, nhapLyDoModal, xacNhanHanhDong } from '/assets/js/thong-bao-ui.js';
       import {
         dangXuatHeThong,
         dongBoNguoiDungTuApi,
@@ -922,6 +951,7 @@
       document.getElementById('qt-nav-mon-hoc').innerHTML = `<span class="studio-nav-btn-left">${icons.bookOpen(16)} <span>Danh mục môn học</span></span>`;
       document.getElementById('qt-nav-rut-tien').innerHTML = `<span class="studio-nav-btn-left">${icons.wallet(16)} <span>Duyệt rút tiền gia sư</span></span><span class="admin-nav-badge" id="badge-rut-tien" style="display: none">0</span>`;
       document.getElementById('qt-nav-khieu-nai').innerHTML = `<span class="studio-nav-btn-left">${icons.shieldAlert(16)} <span>Giải quyết khiếu nại</span></span><span class="admin-nav-badge" id="badge-khieu-nai" style="display: none">0</span>`;
+      document.getElementById('qt-nav-danh-gia').innerHTML = `<span class="studio-nav-btn-left">${icons.star(16)} <span>Kiểm duyệt đánh giá</span></span>`;
       document.getElementById('qt-nav-kiem-duyet').innerHTML = `<span class="studio-nav-btn-left">${icons.alertTriangle(16)} <span>Kiểm duyệt nội dung web</span></span>`;
       document.getElementById('qt-link-account').innerHTML = `${icons.settings(14)} <span>Cài đặt tài khoản</span>`;
       document.getElementById('qt-btn-logout').innerHTML = `${icons.logout(14)} <span>Đăng xuất</span>`;
@@ -1009,9 +1039,12 @@
       let trangThaiLocGs = '';
       let trangThaiLocRut = '';
       let trangThaiLocKn = '';
+      let locAnDgQt = '';
       let trangGsQt = 1;
       let trangNdQt = 1;
+      let trangDgQt = 1;
       let timerTimGsQt = null;
+      let timerTimDgQt = null;
       let tongQuanCache = null;
       let phamViThongKeQt = '30_ngay';
       let thongKeChiTietCache = null;
@@ -1128,6 +1161,7 @@
         'qt-mon-hoc': 'Quản lý danh mục môn học',
         'qt-rut-tien': 'Duyệt yêu cầu rút tiền gia sư',
         'qt-khieu-nai': 'Giải quyết khiếu nại học phí',
+        'qt-danh-gia': 'Kiểm duyệt đánh giá buổi học',
         'qt-kiem-duyet': 'Kiểm duyệt nội dung hiển thị web',
       };
 
@@ -1198,6 +1232,7 @@
           taiDsMonHoc(),
           taiDsRutTienQuanTri(),
           taiDsKhieuNaiQuanTri(),
+          taiDsDanhGiaQuanTri(1),
         ]);
       }
 
@@ -3160,6 +3195,131 @@
         } catch (err) {
           hienThongBao(err.message, 'danger');
         }
+      });
+
+      // ══════════════════════════════════════════════════════════════════════
+      // TAB 4.8: KIỂM DUYỆT ĐÁNH GIÁ BUỔI HỌC (Module 6 — Ẩn / Khôi phục)
+      // ══════════════════════════════════════════════════════════════════════
+      async function taiDsDanhGiaQuanTri(trang = trangDgQt) {
+        const elList = document.getElementById('qt-ds-danh-gia');
+        if (!elList) return;
+        try {
+          trangDgQt = trang;
+          const p = new URLSearchParams({ trang: String(trang), kichThuocTrang: '12' });
+          if (locAnDgQt === 'true' || locAnDgQt === 'false') p.set('biAn', locAnDgQt);
+          const tk = document.getElementById('qt-tim-dg')?.value?.trim();
+          if (tk) p.set('tuKhoa', tk);
+
+          const res = await api.get(`/quan-tri/danh-gia?${p.toString()}`);
+          const ds = res?.duLieu || [];
+          renderThanhPhanTrangQt('qt-phan-trang-dg', res?.meta, (pMoi) => taiDsDanhGiaQuanTri(pMoi));
+
+          if (!ds.length) {
+            elList.innerHTML =
+              '<div class="card" style="padding: 1.5rem; text-align: center; font-size: 0.86rem; color: var(--th-text-muted)">Không có đánh giá nào khớp bộ lọc hiện tại.</div>';
+            return;
+          }
+
+          elList.innerHTML = ds
+            .map((dg) => {
+              const sao = `${'★'.repeat(dg.diem)}${'☆'.repeat(5 - dg.diem)}`;
+              return `
+                <article class="card" style="padding: 1.15rem 1.25rem; ${dg.biAn ? 'border-color: #fecaca; background: #fffafa' : ''}">
+                  <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 0.85rem; flex-wrap: wrap">
+                    <div>
+                      <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap">
+                        <strong style="font-size: 0.94rem; color: #0f172a">${escapeHtml(dg.maDon)}</strong>
+                        <span style="color: #d97706; font-weight: 800; letter-spacing: 0.06em">${sao} (${dg.diem}/5)</span>
+                        <span class="badge badge-info">${escapeHtml(dg.tenMonHoc)}</span>
+                        <span class="badge ${dg.biAn ? 'badge-danger' : 'badge-success'}">${dg.biAn ? 'Đã ẩn' : 'Đang hiển thị'}</span>
+                      </div>
+                      <div style="font-size: 0.8rem; color: var(--th-text-muted); margin-top: 0.28rem">
+                        Học viên: <strong>${escapeHtml(dg.tenHocSinh)}</strong> · Gia sư: <strong>${escapeHtml(dg.tenGiaSu)}</strong> · Gửi lúc ${dinhDangNgayGioVn(dg.taoLuc)}
+                      </div>
+                    </div>
+                    <div style="display: flex; gap: 0.45rem; flex-wrap: wrap">
+                      ${
+                        dg.biAn
+                          ? `<button type="button" class="btn btn-emerald btn-sm btn-khoi-phuc-dg-qt" data-id="${dg.id}" data-ma="${escapeHtml(dg.maDon)}">Khôi phục hiển thị</button>`
+                          : `<button type="button" class="btn btn-danger btn-sm btn-an-dg-qt" data-id="${dg.id}" data-ma="${escapeHtml(dg.maDon)}">Ẩn đánh giá</button>`
+                      }
+                    </div>
+                  </div>
+                  <p style="margin: 0.65rem 0 0; font-size: 0.87rem; color: #1e293b; line-height: 1.55">${escapeHtml(dg.binhLuan)}</p>
+                  ${
+                    dg.phanHoiGiaSu
+                      ? `<div style="margin-top: 0.55rem; padding: 0.55rem 0.75rem; border-radius: 9px; background: #eff6ff; border: 1px solid #bfdbfe; font-size: 0.81rem; color: #1e3a8a">
+                           <strong>Phản hồi của gia sư:</strong> ${escapeHtml(dg.phanHoiGiaSu)}
+                         </div>`
+                      : ''
+                  }
+                  ${
+                    dg.biAn
+                      ? `<div style="margin-top: 0.55rem; padding: 0.5rem 0.75rem; border-radius: 9px; background: #fef2f2; border: 1px solid #fecaca; font-size: 0.79rem; color: #991b1b">
+                           <strong>Lý do ẩn:</strong> ${escapeHtml(dg.lyDoAn || 'Vi phạm quy chuẩn cộng đồng')}
+                           ${dg.tenNguoiKiemDuyet ? `<span style="color: #64748b"> · Ẩn bởi Quản trị viên <strong>${escapeHtml(dg.tenNguoiKiemDuyet)}</strong></span>` : ''}
+                         </div>`
+                      : ''
+                  }
+                </article>
+              `;
+            })
+            .join('');
+
+          elList.querySelectorAll('.btn-an-dg-qt').forEach((btn) => {
+            btn.addEventListener('click', async () => {
+              const lyDoAn = await nhapLyDoModal({
+                tieuDe: `Ẩn đánh giá đơn ${btn.dataset.ma}`,
+                moTa: 'Đánh giá bị ẩn sẽ không còn xuất hiện trên hồ sơ công khai và điểm trung bình của gia sư sẽ tự động tính lại.',
+                placeholder: 'VD: Nội dung chứa ngôn từ không phù hợp / thông tin sai sự thật...',
+                nutXacNhan: 'Xác nhận ẩn đánh giá',
+                nguyHiem: true,
+                toiThieu: 5,
+              });
+              if (!lyDoAn) return;
+              try {
+                await api.post(`/quan-tri/danh-gia/${btn.dataset.id}/kiem-duyet`, { anDanhGia: true, lyDoAn });
+                hienThongBao(`Đã ẩn đánh giá đơn ${btn.dataset.ma}.`, 'success');
+                await taiDsDanhGiaQuanTri(trangDgQt);
+              } catch (err) {
+                hienThongBao(err.message || 'Không thể ẩn đánh giá lúc này.', 'danger');
+              }
+            });
+          });
+
+          elList.querySelectorAll('.btn-khoi-phuc-dg-qt').forEach((btn) => {
+            btn.addEventListener('click', async () => {
+              const ok = await xacNhanHanhDong({
+                tieuDe: `Khôi phục đánh giá đơn ${btn.dataset.ma}`,
+                noiDung: 'Đánh giá này sẽ hiển thị công khai trở lại trên hồ sơ gia sư và được tính lại vào điểm đánh giá trung bình.',
+                nutXacNhan: 'Khôi phục hiển thị',
+              });
+              if (!ok) return;
+              try {
+                await api.post(`/quan-tri/danh-gia/${btn.dataset.id}/kiem-duyet`, { anDanhGia: false });
+                hienThongBao(`Đã khôi phục hiển thị đánh giá đơn ${btn.dataset.ma}.`, 'success');
+                await taiDsDanhGiaQuanTri(trangDgQt);
+              } catch (err) {
+                hienThongBao(err.message || 'Không thể khôi phục đánh giá.', 'danger');
+              }
+            });
+          });
+        } catch (err) {
+          elList.innerHTML = `<div class="alert alert-danger">${escapeHtml(err.message || 'Không thể tải danh sách đánh giá.')}</div>`;
+        }
+      }
+
+      document.querySelectorAll('.btn-loc-dg-qt').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          locAnDgQt = btn.dataset.an || '';
+          document.querySelectorAll('.btn-loc-dg-qt').forEach((b) => b.classList.toggle('active', b === btn));
+          taiDsDanhGiaQuanTri(1);
+        });
+      });
+
+      document.getElementById('qt-tim-dg')?.addEventListener('input', () => {
+        clearTimeout(timerTimDgQt);
+        timerTimDgQt = setTimeout(() => taiDsDanhGiaQuanTri(1), 280);
       });
     </script>
   </body>

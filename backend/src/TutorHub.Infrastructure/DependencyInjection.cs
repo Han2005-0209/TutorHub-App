@@ -53,11 +53,13 @@ public static class DependencyInjection
         });
 
         services.AddSingleton<IKiemDuyetNoiDungService, KiemDuyetNoiDungService>();
+        services.AddSingleton<IGuiEmailService, GuiEmailService>();
         services.AddScoped<IKiemTraSucKhoeService, KiemTraSucKhoeService>();
         services.AddScoped<IXacThucService, XacThucService>();
         services.AddScoped<IGiaSuVaMonHocService, GiaSuVaMonHocService>();
         services.AddScoped<IBangDieuKhienService, BangDieuKhienService>();
         services.AddScoped<IDonDatLichService, DonDatLichService>();
+        services.AddScoped<IDanhGiaService, DanhGiaService>();
         services.AddScoped<IViVaTaiChinhService, ViVaTaiChinhService>();
         services.AddScoped<IHoiThoaiService, HoiThoaiService>();
         services.AddScoped<ILuuTruTepService, LuuTruTepService>();

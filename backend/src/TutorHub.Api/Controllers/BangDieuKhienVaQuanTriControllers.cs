@@ -68,13 +68,16 @@ public sealed class QuanTriController : ControllerBase
 {
     private readonly IBangDieuKhienService _service;
     private readonly IViVaTaiChinhService _viVaTaiChinh;
+    private readonly IDanhGiaService _danhGia;
 
     public QuanTriController(
         IBangDieuKhienService service,
-        IViVaTaiChinhService viVaTaiChinh)
+        IViVaTaiChinhService viVaTaiChinh,
+        IDanhGiaService danhGia)
     {
         _service = service;
         _viVaTaiChinh = viVaTaiChinh;
+        _danhGia = danhGia;
     }
 
     [HttpGet("tong-quan")]
@@ -244,5 +247,34 @@ public sealed class QuanTriController : ControllerBase
         var quanTriId = User.LayNguoiDungId();
         var dto = await _viVaTaiChinh.GiaiQuyetKhieuNaiAsync(quanTriId, id, yeuCau, cancellationToken);
         return Ok(new PhanHoiApi<KhieuNaiChiTietDto>(dto));
+    }
+
+    // API 14: Danh sách đánh giá buổi học để Quản trị viên kiểm duyệt
+    [HttpGet("danh-gia")]
+    [ProducesResponseType(typeof(PhanHoiApi<IReadOnlyList<DanhGiaChiTietDto>>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<PhanHoiApi<IReadOnlyList<DanhGiaChiTietDto>>>> LayDsDanhGia(
+        [FromQuery] bool? biAn = null,
+        [FromQuery] string? tuKhoa = null,
+        [FromQuery] int trang = 1,
+        [FromQuery] int kichThuocTrang = 15,
+        CancellationToken cancellationToken = default)
+    {
+        var kq = await _danhGia.LayDsDanhGiaQuanTriAsync(biAn, tuKhoa, trang, kichThuocTrang, cancellationToken);
+        return Ok(new PhanHoiApi<IReadOnlyList<DanhGiaChiTietDto>>(
+            kq.DuLieu,
+            new MetaPhanTrangDto(kq.Trang, kq.KichThuocTrang, kq.Tong, kq.TongTrang)));
+    }
+
+    // API 15: Ẩn hoặc khôi phục đánh giá vi phạm
+    [HttpPost("danh-gia/{id:guid}/kiem-duyet")]
+    [ProducesResponseType(typeof(PhanHoiApi<DanhGiaChiTietDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<PhanHoiApi<DanhGiaChiTietDto>>> KiemDuyetDanhGia(
+        Guid id,
+        [FromBody] KiemDuyetDanhGiaYeuCauDto yeuCau,
+        CancellationToken cancellationToken)
+    {
+        var quanTriId = User.LayNguoiDungId();
+        var dto = await _danhGia.KiemDuyetDanhGiaAsync(quanTriId, id, yeuCau, cancellationToken);
+        return Ok(new PhanHoiApi<DanhGiaChiTietDto>(dto));
     }
 }

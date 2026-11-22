@@ -187,7 +187,7 @@
                 <div style="font-weight: 700; color: #1e3a8a">Ví học tập TutorHub</div>
                 <div style="font-size: 0.76rem; color: #475569; margin-top: 0.1rem">Trừ trực tiếp từ số dư ví và tạm giữ an toàn đến khi hoàn thành buổi học</div>
               </div>
-              <a href="/pages/hoc-sinh-tong-quan.html?tab=tab-vi" style="font-size: 0.78rem; font-weight: 700; color: #2563eb; white-space: nowrap">
+              <a href="/pages/hoc-sinh-tong-quan.html?tab=tab-tai-khoan" style="font-size: 0.78rem; font-weight: 700; color: #2563eb; white-space: nowrap">
                 Nạp tiền VietQR (PayOS) →
               </a>
             </div>
@@ -1586,7 +1586,7 @@
                 if (tbTt) {
                   tbTt.style.display = 'block';
                   tbTt.className = 'alert alert-danger';
-                  tbTt.innerHTML = `${escapeHtml(errTt.message || 'Không thể thanh toán lúc này.')} <a href="/pages/hoc-sinh-tong-quan.html?tab=tab-vi" style="font-weight: 700; text-decoration: underline; margin-left: 0.3rem">Nạp tiền VietQR →</a>`;
+                  tbTt.innerHTML = `${escapeHtml(errTt.message || 'Không thể thanh toán lúc này.')} <a href="/pages/hoc-sinh-tong-quan.html?tab=tab-tai-khoan" style="font-weight: 700; text-decoration: underline; margin-left: 0.3rem">Nạp tiền VietQR →</a>`;
                 }
                 btnTtNgay.disabled = false;
                 btnTtNgay.textContent = `Thanh toán giữ chỗ ngay (${dinhDangTienVnd(don.tongTien)})`;

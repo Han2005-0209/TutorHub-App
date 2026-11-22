@@ -328,6 +328,9 @@
             <button type="button" class="studio-nav-btn" data-tab="tab-tin-nhan" id="nav-tin-nhan-gs" title="Tin nhắn học viên">
               <span class="studio-nav-btn-left">Tin nhắn học viên</span>
             </button>
+            <button type="button" class="studio-nav-btn" data-tab="tab-danh-gia" id="nav-danh-gia-gs" title="Đánh giá học viên">
+              <span class="studio-nav-btn-left">Đánh giá học viên</span>
+            </button>
             <button type="button" class="studio-nav-btn" data-tab="tab-vi-giao-dich" id="nav-vi-gs" title="Ví &amp; Giao dịch">
               <span class="studio-nav-btn-left">Ví &amp; Giao dịch</span>
             </button>
@@ -968,6 +971,31 @@
             </div>
           </section>
 
+          <!-- TAB 5.8: Đánh giá từ học viên (Module 6 — DanhGia & Phản hồi 1 lần) -->
+          <section id="tab-danh-gia" class="tab-panel" style="display: none">
+            <div style="display: flex; flex-direction: column; gap: 1.1rem">
+              <div class="card" style="padding: 1.35rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap">
+                <div>
+                  <h2 style="margin: 0; font-size: 1.08rem; font-weight: 800">Đánh giá từ học viên</h2>
+                  <p style="margin: 0.2rem 0 0; font-size: 0.82rem; color: var(--th-text-muted)">
+                    Theo dõi điểm hài lòng của các buổi học đã hoàn thành và gửi lời cảm ơn / phản hồi chuyên nghiệp cho học viên (mỗi đánh giá phản hồi 1 lần).
+                  </p>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.75rem">
+                  <div style="padding: 0.55rem 0.9rem; border-radius: 12px; background: #fffbeb; border: 1px solid #fde68a; text-align: center">
+                    <div id="gs-dg-diem-tb" style="font-size: 1.15rem; font-weight: 800; color: #b45309">— ★</div>
+                    <div id="gs-dg-so-luot" style="font-size: 0.72rem; color: #92400e">0 đánh giá</div>
+                  </div>
+                  <button type="button" class="btn btn-secondary btn-sm" id="btn-lam-moi-dg-gs">Làm mới</button>
+                </div>
+              </div>
+              <div id="gs-ds-danh-gia" style="display: flex; flex-direction: column; gap: 0.85rem">
+                <div class="card" style="padding: 1.25rem; font-size: 0.85rem; color: var(--th-text-muted)">Đang tải danh sách đánh giá...</div>
+              </div>
+              <div id="gs-phan-trang-dg" style="display: flex; justify-content: center; gap: 0.4rem; flex-wrap: wrap"></div>
+            </div>
+          </section>
+
           <!-- TAB 6: Tài khoản & Bảo mật (A.6, B.3, C.4) -->
           <section id="tab-tai-khoan" class="tab-panel" style="display: none">
             <div class="grid-2" style="gap: 1.25rem; align-items: start">
@@ -1367,6 +1395,8 @@
       document.getElementById('nav-lich-ranh').innerHTML = `<span class="studio-nav-btn-left"><span class="studio-nav-ico">${icons.calendar(16)}</span> <span>Thời gian biểu &amp; Lịch dạy</span></span>`;
       const elNavTinGs = document.getElementById('nav-tin-nhan-gs');
       if (elNavTinGs) elNavTinGs.innerHTML = `<span class="studio-nav-btn-left"><span class="studio-nav-ico">${icons.messageCircle(16)}</span> <span>Tin nhắn học viên</span></span>`;
+      const elNavDgGs = document.getElementById('nav-danh-gia-gs');
+      if (elNavDgGs) elNavDgGs.innerHTML = `<span class="studio-nav-btn-left"><span class="studio-nav-ico">${icons.star(16)}</span> <span>Đánh giá học viên</span></span>`;
       const elNavViGs = document.getElementById('nav-vi-gs');
       if (elNavViGs) elNavViGs.innerHTML = `<span class="studio-nav-btn-left"><span class="studio-nav-ico">${icons.wallet(16)}</span> <span>Ví &amp; Giao dịch</span></span>`;
       const elPopCaiDat = document.getElementById('gs-pop-cai-dat');
@@ -1414,6 +1444,7 @@
         'tab-mon-hoc': 'Môn dạy & Học phí',
         'tab-lich-ranh': 'Thời gian biểu & Lịch nhận lớp',
         'tab-tin-nhan': 'Tin nhắn học viên',
+        'tab-danh-gia': 'Đánh giá từ học viên',
         'tab-vi-giao-dich': 'Ví gia sư & Tra soát giao dịch',
         'tab-tai-khoan': 'Tài khoản & Bảo mật',
       };
@@ -1659,6 +1690,9 @@
         document.getElementById('gs-tieu-de-tab').textContent = tieuDeTab[tabId] || 'Cổng Gia sư';
         if (tabId === 'tab-tin-nhan') {
           taiDsHoiThoaiGs();
+        }
+        if (tabId === 'tab-danh-gia') {
+          taiDsDanhGiaGiaSu(1);
         }
         if (tabId === 'tab-vi-giao-dich') {
           dongBoVaRenderViGiaoDich();
@@ -3984,6 +4018,127 @@
           hienThongBao(err.message, 'danger');
         }
       });
+
+      // ══════════════════════════════════════════════════════════════════════
+      // TAB 5.8: ĐÁNH GIÁ TỪ HỌC VIÊN & PHẢN HỒI GIA SƯ (Module 6)
+      // ══════════════════════════════════════════════════════════════════════
+      async function taiDsDanhGiaGiaSu(trang = 1) {
+        const elList = document.getElementById('gs-ds-danh-gia');
+        const elPt = document.getElementById('gs-phan-trang-dg');
+        if (!elList) return;
+        try {
+          const res = await api.get(`/danh-gia/gia-su/toi?trang=${trang}&kichThuocTrang=12`);
+          const ds = res?.duLieu || [];
+          const meta = res?.meta;
+
+          const hienThi = ds.filter((x) => !x.biAn);
+          const elTb = document.getElementById('gs-dg-diem-tb');
+          const elSl = document.getElementById('gs-dg-so-luot');
+          if (elTb && elSl) {
+            const tong = meta?.tong ?? ds.length;
+            const avg = hienThi.length ? (hienThi.reduce((s, x) => s + Number(x.diem || 0), 0) / hienThi.length).toFixed(1) : '—';
+            elTb.textContent = `${avg} ★`;
+            elSl.textContent = `${tong} đánh giá`;
+          }
+
+          if (!ds.length) {
+            elList.innerHTML =
+              '<div class="card" style="padding: 1.5rem; text-align: center; font-size: 0.86rem; color: var(--th-text-muted)">Chưa có học viên nào gửi đánh giá cho các buổi học đã hoàn thành.</div>';
+            if (elPt) elPt.innerHTML = '';
+            return;
+          }
+
+          elList.innerHTML = ds
+            .map((dg) => {
+              const sao = `${'★'.repeat(dg.diem)}${'☆'.repeat(5 - dg.diem)}`;
+              return `
+                <article class="card" style="padding: 1.15rem 1.25rem; ${dg.biAn ? 'opacity: 0.72; border-color: #fecaca' : ''}">
+                  <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap">
+                    <div>
+                      <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap">
+                        <strong style="font-size: 0.94rem; color: #0f172a">${escapeHtml(dg.tenHocSinh)}</strong>
+                        <span style="color: #d97706; font-weight: 800; letter-spacing: 0.06em">${sao}</span>
+                        <span class="badge badge-info">${escapeHtml(dg.tenMonHoc)}</span>
+                        ${dg.biAn ? '<span class="badge badge-danger">Đã bị quản trị ẩn</span>' : ''}
+                      </div>
+                      <div style="font-size: 0.76rem; color: var(--th-text-muted); margin-top: 0.2rem">
+                        Đơn ${escapeHtml(dg.maDon)} · Gửi lúc ${dinhDangNgayGioVn(dg.taoLuc)}
+                      </div>
+                    </div>
+                    ${
+                      dg.coThePhanHoi
+                        ? `<button type="button" class="btn btn-primary btn-sm btn-phan-hoi-dg-gs" data-id="${dg.id}" data-hs="${escapeHtml(dg.tenHocSinh)}">Phản hồi đánh giá</button>`
+                        : ''
+                    }
+                  </div>
+                  <p style="margin: 0.65rem 0 0; font-size: 0.87rem; color: #1e293b; line-height: 1.55">${escapeHtml(dg.binhLuan)}</p>
+                  ${
+                    dg.phanHoiGiaSu
+                      ? `<div style="margin-top: 0.65rem; padding: 0.65rem 0.85rem; border-radius: 10px; background: #eff6ff; border: 1px solid #bfdbfe; font-size: 0.83rem; color: #1e3a8a">
+                           <strong>Phản hồi của bạn:</strong> ${escapeHtml(dg.phanHoiGiaSu)}
+                         </div>`
+                      : ''
+                  }
+                  ${
+                    dg.biAn && dg.lyDoAn
+                      ? `<div style="margin-top: 0.5rem; font-size: 0.78rem; color: #b91c1c"><strong>Lý do quản trị ẩn:</strong> ${escapeHtml(dg.lyDoAn)}</div>`
+                      : ''
+                  }
+                </article>
+              `;
+            })
+            .join('');
+
+          elList.querySelectorAll('.btn-phan-hoi-dg-gs').forEach((btn) => {
+            btn.addEventListener('click', async () => {
+              const phanHoi = await nhapLyDoModal({
+                tieuDe: `Phản hồi đánh giá của ${btn.dataset.hs || 'học viên'}`,
+                moTa: 'Mỗi đánh giá chỉ được gửi phản hồi công khai 1 lần. Không đính kèm số điện thoại hay đường dẫn liên hệ ngoài nền tảng.',
+                placeholder: 'Cảm ơn em đã tham gia buổi học...',
+                nutXacNhan: 'Gửi phản hồi công khai',
+                toiThieu: 3,
+              });
+              if (!phanHoi) return;
+              try {
+                await api.post(`/danh-gia/${btn.dataset.id}/phan-hoi`, { phanHoi });
+                hienThongBao('Đã gửi phản hồi đánh giá công khai thành công!', 'success');
+                await taiDsDanhGiaGiaSu(trang);
+              } catch (err) {
+                hienThongBao(err.message || 'Không thể gửi phản hồi đánh giá.', 'danger');
+              }
+            });
+          });
+
+          if (elPt) {
+            if (!meta || meta.tongTrang <= 1) {
+              elPt.innerHTML = '';
+            } else {
+              let h = '';
+              for (let p = 1; p <= meta.tongTrang; p++) {
+                h += `<button type="button" class="btn btn-sm ${p === meta.trang ? 'btn-primary' : 'btn-secondary'}" data-p="${p}">${p}</button>`;
+              }
+              elPt.innerHTML = h;
+              elPt.querySelectorAll('button[data-p]').forEach((b) => {
+                b.addEventListener('click', () => taiDsDanhGiaGiaSu(Number(b.dataset.p)));
+              });
+            }
+          }
+        } catch (err) {
+          elList.innerHTML = `<div class="alert alert-danger">${escapeHtml(err.message || 'Không thể tải danh sách đánh giá.')}</div>`;
+        }
+      }
+
+      document.getElementById('btn-lam-moi-dg-gs')?.addEventListener('click', () => taiDsDanhGiaGiaSu(1));
+
+      try {
+        const flashMsgGs = sessionStorage.getItem('tutorhub_flash_toast');
+        if (flashMsgGs) {
+          sessionStorage.removeItem('tutorhub_flash_toast');
+          setTimeout(() => hienToast(flashMsgGs, 'info', 7000), 400);
+        }
+      } catch {
+        // Bỏ qua
+      }
     </script>
   </body>
 </html>
