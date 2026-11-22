@@ -266,7 +266,6 @@ public sealed class BangDieuKhienService : IBangDieuKhienService
         var dsThanhToan = await _db.ThanhToans
             .AsNoTracking()
             .Where(t =>
-                t.TrangThai != TrangThaiThanhToan.CHO_THANH_TOAN &&
                 t.TrangThai != TrangThaiThanhToan.THAT_BAI &&
                 (t.ThanhToanLuc ?? t.TaoLuc) >= prevStartUtc &&
                 (t.ThanhToanLuc ?? t.TaoLuc) < endExclusiveUtc)
@@ -276,7 +275,6 @@ public sealed class BangDieuKhienService : IBangDieuKhienService
                 t.DonDatLichId,
                 t.SoTien,
                 t.TienDaHoan,
-                t.PhuongThuc,
                 t.TrangThai,
                 ThoiDiem = t.ThanhToanLuc ?? t.TaoLuc
             })
@@ -299,6 +297,11 @@ public sealed class BangDieuKhienService : IBangDieuKhienService
 
         (int Net, int Phi, int ThuNhap) TinhTaiChinhThanhToan(Guid id, int soTien, int tienDaHoan, TrangThaiThanhToan trangThai)
         {
+            if (trangThai == TrangThaiThanhToan.CHO_THANH_TOAN)
+            {
+                return (0, 0, 0);
+            }
+
             var net = Math.Max(0, soTien - tienDaHoan);
             if (net == 0)
             {
@@ -324,17 +327,18 @@ public sealed class BangDieuKhienService : IBangDieuKhienService
         int soThanhToanCoGiaTriKyNay = 0;
 
         var doanhThuTheoDonIdKyNay = new Dictionary<Guid, (int DoanhThu, int ThuNhap)>();
-        var kenhThanhToanMap = new Dictionary<string, (string Nhan, int SoLuong, int GiaTri)>();
+        var trangThaiTtMap = new Dictionary<string, (string Nhan, int SoLuong, int GiaTri)>();
 
-        void CongKenh(string ma, string nhan, int giaTri)
+        void CongTrangThaiTt(string ma, string nhan, int giaTri)
         {
-            if (kenhThanhToanMap.TryGetValue(ma, out var cur))
+            if (giaTri <= 0) return;
+            if (trangThaiTtMap.TryGetValue(ma, out var cur))
             {
-                kenhThanhToanMap[ma] = (nhan, cur.SoLuong + 1, cur.GiaTri + giaTri);
+                trangThaiTtMap[ma] = (nhan, cur.SoLuong + 1, cur.GiaTri + giaTri);
             }
             else
             {
-                kenhThanhToanMap[ma] = (nhan, 1, giaTri);
+                trangThaiTtMap[ma] = (nhan, 1, giaTri);
             }
         }
 
@@ -343,6 +347,28 @@ public sealed class BangDieuKhienService : IBangDieuKhienService
             var (net, phi, thuNhap) = TinhTaiChinhThanhToan(tt.Id, tt.SoTien, tt.TienDaHoan, tt.TrangThai);
             if (tt.ThoiDiem >= startUtc)
             {
+                // Phân bổ tình trạng xử lý học phí (giải ngân, tạm giữ, hoàn tiền, chờ thanh toán)
+                if (tt.TrangThai == TrangThaiThanhToan.CHO_THANH_TOAN)
+                {
+                    CongTrangThaiTt("CHO_THANH_TOAN", "Chờ thanh toán", tt.SoTien);
+                }
+                else
+                {
+                    if (tt.TrangThai == TrangThaiThanhToan.DA_GIAI_NGAN && net > 0)
+                    {
+                        CongTrangThaiTt("DA_GIAI_NGAN", "Đã giải ngân cho gia sư", net);
+                    }
+                    else if (tt.TrangThai == TrangThaiThanhToan.DANG_GIU && net > 0)
+                    {
+                        CongTrangThaiTt("DANG_GIU", "Đang tạm giữ chờ buổi học", net);
+                    }
+
+                    if (tt.TienDaHoan > 0)
+                    {
+                        CongTrangThaiTt("DA_HOAN", "Đã hoàn về ví học viên", tt.TienDaHoan);
+                    }
+                }
+
                 if (net > 0)
                 {
                     tongDoanhThuKyNay += net;
@@ -359,15 +385,6 @@ public sealed class BangDieuKhienService : IBangDieuKhienService
                         doanhThuTheoDonIdKyNay[tt.DonDatLichId] = (net, thuNhap);
                     }
 
-                    var (maKenh, nhanKenh) = tt.PhuongThuc switch
-                    {
-                        PhuongThucThanhToan.VI_NOI_BO => ("VI_NOI_BO", "Ví nội bộ TutorHub"),
-                        PhuongThucThanhToan.VNPAY => ("VNPAY", "Cổng VNPay"),
-                        PhuongThucThanhToan.GIA_LAP => ("GIA_LAP", "Thanh toán mô phỏng"),
-                        _ => (tt.PhuongThuc.ToString(), tt.PhuongThuc.ToString())
-                    };
-                    CongKenh(maKenh, nhanKenh, net);
-
                     var khoa = LayKhoaThoiGian(tt.ThoiDiem);
                     if (buckets.TryGetValue(khoa, out var b))
                     {
@@ -377,28 +394,10 @@ public sealed class BangDieuKhienService : IBangDieuKhienService
                     }
                 }
             }
-            else
+            else if (net > 0)
             {
                 tongDoanhThuKyTruoc += net;
                 tongPhiKyTruoc += phi;
-            }
-        }
-
-        // Bổ sung kênh Nạp ví VietQR tự động (PayOS) đã thành công trong kỳ
-        var dsNapPayOs = await _db.YeuCauNapTiens
-            .AsNoTracking()
-            .Where(n =>
-                n.TrangThai == TrangThaiNapTien.THANH_CONG &&
-                (n.HoanThanhLuc ?? n.TaoLuc) >= startUtc &&
-                (n.HoanThanhLuc ?? n.TaoLuc) < endExclusiveUtc)
-            .Select(n => n.SoTien)
-            .ToListAsync(cancellationToken);
-
-        foreach (var soTienNap in dsNapPayOs)
-        {
-            if (soTienNap > 0)
-            {
-                CongKenh("PAYOS_VIETQR", "Nạp ví VietQR (PayOS)", soTienNap);
             }
         }
 
@@ -579,16 +578,21 @@ public sealed class BangDieuKhienService : IBangDieuKhienService
         })
         .ToList();
 
-        // Phân bổ kênh thanh toán & nạp tiền
-        var tongGiaTriKenh = kenhThanhToanMap.Values.Sum(v => v.GiaTri);
-        var phanBoKenh = kenhThanhToanMap
-            .OrderByDescending(kv => kv.Value.GiaTri)
-            .Select(kv => new ThongKePhanBoMucDto(
-                kv.Key,
-                kv.Value.Nhan,
-                kv.Value.SoLuong,
-                kv.Value.GiaTri,
-                tongGiaTriKenh == 0 ? 0.0 : Math.Round(kv.Value.GiaTri * 100.0 / tongGiaTriKenh, 1)))
+        // Phân bổ tình trạng xử lý học phí (Đã giải ngân, Đang tạm giữ, Đã hoàn tiền, Chờ thanh toán)
+        var thuTuTrangThaiTt = new[] { "DA_GIAI_NGAN", "DANG_GIU", "DA_HOAN", "CHO_THANH_TOAN" };
+        var tongGiaTriTt = trangThaiTtMap.Values.Sum(v => v.GiaTri);
+        var phanBoTrangThaiTt = thuTuTrangThaiTt
+            .Where(ma => trangThaiTtMap.ContainsKey(ma))
+            .Select(ma =>
+            {
+                var v = trangThaiTtMap[ma];
+                return new ThongKePhanBoMucDto(
+                    ma,
+                    v.Nhan,
+                    v.SoLuong,
+                    v.GiaTri,
+                    tongGiaTriTt == 0 ? 0.0 : Math.Round(v.GiaTri * 100.0 / tongGiaTriTt, 1));
+            })
             .ToList();
 
         // 4. Tăng trưởng người dùng mới (Học sinh & Gia sư)
@@ -796,7 +800,7 @@ public sealed class BangDieuKhienService : IBangDieuKhienService
             PhanBoTrangThaiDon: phanBoTrangThaiDon,
             TopMonHocTheoDoanhThu: topMonHoc,
             PhanBoHinhThucHoc: phanBoHinhThuc,
-            PhanBoKenhThanhToan: phanBoKenh,
+            PhanBoTrangThaiThanhToan: phanBoTrangThaiTt,
             TopGiaSu: topGiaSu);
     }
 

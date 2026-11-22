@@ -639,8 +639,8 @@
               <div class="qt-chart-card">
                 <div class="qt-chart-head">
                   <div>
-                    <h3 class="qt-chart-title">7. Kênh thanh toán &amp; nạp tiền</h3>
-                    <p class="qt-chart-sub">Phân bổ giá trị giao dịch theo Ví nội bộ, VNPay và VietQR PayOS</p>
+                    <h3 class="qt-chart-title">7. Tình trạng xử lý học phí</h3>
+                    <p class="qt-chart-sub">Kiểm soát học phí đã giải ngân, đang tạm giữ chờ học và đã hoàn về ví</p>
                   </div>
                 </div>
                 <div class="qt-chart-wrap sm">
@@ -1389,19 +1389,27 @@
 
         const kenhEl = document.getElementById('tk-kenh-tt-chi-tiet');
         if (kenhEl) {
-          const dsKenh = d.phanBoKenhThanhToan || [];
-          kenhEl.innerHTML = dsKenh.length
-            ? dsKenh
-                .map(
-                  (x) => `
-                  <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.65rem; padding: 0.42rem 0.65rem; border-radius: 9px; background: #f8fafc">
-                    <span style="color: #334155; font-weight: 600; min-width: 0">${escapeHtml(x.nhan)}</span>
-                    <span style="color: #0f172a; font-weight: 700; text-align: right; flex-shrink: 0">${x.soLuong} GD (${x.tyLePhanTram}%)<br><span style="color: #0284c7; font-size: 0.74rem">${dinhDangTienVnd(x.giaTri || 0)}</span></span>
-                  </div>
-                `
-                )
+          const dsTt = d.phanBoTrangThaiThanhToan || [];
+          const mauChuTt = {
+            DA_GIAI_NGAN: '#059669',
+            DANG_GIU: '#4338ca',
+            DA_HOAN: '#e11d48',
+            CHO_THANH_TOAN: '#d97706',
+          };
+          kenhEl.innerHTML = dsTt.length
+            ? dsTt
+                .map((x) => {
+                  const tyLeText = x.tyLePhanTram === 0 && (x.giaTri || 0) > 0 ? '<0.1%' : `${x.tyLePhanTram}%`;
+                  const mau = mauChuTt[x.ma] || '#0284c7';
+                  return `
+                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.65rem; padding: 0.42rem 0.65rem; border-radius: 9px; background: #f8fafc">
+                      <span style="color: #334155; font-weight: 600; min-width: 0">${escapeHtml(x.nhan)}</span>
+                      <span style="color: #0f172a; font-weight: 700; text-align: right; flex-shrink: 0">${x.soLuong} đơn (${tyLeText})<br><span style="color: ${mau}; font-size: 0.74rem">${dinhDangTienVnd(x.giaTri || 0)}</span></span>
+                    </div>
+                  `;
+                })
                 .join('')
-            : '<div style="font-size: 0.78rem; color: #94a3b8; text-align: center">Chưa có giao dịch thanh toán trong kỳ.</div>';
+            : '<div style="font-size: 0.78rem; color: #94a3b8; text-align: center">Chưa có giao dịch học phí trong kỳ.</div>';
         }
       }
 
@@ -1818,26 +1826,26 @@
           });
         }
 
-        // 7. Biểu đồ Doughnut Cơ cấu kênh thanh toán & nạp ví
+        // 7. Biểu đồ Doughnut Tình trạng xử lý học phí (Đã giải ngân · Đang tạm giữ · Đã hoàn · Chờ thanh toán)
         const c7 = document.getElementById('canvas-tk-kenh-tt');
         if (c7) {
           huyBieuDoNeuCo('kenhTt');
-          const dsKenh = d.phanBoKenhThanhToan || [];
-          const mauKenh = {
-            VI_NOI_BO: '#4f46e5',
-            VNPAY: '#0ea5e9',
-            PAYOS_VIETQR: '#10b981',
-            GIA_LAP: '#f59e0b',
+          const dsTt = d.phanBoTrangThaiThanhToan || [];
+          const mauTt = {
+            DA_GIAI_NGAN: '#10b981',
+            DANG_GIU: '#4f46e5',
+            DA_HOAN: '#f43f5e',
+            CHO_THANH_TOAN: '#f59e0b',
           };
-          const coKenh = dsKenh.length > 0;
+          const coTt = dsTt.length > 0;
           bieuDoQt.kenhTt = new Chart(c7, {
             type: 'doughnut',
             data: {
-              labels: coKenh ? dsKenh.map((x) => x.nhan) : ['Chưa có giao dịch'],
+              labels: coTt ? dsTt.map((x) => x.nhan) : ['Chưa có giao dịch'],
               datasets: [
                 {
-                  data: coKenh ? dsKenh.map((x) => x.giaTri || 0) : [1],
-                  backgroundColor: coKenh ? dsKenh.map((x) => mauKenh[x.ma] || '#64748b') : ['#e2e8f0'],
+                  data: coTt ? dsTt.map((x) => x.giaTri || 0) : [1],
+                  backgroundColor: coTt ? dsTt.map((x) => mauTt[x.ma] || '#64748b') : ['#e2e8f0'],
                   borderWidth: 2,
                   borderColor: '#ffffff',
                   hoverOffset: 6,
@@ -1853,9 +1861,10 @@
                 tooltip: {
                   callbacks: {
                     label: (ctx) => {
-                      if (!coKenh) return 'Chưa có giao dịch';
-                      const item = dsKenh[ctx.dataIndex];
-                      return `${item.nhan}: ${dinhDangTienVnd(item.giaTri || 0)} (${item.soLuong} GD · ${item.tyLePhanTram}%)`;
+                      if (!coTt) return 'Chưa có giao dịch';
+                      const item = dsTt[ctx.dataIndex];
+                      const tyLeText = item.tyLePhanTram === 0 && (item.giaTri || 0) > 0 ? '<0.1%' : `${item.tyLePhanTram}%`;
+                      return `${item.nhan}: ${dinhDangTienVnd(item.giaTri || 0)} (${item.soLuong} đơn · ${tyLeText})`;
                     },
                   },
                 },

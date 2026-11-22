@@ -182,22 +182,17 @@
               Học phí được tạm giữ an toàn và chỉ giải ngân cho gia sư sau khi buổi học hoàn thành. Nếu hủy trước giờ học hoặc gia sư từ chối, tiền sẽ hoàn 100% về Ví học tập.
             </div>
             <div id="bk-tb-thanh-toan" style="display: none; margin-bottom: 0.65rem"></div>
-            <div style="display: flex; flex-direction: column; gap: 0.45rem; margin-bottom: 0.75rem; font-size: 0.82rem">
-              <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.65rem; border-radius: 10px; background: #ffffff; border: 1px solid #dbeafe; cursor: pointer">
-                <input type="radio" name="bkPhuongThucTt" value="VI_NOI_BO" checked style="accent-color: var(--th-blush)" />
-                <span><strong>Ví học tập TutorHub</strong> — Thanh toán nhanh từ số dư ví</span>
-              </label>
-              <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.65rem; border-radius: 10px; background: #ffffff; border: 1px solid #dbeafe; cursor: pointer">
-                <input type="radio" name="bkPhuongThucTt" value="GIA_LAP" style="accent-color: var(--th-blush)" />
-                <span><strong>Thanh toán nhanh (Thử nghiệm)</strong> — Tạm giữ học phí tức thì</span>
-              </label>
-              <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.65rem; border-radius: 10px; background: #ffffff; border: 1px solid #dbeafe; cursor: pointer">
-                <input type="radio" name="bkPhuongThucTt" value="VNPAY" style="accent-color: var(--th-blush)" />
-                <span><strong>Cổng thanh toán VNPay</strong> — Khởi tạo giao dịch qua cổng</span>
-              </label>
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.65rem; flex-wrap: wrap; padding: 0.65rem 0.8rem; border-radius: 10px; background: #ffffff; border: 1px solid #bfdbfe; margin-bottom: 0.75rem; font-size: 0.82rem">
+              <div>
+                <div style="font-weight: 700; color: #1e3a8a">Ví học tập TutorHub</div>
+                <div style="font-size: 0.76rem; color: #475569; margin-top: 0.1rem">Trừ trực tiếp từ số dư ví và tạm giữ an toàn đến khi hoàn thành buổi học</div>
+              </div>
+              <a href="/pages/hoc-sinh-tong-quan.html?tab=tab-vi" style="font-size: 0.78rem; font-weight: 700; color: #2563eb; white-space: nowrap">
+                Nạp tiền VietQR (PayOS) →
+              </a>
             </div>
             <button type="button" id="btn-thanh-toan-giu-cho-ngay" class="btn btn-primary" style="width: 100%; height: 40px; font-weight: 700">
-              Thanh toán giữ chỗ ngay
+              Thanh toán giữ chỗ bằng Ví học tập
             </button>
           </div>
 
@@ -1565,25 +1560,24 @@
             btnTtNgay.disabled = false;
             btnTtNgay.textContent = `Thanh toán giữ chỗ ngay (${dinhDangTienVnd(don.tongTien)})`;
             btnTtNgay.onclick = async () => {
-              const pt = document.querySelector('input[name="bkPhuongThucTt"]:checked')?.value || 'VI_NOI_BO';
               if (tbTt) tbTt.style.display = 'none';
               btnTtNgay.disabled = true;
               btnTtNgay.textContent = 'Đang xử lý thanh toán...';
               try {
-                const resTt = await api.post(`/don-dat-lich/${don.id}/thanh-toan`, { phuongThuc: pt });
+                const resTt = await api.post(`/don-dat-lich/${don.id}/thanh-toan`, { phuongThuc: 'VI_NOI_BO' });
                 const ttKq = resTt?.duLieu;
                 if (ttKq?.trangThai === 'DANG_GIU') {
                   if (elTieuDeTc) elTieuDeTc.textContent = 'Thanh toán thành công — Tiền đã tạm giữ an toàn!';
                   khungTt.innerHTML = `
                     <div class="alert alert-success" style="margin: 0; font-size: 0.83rem">
-                      Đã tạm giữ an toàn <strong>${dinhDangTienVnd(ttKq.soTien)}</strong>. Gia sư đã có thể xác nhận lớp cho bạn!
+                      Đã tạm giữ an toàn <strong>${dinhDangTienVnd(ttKq.soTien)}</strong> từ Ví học tập. Gia sư đã có thể xác nhận lớp cho bạn!
                     </div>
                   `;
                 } else {
                   if (tbTt) {
                     tbTt.style.display = 'block';
                     tbTt.className = 'alert alert-info';
-                    tbTt.textContent = 'Đã khởi tạo yêu cầu thanh toán qua cổng VNPay. Bạn có thể theo dõi trạng thái trong Lịch học của tôi.';
+                    tbTt.textContent = 'Đã khởi tạo yêu cầu thanh toán. Bạn có thể theo dõi trạng thái trong Lịch học của tôi.';
                   }
                   btnTtNgay.disabled = false;
                   btnTtNgay.textContent = `Thanh toán lại (${dinhDangTienVnd(don.tongTien)})`;
@@ -1592,7 +1586,7 @@
                 if (tbTt) {
                   tbTt.style.display = 'block';
                   tbTt.className = 'alert alert-danger';
-                  tbTt.textContent = errTt.message || 'Không thể thanh toán lúc này.';
+                  tbTt.innerHTML = `${escapeHtml(errTt.message || 'Không thể thanh toán lúc này.')} <a href="/pages/hoc-sinh-tong-quan.html?tab=tab-vi" style="font-weight: 700; text-decoration: underline; margin-left: 0.3rem">Nạp tiền VietQR →</a>`;
                 }
                 btnTtNgay.disabled = false;
                 btnTtNgay.textContent = `Thanh toán giữ chỗ ngay (${dinhDangTienVnd(don.tongTien)})`;

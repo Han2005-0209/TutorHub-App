@@ -198,5 +198,5 @@ public sealed record ThongKeChiTietQuanTriDto(
     IReadOnlyList<ThongKePhanBoMucDto> PhanBoTrangThaiDon,
     IReadOnlyList<ThongKePhanBoMucDto> TopMonHocTheoDoanhThu,
     IReadOnlyList<ThongKePhanBoMucDto> PhanBoHinhThucHoc,
-    IReadOnlyList<ThongKePhanBoMucDto> PhanBoKenhThanhToan,
+    IReadOnlyList<ThongKePhanBoMucDto> PhanBoTrangThaiThanhToan,
     IReadOnlyList<TopGiaSuThongKeDto> TopGiaSu);
