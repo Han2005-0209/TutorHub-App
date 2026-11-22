@@ -191,6 +191,631 @@ public sealed class BangDieuKhienService : IBangDieuKhienService
             TongGiaTriGiaoDich: tongGiaTriGiaoDich);
     }
 
+    public async Task<ThongKeChiTietQuanTriDto> LayThongKeChiTietQuanTriAsync(
+        string? phamVi = "30_ngay",
+        CancellationToken cancellationToken = default)
+    {
+        var phamViChuan = (phamVi ?? "30_ngay").Trim().ToLowerInvariant();
+        if (phamViChuan is not ("7_ngay" or "30_ngay" or "6_thang" or "12_thang"))
+        {
+            phamViChuan = "30_ngay";
+        }
+
+        // Múi giờ Việt Nam (UTC+7) để gom nhóm ngày/tháng khớp thực tế kinh doanh
+        var nowVn = DateTime.UtcNow.AddHours(7);
+        var todayVn = nowVn.Date;
+        var theoThang = phamViChuan is "6_thang" or "12_thang";
+        var donViThoiGian = theoThang ? "THANG" : "NGAY";
+        var nhanPhamVi = phamViChuan switch
+        {
+            "7_ngay" => "7 ngày qua",
+            "30_ngay" => "30 ngày qua",
+            "6_thang" => "6 tháng qua",
+            "12_thang" => "12 tháng qua",
+            _ => "30 ngày qua"
+        };
+
+        DateTime startVn;
+        DateTime endExclusiveVn;
+        DateTime prevStartVn;
+        var danhSachKhoa = new List<(string Khoa, string Nhan)>();
+
+        if (!theoThang)
+        {
+            var soNgay = phamViChuan == "7_ngay" ? 7 : 30;
+            startVn = todayVn.AddDays(-(soNgay - 1));
+            endExclusiveVn = todayVn.AddDays(1);
+            prevStartVn = startVn.AddDays(-soNgay);
+
+            for (int i = 0; i < soNgay; i++)
+            {
+                var d = startVn.AddDays(i);
+                danhSachKhoa.Add((d.ToString("yyyy-MM-dd"), d.ToString("dd/MM")));
+            }
+        }
+        else
+        {
+            var soThang = phamViChuan == "6_thang" ? 6 : 12;
+            var thangHienTai = new DateTime(todayVn.Year, todayVn.Month, 1);
+            startVn = thangHienTai.AddMonths(-(soThang - 1));
+            endExclusiveVn = thangHienTai.AddMonths(1);
+            prevStartVn = startVn.AddMonths(-soThang);
+
+            for (int i = 0; i < soThang; i++)
+            {
+                var m = startVn.AddMonths(i);
+                danhSachKhoa.Add((m.ToString("yyyy-MM"), $"T{m.Month:00}/{m.Year}"));
+            }
+        }
+
+        var startUtc = DateTime.SpecifyKind(startVn.AddHours(-7), DateTimeKind.Utc);
+        var endExclusiveUtc = DateTime.SpecifyKind(endExclusiveVn.AddHours(-7), DateTimeKind.Utc);
+        var prevStartUtc = DateTime.SpecifyKind(prevStartVn.AddHours(-7), DateTimeKind.Utc);
+
+        string LayKhoaThoiGian(DateTime utc)
+        {
+            var vn = utc.AddHours(7);
+            return theoThang ? vn.ToString("yyyy-MM") : vn.ToString("yyyy-MM-dd");
+        }
+
+        var buckets = danhSachKhoa.ToDictionary(
+            x => x.Khoa,
+            x => new BoDemThoiGianNoiBo(x.Nhan, x.Khoa));
+
+        // 1. Truy vấn các thanh toán trong 2 kỳ liên tiếp (kỳ hiện tại + kỳ liền trước để so sánh tăng trưởng)
+        var dsThanhToan = await _db.ThanhToans
+            .AsNoTracking()
+            .Where(t =>
+                t.TrangThai != TrangThaiThanhToan.CHO_THANH_TOAN &&
+                t.TrangThai != TrangThaiThanhToan.THAT_BAI &&
+                (t.ThanhToanLuc ?? t.TaoLuc) >= prevStartUtc &&
+                (t.ThanhToanLuc ?? t.TaoLuc) < endExclusiveUtc)
+            .Select(t => new
+            {
+                t.Id,
+                t.DonDatLichId,
+                t.SoTien,
+                t.TienDaHoan,
+                t.PhuongThuc,
+                t.TrangThai,
+                ThoiDiem = t.ThanhToanLuc ?? t.TaoLuc
+            })
+            .ToListAsync(cancellationToken);
+
+        var dsThanhToanIdDaGiaiNgan = dsThanhToan
+            .Where(t => t.TrangThai == TrangThaiThanhToan.DA_GIAI_NGAN)
+            .Select(t => t.Id)
+            .Distinct()
+            .ToList();
+
+        var thuNhapTheoThanhToan = dsThanhToanIdDaGiaiNgan.Count == 0
+            ? new Dictionary<Guid, int>()
+            : await _db.GiaoDichVis
+                .AsNoTracking()
+                .Where(g => g.Loai == LoaiGiaoDichVi.THU_NHAP &&
+                            g.ThanhToanId.HasValue &&
+                            dsThanhToanIdDaGiaiNgan.Contains(g.ThanhToanId.Value))
+                .ToDictionaryAsync(g => g.ThanhToanId!.Value, g => g.SoTien, cancellationToken);
+
+        (int Net, int Phi, int ThuNhap) TinhTaiChinhThanhToan(Guid id, int soTien, int tienDaHoan, TrangThaiThanhToan trangThai)
+        {
+            var net = Math.Max(0, soTien - tienDaHoan);
+            if (net == 0)
+            {
+                return (0, 0, 0);
+            }
+
+            if (trangThai == TrangThaiThanhToan.DA_GIAI_NGAN &&
+                thuNhapTheoThanhToan.TryGetValue(id, out var thucNhanLichSu))
+            {
+                var thuNhap = Math.Clamp(thucNhanLichSu, 0, net);
+                return (net, Math.Max(0, net - thuNhap), thuNhap);
+            }
+
+            var (_, phi, thuNhapTinh) = BoTinhTaiChinhDon.TinhTaiChinhDon(net, _policy.DefaultPlatformFeePercent);
+            return (net, phi, thuNhapTinh);
+        }
+
+        int tongDoanhThuKyNay = 0;
+        int tongPhiKyNay = 0;
+        int tongThuNhapKyNay = 0;
+        int tongDoanhThuKyTruoc = 0;
+        int tongPhiKyTruoc = 0;
+        int soThanhToanCoGiaTriKyNay = 0;
+
+        var doanhThuTheoDonIdKyNay = new Dictionary<Guid, (int DoanhThu, int ThuNhap)>();
+        var kenhThanhToanMap = new Dictionary<string, (string Nhan, int SoLuong, int GiaTri)>();
+
+        void CongKenh(string ma, string nhan, int giaTri)
+        {
+            if (kenhThanhToanMap.TryGetValue(ma, out var cur))
+            {
+                kenhThanhToanMap[ma] = (nhan, cur.SoLuong + 1, cur.GiaTri + giaTri);
+            }
+            else
+            {
+                kenhThanhToanMap[ma] = (nhan, 1, giaTri);
+            }
+        }
+
+        foreach (var tt in dsThanhToan)
+        {
+            var (net, phi, thuNhap) = TinhTaiChinhThanhToan(tt.Id, tt.SoTien, tt.TienDaHoan, tt.TrangThai);
+            if (tt.ThoiDiem >= startUtc)
+            {
+                if (net > 0)
+                {
+                    tongDoanhThuKyNay += net;
+                    tongPhiKyNay += phi;
+                    tongThuNhapKyNay += thuNhap;
+                    soThanhToanCoGiaTriKyNay++;
+
+                    if (doanhThuTheoDonIdKyNay.TryGetValue(tt.DonDatLichId, out var curDon))
+                    {
+                        doanhThuTheoDonIdKyNay[tt.DonDatLichId] = (curDon.DoanhThu + net, curDon.ThuNhap + thuNhap);
+                    }
+                    else
+                    {
+                        doanhThuTheoDonIdKyNay[tt.DonDatLichId] = (net, thuNhap);
+                    }
+
+                    var (maKenh, nhanKenh) = tt.PhuongThuc switch
+                    {
+                        PhuongThucThanhToan.VI_NOI_BO => ("VI_NOI_BO", "Ví nội bộ TutorHub"),
+                        PhuongThucThanhToan.VNPAY => ("VNPAY", "Cổng VNPay"),
+                        PhuongThucThanhToan.GIA_LAP => ("GIA_LAP", "Thanh toán mô phỏng"),
+                        _ => (tt.PhuongThuc.ToString(), tt.PhuongThuc.ToString())
+                    };
+                    CongKenh(maKenh, nhanKenh, net);
+
+                    var khoa = LayKhoaThoiGian(tt.ThoiDiem);
+                    if (buckets.TryGetValue(khoa, out var b))
+                    {
+                        b.TongDoanhThu += net;
+                        b.PhiNenTang += phi;
+                        b.ThuNhapGiaSu += thuNhap;
+                    }
+                }
+            }
+            else
+            {
+                tongDoanhThuKyTruoc += net;
+                tongPhiKyTruoc += phi;
+            }
+        }
+
+        // Bổ sung kênh Nạp ví VietQR tự động (PayOS) đã thành công trong kỳ
+        var dsNapPayOs = await _db.YeuCauNapTiens
+            .AsNoTracking()
+            .Where(n =>
+                n.TrangThai == TrangThaiNapTien.THANH_CONG &&
+                (n.HoanThanhLuc ?? n.TaoLuc) >= startUtc &&
+                (n.HoanThanhLuc ?? n.TaoLuc) < endExclusiveUtc)
+            .Select(n => n.SoTien)
+            .ToListAsync(cancellationToken);
+
+        foreach (var soTienNap in dsNapPayOs)
+        {
+            if (soTienNap > 0)
+            {
+                CongKenh("PAYOS_VIETQR", "Nạp ví VietQR (PayOS)", soTienNap);
+            }
+        }
+
+        // 2. Dòng tiền ví (Nạp ví, Chi trả rút tiền, Hoàn tiền) trong kỳ
+        var dsGiaoDichVi = await _db.GiaoDichVis
+            .AsNoTracking()
+            .Where(g =>
+                g.TaoLuc >= startUtc &&
+                g.TaoLuc < endExclusiveUtc &&
+                (g.Loai == LoaiGiaoDichVi.NAP_TIEN ||
+                 g.Loai == LoaiGiaoDichVi.RUT_TIEN ||
+                 g.Loai == LoaiGiaoDichVi.HOAN_TIEN))
+            .Select(g => new { g.Loai, g.SoTien, g.TaoLuc })
+            .ToListAsync(cancellationToken);
+
+        int tongNapViKyNay = 0;
+        int tongRutTienKyNay = 0;
+        int tongHoanTienKyNay = 0;
+
+        foreach (var gd in dsGiaoDichVi)
+        {
+            var giaTri = Math.Abs(gd.SoTien);
+            var khoa = LayKhoaThoiGian(gd.TaoLuc);
+            buckets.TryGetValue(khoa, out var b);
+
+            switch (gd.Loai)
+            {
+                case LoaiGiaoDichVi.NAP_TIEN:
+                    tongNapViKyNay += giaTri;
+                    if (b is not null) b.TongNapVi += giaTri;
+                    break;
+                case LoaiGiaoDichVi.RUT_TIEN:
+                    tongRutTienKyNay += giaTri;
+                    if (b is not null) b.TongRutTien += giaTri;
+                    break;
+                case LoaiGiaoDichVi.HOAN_TIEN:
+                    tongHoanTienKyNay += giaTri;
+                    if (b is not null) b.TongHoanTien += giaTri;
+                    break;
+            }
+        }
+
+        // 3. Đơn đặt lịch (biến động theo ngày/tháng, phân bổ trạng thái, môn học, hình thức, top gia sư)
+        var dsDon = await _db.DonDatLichs
+            .AsNoTracking()
+            .Where(d => d.TaoLuc >= prevStartUtc && d.TaoLuc < endExclusiveUtc)
+            .Select(d => new
+            {
+                d.Id,
+                d.TaoLuc,
+                d.BatDauLuc,
+                d.KetThucLuc,
+                d.GiaMoiGio,
+                d.TienGiam,
+                d.LaBuoiHocThu,
+                d.TrangThai,
+                d.HinhThuc,
+                MonHocId = d.GiaSuMonHoc != null ? d.GiaSuMonHoc.MonHocId : Guid.Empty,
+                TenMonHoc = d.GiaSuMonHoc != null && d.GiaSuMonHoc.MonHoc != null ? d.GiaSuMonHoc.MonHoc.Ten : "Môn học khác",
+                GiaSuId = d.GiaSuMonHoc != null ? d.GiaSuMonHoc.GiaSuId : Guid.Empty,
+                TenGiaSu = d.GiaSuMonHoc != null && d.GiaSuMonHoc.GiaSu != null ? d.GiaSuMonHoc.GiaSu.HoTen : "Gia sư",
+                KhuVucGiaSu = d.GiaSuMonHoc != null && d.GiaSuMonHoc.GiaSu != null ? d.GiaSuMonHoc.GiaSu.KhuVuc : null
+            })
+            .ToListAsync(cancellationToken);
+
+        var donKyNay = dsDon.Where(d => d.TaoLuc >= startUtc).ToList();
+        var soDonKyNay = donKyNay.Count;
+        var soDonKyTruoc = dsDon.Count - soDonKyNay;
+        var soDonHoanThanhKyNay = donKyNay.Count(d => d.TrangThai == TrangThaiDonDatLich.HOAN_THANH);
+        var tyLeHoanThanh = soDonKyNay == 0
+            ? 0.0
+            : Math.Round(soDonHoanThanhKyNay * 100.0 / soDonKyNay, 1);
+
+        static int TinhTongTienDon(bool laBuoiHocThu, int giaMoiGio, int tienGiam, DateTime batDau, DateTime ketThuc)
+        {
+            var tienGoc = laBuoiHocThu
+                ? Math.Max(0, giaMoiGio)
+                : Math.Max(0, (int)Math.Round(giaMoiGio * Math.Max(0.0, (ketThuc - batDau).TotalMinutes) / 60.0, MidpointRounding.AwayFromZero));
+            return Math.Max(0, tienGoc - Math.Max(0, tienGiam));
+        }
+
+        foreach (var d in donKyNay)
+        {
+            var khoaTao = LayKhoaThoiGian(d.TaoLuc);
+            if (buckets.TryGetValue(khoaTao, out var bTao))
+            {
+                bTao.SoDonDatMoi++;
+            }
+
+            if (d.TrangThai == TrangThaiDonDatLich.HOAN_THANH)
+            {
+                var khoaHoanThanh = LayKhoaThoiGian(d.KetThucLuc <= endExclusiveUtc && d.KetThucLuc >= startUtc ? d.KetThucLuc : d.TaoLuc);
+                if (buckets.TryGetValue(khoaHoanThanh, out var bHt))
+                {
+                    bHt.SoBuoiHoanThanh++;
+                }
+            }
+        }
+
+        // Phân bổ trạng thái đơn
+        var thuTuTrangThai = new (TrangThaiDonDatLich Ma, string Nhan)[]
+        {
+            (TrangThaiDonDatLich.HOAN_THANH, "Hoàn thành"),
+            (TrangThaiDonDatLich.DA_XAC_NHAN, "Đã xác nhận"),
+            (TrangThaiDonDatLich.CHO_XAC_NHAN, "Chờ xác nhận"),
+            (TrangThaiDonDatLich.DA_HUY, "Đã hủy"),
+            (TrangThaiDonDatLich.TRANH_CHAP, "Tranh chấp"),
+            (TrangThaiDonDatLich.BI_TU_CHOI, "Từ chối"),
+            (TrangThaiDonDatLich.HET_HAN, "Hết hạn")
+        };
+
+        var phanBoTrangThaiDon = thuTuTrangThai
+            .Select(tt =>
+            {
+                var nhom = donKyNay.Where(d => d.TrangThai == tt.Ma).ToList();
+                var giaTri = nhom.Sum(d =>
+                    doanhThuTheoDonIdKyNay.TryGetValue(d.Id, out var rev)
+                        ? rev.DoanhThu
+                        : TinhTongTienDon(d.LaBuoiHocThu, d.GiaMoiGio, d.TienGiam, d.BatDauLuc, d.KetThucLuc));
+                var tyLe = soDonKyNay == 0 ? 0.0 : Math.Round(nhom.Count * 100.0 / soDonKyNay, 1);
+                return new ThongKePhanBoMucDto(tt.Ma.ToString(), tt.Nhan, nhom.Count, giaTri, tyLe);
+            })
+            .Where(x => x.SoLuong > 0)
+            .ToList();
+
+        // Top 8 môn học theo doanh thu & số buổi
+        var tongDoanhThuMon = 0;
+        var monHocRaw = donKyNay
+            .GroupBy(d => new { d.MonHocId, d.TenMonHoc })
+            .Select(g =>
+            {
+                var doanhThu = g.Sum(d =>
+                    doanhThuTheoDonIdKyNay.TryGetValue(d.Id, out var rev)
+                        ? rev.DoanhThu
+                        : (d.TrangThai is TrangThaiDonDatLich.HOAN_THANH or TrangThaiDonDatLich.DA_XAC_NHAN
+                            ? TinhTongTienDon(d.LaBuoiHocThu, d.GiaMoiGio, d.TienGiam, d.BatDauLuc, d.KetThucLuc)
+                            : 0));
+                return new
+                {
+                    Ma = g.Key.MonHocId.ToString(),
+                    Nhan = g.Key.TenMonHoc,
+                    SoLuong = g.Count(),
+                    GiaTri = doanhThu
+                };
+            })
+            .OrderByDescending(x => x.GiaTri)
+            .ThenByDescending(x => x.SoLuong)
+            .Take(8)
+            .ToList();
+
+        tongDoanhThuMon = monHocRaw.Sum(x => x.GiaTri);
+        var topMonHoc = monHocRaw
+            .Select(x => new ThongKePhanBoMucDto(
+                x.Ma,
+                x.Nhan,
+                x.SoLuong,
+                x.GiaTri,
+                tongDoanhThuMon == 0 ? 0.0 : Math.Round(x.GiaTri * 100.0 / tongDoanhThuMon, 1)))
+            .ToList();
+
+        // Phân bổ hình thức học (Online vs Tại nhà)
+        var phanBoHinhThuc = new[]
+        {
+            (HinhThucBuoiHoc.TRUC_TUYEN, "Học trực tuyến (Online 1-1)"),
+            (HinhThucBuoiHoc.TRUC_TIEP, "Học trực tiếp (Tại nhà)")
+        }
+        .Select(ht =>
+        {
+            var nhom = donKyNay.Where(d => d.HinhThuc == ht.Item1).ToList();
+            var giaTri = nhom.Sum(d =>
+                doanhThuTheoDonIdKyNay.TryGetValue(d.Id, out var rev)
+                    ? rev.DoanhThu
+                    : (d.TrangThai is TrangThaiDonDatLich.HOAN_THANH or TrangThaiDonDatLich.DA_XAC_NHAN
+                        ? TinhTongTienDon(d.LaBuoiHocThu, d.GiaMoiGio, d.TienGiam, d.BatDauLuc, d.KetThucLuc)
+                        : 0));
+            var tyLe = soDonKyNay == 0 ? 0.0 : Math.Round(nhom.Count * 100.0 / soDonKyNay, 1);
+            return new ThongKePhanBoMucDto(ht.Item1.ToString(), ht.Item2, nhom.Count, giaTri, tyLe);
+        })
+        .ToList();
+
+        // Phân bổ kênh thanh toán & nạp tiền
+        var tongGiaTriKenh = kenhThanhToanMap.Values.Sum(v => v.GiaTri);
+        var phanBoKenh = kenhThanhToanMap
+            .OrderByDescending(kv => kv.Value.GiaTri)
+            .Select(kv => new ThongKePhanBoMucDto(
+                kv.Key,
+                kv.Value.Nhan,
+                kv.Value.SoLuong,
+                kv.Value.GiaTri,
+                tongGiaTriKenh == 0 ? 0.0 : Math.Round(kv.Value.GiaTri * 100.0 / tongGiaTriKenh, 1)))
+            .ToList();
+
+        // 4. Tăng trưởng người dùng mới (Học sinh & Gia sư)
+        var dsHocSinhMoi = await _db.HocSinhs
+            .AsNoTracking()
+            .Where(h => h.TaoLuc >= prevStartUtc && h.TaoLuc < endExclusiveUtc)
+            .Select(h => h.TaoLuc)
+            .ToListAsync(cancellationToken);
+
+        var dsGiaSuMoi = await _db.GiaSus
+            .AsNoTracking()
+            .Where(g => g.TaoLuc >= prevStartUtc && g.TaoLuc < endExclusiveUtc)
+            .Select(g => g.TaoLuc)
+            .ToListAsync(cancellationToken);
+
+        int nguoiDungMoiKyNay = 0;
+        int nguoiDungMoiKyTruoc = 0;
+
+        foreach (var t in dsHocSinhMoi)
+        {
+            if (t >= startUtc)
+            {
+                nguoiDungMoiKyNay++;
+                var khoa = LayKhoaThoiGian(t);
+                if (buckets.TryGetValue(khoa, out var b)) b.HocSinhMoi++;
+            }
+            else
+            {
+                nguoiDungMoiKyTruoc++;
+            }
+        }
+
+        foreach (var t in dsGiaSuMoi)
+        {
+            if (t >= startUtc)
+            {
+                nguoiDungMoiKyNay++;
+                var khoa = LayKhoaThoiGian(t);
+                if (buckets.TryGetValue(khoa, out var b)) b.GiaSuMoi++;
+            }
+            else
+            {
+                nguoiDungMoiKyTruoc++;
+            }
+        }
+
+        // 5. Top 5 gia sư có doanh thu cao nhất trong kỳ
+        var topGiaSuNhom = donKyNay
+            .Where(d => d.GiaSuId != Guid.Empty)
+            .GroupBy(d => new { d.GiaSuId, d.TenGiaSu, d.KhuVucGiaSu })
+            .Select(g =>
+            {
+                int doanhThu = 0;
+                int thuNhap = 0;
+                foreach (var d in g)
+                {
+                    if (doanhThuTheoDonIdKyNay.TryGetValue(d.Id, out var rev))
+                    {
+                        doanhThu += rev.DoanhThu;
+                        thuNhap += rev.ThuNhap;
+                    }
+                    else if (d.TrangThai is TrangThaiDonDatLich.HOAN_THANH or TrangThaiDonDatLich.DA_XAC_NHAN)
+                    {
+                        var tong = TinhTongTienDon(d.LaBuoiHocThu, d.GiaMoiGio, d.TienGiam, d.BatDauLuc, d.KetThucLuc);
+                        var (_, _, thucNhan) = BoTinhTaiChinhDon.TinhTaiChinhDon(tong, _policy.DefaultPlatformFeePercent);
+                        doanhThu += tong;
+                        thuNhap += thucNhan;
+                    }
+                }
+
+                return new
+                {
+                    g.Key.GiaSuId,
+                    g.Key.TenGiaSu,
+                    g.Key.KhuVucGiaSu,
+                    SoBuoiHoanThanh = g.Count(x => x.TrangThai == TrangThaiDonDatLich.HOAN_THANH),
+                    TongDoanhThu = doanhThu,
+                    ThuNhapGiaSu = thuNhap
+                };
+            })
+            .Where(x => x.TongDoanhThu > 0 || x.SoBuoiHoanThanh > 0)
+            .OrderByDescending(x => x.TongDoanhThu)
+            .ThenByDescending(x => x.SoBuoiHoanThanh)
+            .Take(5)
+            .ToList();
+
+        var topGiaSuIds = topGiaSuNhom.Select(x => x.GiaSuId).ToList();
+        var tapGiaSuDaXacMinh = topGiaSuIds.Count == 0
+            ? new HashSet<Guid>()
+            : (await _db.GiayToGiaSus
+                .AsNoTracking()
+                .Where(gt =>
+                    topGiaSuIds.Contains(gt.GiaSuId) &&
+                    gt.TrangThai == TrangThaiGiayTo.DA_DUYET &&
+                    (gt.Loai == LoaiGiayTo.BANG_CAP || gt.Loai == LoaiGiayTo.CHUNG_CHI))
+                .Select(gt => gt.GiaSuId)
+                .Distinct()
+                .ToListAsync(cancellationToken))
+                .ToHashSet();
+
+        var danhGiaTheoGiaSu = topGiaSuIds.Count == 0
+            ? new Dictionary<Guid, (double DiemTb, int SoLuot)>()
+            : (await _db.DanhGias
+                .AsNoTracking()
+                .Where(dg =>
+                    dg.NguoiKiemDuyetId == null &&
+                    dg.DonDatLich != null &&
+                    dg.DonDatLich.GiaSuMonHoc != null &&
+                    topGiaSuIds.Contains(dg.DonDatLich.GiaSuMonHoc.GiaSuId))
+                .GroupBy(dg => dg.DonDatLich!.GiaSuMonHoc!.GiaSuId)
+                .Select(g => new
+                {
+                    GiaSuId = g.Key,
+                    DiemTb = g.Average(x => (double)x.Diem),
+                    SoLuot = g.Count()
+                })
+                .ToListAsync(cancellationToken))
+                .ToDictionary(x => x.GiaSuId, x => (DiemTb: Math.Round(x.DiemTb, 1), x.SoLuot));
+
+        var topGiaSu = topGiaSuNhom
+            .Select(x =>
+            {
+                danhGiaTheoGiaSu.TryGetValue(x.GiaSuId, out var dg);
+                return new TopGiaSuThongKeDto(
+                    GiaSuId: x.GiaSuId,
+                    HoTen: x.TenGiaSu,
+                    KhuVuc: x.KhuVucGiaSu,
+                    DaXacMinh: tapGiaSuDaXacMinh.Contains(x.GiaSuId),
+                    SoBuoiHoanThanh: x.SoBuoiHoanThanh,
+                    TongDoanhThu: x.TongDoanhThu,
+                    ThuNhapGiaSu: x.ThuNhapGiaSu,
+                    DiemDanhGiaTrungBinh: dg.DiemTb,
+                    SoLuotDanhGia: dg.SoLuot);
+            })
+            .ToList();
+
+        // 6. Số dư tổng toàn hệ thống & học phí đang tạm giữ theo thời gian thực
+        var tongSoDuViHeThong = await _db.TaiKhoanVis
+            .AsNoTracking()
+            .SumAsync(v => (int?)v.SoDu, cancellationToken) ?? 0;
+
+        var tongTienDangTamGiu = await _db.ThanhToans
+            .AsNoTracking()
+            .Where(t => t.TrangThai == TrangThaiThanhToan.DANG_GIU)
+            .SumAsync(t => (int?)(t.SoTien - t.TienDaHoan), cancellationToken) ?? 0;
+
+        static double? TinhTangTruong(int kyNay, int kyTruoc)
+        {
+            if (kyTruoc == 0)
+            {
+                return kyNay == 0 ? 0.0 : null;
+            }
+
+            return Math.Round((kyNay - kyTruoc) * 100.0 / kyTruoc, 1);
+        }
+
+        var giaTriDonTrungBinh = soThanhToanCoGiaTriKyNay == 0
+            ? 0
+            : (int)Math.Round(tongDoanhThuKyNay / (double)soThanhToanCoGiaTriKyNay, MidpointRounding.AwayFromZero);
+
+        var bieuDoTheoThoiGian = danhSachKhoa
+            .Select(k =>
+            {
+                var b = buckets[k.Khoa];
+                return new DiemBieuDoThoiGianDto(
+                    Nhan: b.Nhan,
+                    KhoaThoiGian: b.KhoaThoiGian,
+                    TongDoanhThu: b.TongDoanhThu,
+                    PhiNenTang: b.PhiNenTang,
+                    ThuNhapGiaSu: b.ThuNhapGiaSu,
+                    TongNapVi: b.TongNapVi,
+                    TongRutTien: b.TongRutTien,
+                    TongHoanTien: b.TongHoanTien,
+                    SoDonDatMoi: b.SoDonDatMoi,
+                    SoBuoiHoanThanh: b.SoBuoiHoanThanh,
+                    HocSinhMoi: b.HocSinhMoi,
+                    GiaSuMoi: b.GiaSuMoi);
+            })
+            .ToList();
+
+        return new ThongKeChiTietQuanTriDto(
+            PhamVi: phamViChuan,
+            NhanPhamVi: nhanPhamVi,
+            DonViThoiGian: donViThoiGian,
+            TuNgay: startUtc,
+            DenNgay: endExclusiveUtc.AddSeconds(-1),
+            TongDoanhThuTrongKy: tongDoanhThuKyNay,
+            TangTruongDoanhThuPhanTram: TinhTangTruong(tongDoanhThuKyNay, tongDoanhThuKyTruoc),
+            TongPhiNenTangTrongKy: tongPhiKyNay,
+            TangTruongPhiPhanTram: TinhTangTruong(tongPhiKyNay, tongPhiKyTruoc),
+            TongThuNhapGiaSuTrongKy: tongThuNhapKyNay,
+            TongNapViTrongKy: tongNapViKyNay,
+            TongRutTienDaChiTraTrongKy: tongRutTienKyNay,
+            TongHoanTienTrongKy: tongHoanTienKyNay,
+            SoDonDatTrongKy: soDonKyNay,
+            TangTruongDonPhanTram: TinhTangTruong(soDonKyNay, soDonKyTruoc),
+            SoDonHoanThanhTrongKy: soDonHoanThanhKyNay,
+            TyLeHoanThanhPhanTram: tyLeHoanThanh,
+            GiaTriDonTrungBinh: giaTriDonTrungBinh,
+            NguoiDungMoiTrongKy: nguoiDungMoiKyNay,
+            TangTruongNguoiDungPhanTram: TinhTangTruong(nguoiDungMoiKyNay, nguoiDungMoiKyTruoc),
+            TongSoDuViHeThong: Math.Max(0, tongSoDuViHeThong),
+            TongTienDangTamGiu: Math.Max(0, tongTienDangTamGiu),
+            BieuDoTheoThoiGian: bieuDoTheoThoiGian,
+            PhanBoTrangThaiDon: phanBoTrangThaiDon,
+            TopMonHocTheoDoanhThu: topMonHoc,
+            PhanBoHinhThucHoc: phanBoHinhThuc,
+            PhanBoKenhThanhToan: phanBoKenh,
+            TopGiaSu: topGiaSu);
+    }
+
+    private sealed class BoDemThoiGianNoiBo(string nhan, string khoaThoiGian)
+    {
+        public string Nhan { get; } = nhan;
+        public string KhoaThoiGian { get; } = khoaThoiGian;
+        public int TongDoanhThu { get; set; }
+        public int PhiNenTang { get; set; }
+        public int ThuNhapGiaSu { get; set; }
+        public int TongNapVi { get; set; }
+        public int TongRutTien { get; set; }
+        public int TongHoanTien { get; set; }
+        public int SoDonDatMoi { get; set; }
+        public int SoBuoiHoanThanh { get; set; }
+        public int HocSinhMoi { get; set; }
+        public int GiaSuMoi { get; set; }
+    }
+
     public async Task<KetQuaPhanTrangDto<GiaSuQuanTriDto>> LayDsGiaSuQuanTriAsync(
         TrangThaiHoSoGiaSu? trangThai = null,
         string? tuKhoa = null,

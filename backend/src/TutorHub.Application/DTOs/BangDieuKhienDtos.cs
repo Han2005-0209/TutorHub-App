@@ -138,3 +138,65 @@ public sealed record MonHocQuanTriDto(
 public sealed record TaoMonHocYeuCauDto(string Ten);
 
 public sealed record CapNhatMonHocYeuCauDto(string Ten, bool DangHoatDong);
+
+public sealed record DiemBieuDoThoiGianDto(
+    string Nhan,
+    string KhoaThoiGian,
+    int TongDoanhThu,
+    int PhiNenTang,
+    int ThuNhapGiaSu,
+    int TongNapVi,
+    int TongRutTien,
+    int TongHoanTien,
+    int SoDonDatMoi,
+    int SoBuoiHoanThanh,
+    int HocSinhMoi,
+    int GiaSuMoi);
+
+public sealed record ThongKePhanBoMucDto(
+    string Ma,
+    string Nhan,
+    int SoLuong,
+    int GiaTri,
+    double TyLePhanTram);
+
+public sealed record TopGiaSuThongKeDto(
+    Guid GiaSuId,
+    string HoTen,
+    string? KhuVuc,
+    bool DaXacMinh,
+    int SoBuoiHoanThanh,
+    int TongDoanhThu,
+    int ThuNhapGiaSu,
+    double DiemDanhGiaTrungBinh,
+    int SoLuotDanhGia);
+
+public sealed record ThongKeChiTietQuanTriDto(
+    string PhamVi,
+    string NhanPhamVi,
+    string DonViThoiGian,
+    DateTime TuNgay,
+    DateTime DenNgay,
+    int TongDoanhThuTrongKy,
+    double? TangTruongDoanhThuPhanTram,
+    int TongPhiNenTangTrongKy,
+    double? TangTruongPhiPhanTram,
+    int TongThuNhapGiaSuTrongKy,
+    int TongNapViTrongKy,
+    int TongRutTienDaChiTraTrongKy,
+    int TongHoanTienTrongKy,
+    int SoDonDatTrongKy,
+    double? TangTruongDonPhanTram,
+    int SoDonHoanThanhTrongKy,
+    double TyLeHoanThanhPhanTram,
+    int GiaTriDonTrungBinh,
+    int NguoiDungMoiTrongKy,
+    double? TangTruongNguoiDungPhanTram,
+    int TongSoDuViHeThong,
+    int TongTienDangTamGiu,
+    IReadOnlyList<DiemBieuDoThoiGianDto> BieuDoTheoThoiGian,
+    IReadOnlyList<ThongKePhanBoMucDto> PhanBoTrangThaiDon,
+    IReadOnlyList<ThongKePhanBoMucDto> TopMonHocTheoDoanhThu,
+    IReadOnlyList<ThongKePhanBoMucDto> PhanBoHinhThucHoc,
+    IReadOnlyList<ThongKePhanBoMucDto> PhanBoKenhThanhToan,
+    IReadOnlyList<TopGiaSuThongKeDto> TopGiaSu);

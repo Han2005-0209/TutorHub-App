@@ -13,6 +13,9 @@ public interface IBangDieuKhienService
     Task<TongQuanGiaSuDto> LayTongQuanGiaSuAsync(Guid giaSuId, CancellationToken cancellationToken = default);
 
     Task<TongQuanQuanTriDto> LayTongQuanQuanTriAsync(CancellationToken cancellationToken = default);
+    Task<ThongKeChiTietQuanTriDto> LayThongKeChiTietQuanTriAsync(
+        string? phamVi = "30_ngay",
+        CancellationToken cancellationToken = default);
     Task<KetQuaPhanTrangDto<GiaSuQuanTriDto>> LayDsGiaSuQuanTriAsync(
         TrangThaiHoSoGiaSu? trangThai = null,
         string? tuKhoa = null,

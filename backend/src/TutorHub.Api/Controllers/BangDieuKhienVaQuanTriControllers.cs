@@ -85,6 +85,16 @@ public sealed class QuanTriController : ControllerBase
         return Ok(new PhanHoiApi<TongQuanQuanTriDto>(dto));
     }
 
+    [HttpGet("thong-ke-chi-tiet")]
+    [ProducesResponseType(typeof(PhanHoiApi<ThongKeChiTietQuanTriDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<PhanHoiApi<ThongKeChiTietQuanTriDto>>> LayThongKeChiTiet(
+        [FromQuery] string? phamVi = "30_ngay",
+        CancellationToken cancellationToken = default)
+    {
+        var dto = await _service.LayThongKeChiTietQuanTriAsync(phamVi, cancellationToken);
+        return Ok(new PhanHoiApi<ThongKeChiTietQuanTriDto>(dto));
+    }
+
     [HttpGet("gia-su")]
     public async Task<ActionResult<PhanHoiApi<IReadOnlyList<GiaSuQuanTriDto>>>> LayDsGiaSu(
         [FromQuery] TrangThaiHoSoGiaSu? trangThai,

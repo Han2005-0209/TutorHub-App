@@ -6,6 +6,7 @@
     <link rel="icon" type="image/svg+xml" href="/assets/img/icon-192.svg" />
     <link rel="stylesheet" href="/assets/css/main.css" />
     <title>Quản trị hệ thống — TutorHub</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
     <style>
       .qt-modal-backdrop {
         position: fixed;
@@ -68,6 +69,167 @@
       .qt-chip-reason:hover {
         background: #fee2e2;
       }
+      /* ── Thống kê & Biểu đồ Quản trị ── */
+      .qt-tk-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.9rem;
+        flex-wrap: wrap;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 1rem 1.25rem;
+        box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+      }
+      .qt-tk-trend-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.2rem;
+        padding: 0.16rem 0.5rem;
+        border-radius: 999px;
+        font-size: 0.72rem;
+        font-weight: 700;
+      }
+      .qt-tk-trend-pill.up {
+        background: #dcfce7;
+        color: #15803d;
+      }
+      .qt-tk-trend-pill.down {
+        background: #fee2e2;
+        color: #b91c1c;
+      }
+      .qt-tk-trend-pill.neutral {
+        background: #f1f5f9;
+        color: #475569;
+      }
+      .qt-tk-mini-strip {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 0.85rem;
+      }
+      .qt-tk-mini-item {
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 0.9rem 1.05rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+      }
+      .qt-tk-mini-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #64748b;
+      }
+      .qt-tk-mini-val {
+        font-size: 1.08rem;
+        font-weight: 800;
+        color: #0f172a;
+      }
+      .qt-tk-mini-sub {
+        font-size: 0.72rem;
+        color: #64748b;
+      }
+      .qt-chart-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 1.25rem 1.35rem;
+        box-shadow: 0 2px 10px rgba(15, 23, 42, 0.03);
+        display: flex;
+        flex-direction: column;
+        gap: 0.85rem;
+        min-width: 0;
+      }
+      .qt-chart-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+      }
+      .qt-chart-title {
+        margin: 0;
+        font-size: 0.98rem;
+        font-weight: 800;
+        color: #0f172a;
+      }
+      .qt-chart-sub {
+        margin: 0.2rem 0 0;
+        font-size: 0.78rem;
+        color: #64748b;
+      }
+      .qt-chart-wrap {
+        position: relative;
+        width: 100%;
+        height: 290px;
+      }
+      .qt-chart-wrap.tall {
+        height: 320px;
+      }
+      .qt-chart-wrap.compact {
+        height: 220px;
+      }
+      .qt-chart-wrap.sm {
+        height: 235px;
+      }
+      .qt-chart-grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1.15rem;
+      }
+      .qt-chart-grid-asym {
+        display: grid;
+        grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+        gap: 1.15rem;
+      }
+      .qt-chart-grid-3 {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.35fr);
+        gap: 1.15rem;
+      }
+      .qt-top-gs-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        padding: 0.65rem 0.8rem;
+        border-radius: 12px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+      }
+      .qt-top-gs-rank {
+        width: 24px;
+        height: 24px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.74rem;
+        font-weight: 800;
+        flex-shrink: 0;
+      }
+      @media (max-width: 1180px) {
+        .qt-chart-grid-3 {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .qt-tk-mini-strip {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+      @media (max-width: 900px) {
+        .qt-chart-grid-2,
+        .qt-chart-grid-asym,
+        .qt-chart-grid-3 {
+          grid-template-columns: 1fr;
+        }
+      }
+      @media (max-width: 560px) {
+        .qt-tk-mini-strip {
+          grid-template-columns: 1fr;
+        }
+      }
     </style>
   </head>
   <body class="portal-body">
@@ -87,6 +249,9 @@
           <nav class="admin-nav">
             <button type="button" class="admin-nav-btn active" data-tab="qt-tong-quan" id="qt-nav-tong-quan">
               <span class="studio-nav-btn-left">Tổng quan hệ thống</span>
+            </button>
+            <button type="button" class="admin-nav-btn" data-tab="qt-thong-ke" id="qt-nav-thong-ke">
+              <span class="studio-nav-btn-left">Thống kê &amp; Doanh thu</span>
             </button>
             <button type="button" class="admin-nav-btn" data-tab="qt-duyet-gia-su" id="qt-nav-duyet-gia-su">
               <span class="studio-nav-btn-left">Duyệt hồ sơ &amp; Giấy tờ</span>
@@ -250,6 +415,27 @@
               </div>
             </div>
 
+            <!-- Biểu đồ xem nhanh biến động doanh thu 30 ngày ngay trên Tổng quan -->
+            <div class="qt-chart-card">
+              <div class="qt-chart-head">
+                <div>
+                  <h2 class="qt-chart-title">Biến động doanh thu &amp; đơn đặt lịch (30 ngày qua)</h2>
+                  <p class="qt-chart-sub" id="qt-tq-chart-sub">
+                    Theo dõi nhanh dòng tiền học phí, phí nền tảng 12% và nhịp đặt lịch theo từng ngày
+                  </p>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap">
+                  <span id="qt-tq-phi-pill" class="badge badge-success" style="font-size: 0.78rem">Phí nền tảng: —</span>
+                  <button type="button" class="btn btn-primary btn-sm" id="btn-mo-thong-ke-chi-tiet">
+                    Xem thống kê chi tiết (7 biểu đồ) →
+                  </button>
+                </div>
+              </div>
+              <div class="qt-chart-wrap compact">
+                <canvas id="canvas-qt-tong-quan-nhanh"></canvas>
+              </div>
+            </div>
+
             <div class="grid-2">
               <div class="card" style="padding: 1.35rem">
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.9rem">
@@ -274,6 +460,202 @@
                   <span class="sk-block" style="height: 44px; width: 100%; border-radius: 9px"></span>
                   <span class="sk-block" style="height: 44px; width: 100%; border-radius: 9px"></span>
                   <span class="sk-block" style="height: 44px; width: 100%; border-radius: 9px"></span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- TAB 1.5: Thống kê doanh thu & Biểu đồ chi tiết -->
+          <section id="qt-thong-ke" class="qt-panel" style="display: none; flex-direction: column; gap: 1.15rem">
+            <div class="qt-tk-toolbar">
+              <div>
+                <h2 style="margin: 0; font-size: 1.08rem; font-weight: 800; color: #0f172a">
+                  Báo cáo doanh thu &amp; Biến động vận hành
+                </h2>
+                <p id="qt-tk-khoang-ngay" style="margin: 0.2rem 0 0; font-size: 0.8rem; color: #64748b">
+                  Đang tổng hợp dữ liệu trực tiếp từ hệ thống...
+                </p>
+              </div>
+              <div style="display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap">
+                <div class="mode-switcher" role="tablist" aria-label="Chọn khung thời gian thống kê">
+                  <button type="button" class="mode-pill btn-pham-vi-tk" data-pham-vi="7_ngay">7 ngày qua</button>
+                  <button type="button" class="mode-pill active btn-pham-vi-tk" data-pham-vi="30_ngay">30 ngày qua</button>
+                  <button type="button" class="mode-pill btn-pham-vi-tk" data-pham-vi="6_thang">6 tháng qua</button>
+                  <button type="button" class="mode-pill btn-pham-vi-tk" data-pham-vi="12_thang">12 tháng qua</button>
+                </div>
+                <button type="button" class="btn btn-outline-primary btn-sm" id="btn-xuat-csv-thong-ke">
+                  Xuất báo cáo CSV
+                </button>
+              </div>
+            </div>
+
+            <!-- 4 KPI chính có chỉ số tăng trưởng so với kỳ trước -->
+            <div class="kpi-grid-4">
+              <div class="kpi-card">
+                <div class="kpi-top">
+                  <span class="kpi-label">Doanh thu học phí trong kỳ</span>
+                  <span class="qt-tk-trend-pill neutral" id="tk-trend-doanh-thu">—</span>
+                </div>
+                <div class="kpi-value" id="tk-val-doanh-thu">—</div>
+                <div class="kpi-sub" id="tk-sub-doanh-thu">Giá trị đơn trung bình: —</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-top">
+                  <span class="kpi-label">Doanh thu phí nền tảng (12%)</span>
+                  <span class="qt-tk-trend-pill neutral" id="tk-trend-phi">—</span>
+                </div>
+                <div class="kpi-value" style="color: #047857" id="tk-val-phi">—</div>
+                <div class="kpi-sub" id="tk-sub-phi">Thu nhập gia sư: —</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-top">
+                  <span class="kpi-label">Đơn đặt lịch trong kỳ</span>
+                  <span class="qt-tk-trend-pill neutral" id="tk-trend-don">—</span>
+                </div>
+                <div class="kpi-value" id="tk-val-don">—</div>
+                <div class="kpi-sub" id="tk-sub-don">Hoàn thành: —</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-top">
+                  <span class="kpi-label">Người dùng đăng ký mới</span>
+                  <span class="qt-tk-trend-pill neutral" id="tk-trend-user">—</span>
+                </div>
+                <div class="kpi-value" id="tk-val-user">—</div>
+                <div class="kpi-sub" id="tk-sub-user">Học sinh &amp; Gia sư gia nhập</div>
+              </div>
+            </div>
+
+            <!-- 4 chỉ số dòng tiền & số dư thực tế -->
+            <div class="qt-tk-mini-strip">
+              <div class="qt-tk-mini-item">
+                <span class="qt-tk-mini-label">Tổng tiền nạp ví trong kỳ</span>
+                <span class="qt-tk-mini-val" style="color: #0284c7" id="tk-mini-nap">—</span>
+                <span class="qt-tk-mini-sub">Qua VietQR tự động &amp; nạp ví học tập</span>
+              </div>
+              <div class="qt-tk-mini-item">
+                <span class="qt-tk-mini-label">Đã chi trả rút tiền gia sư</span>
+                <span class="qt-tk-mini-val" style="color: #7c3aed" id="tk-mini-rut">—</span>
+                <span class="qt-tk-mini-sub">Các lệnh rút đã xác nhận chuyển khoản</span>
+              </div>
+              <div class="qt-tk-mini-item">
+                <span class="qt-tk-mini-label">Tổng tiền hoàn lại học viên</span>
+                <span class="qt-tk-mini-val" style="color: #e11d48" id="tk-mini-hoan">—</span>
+                <span class="qt-tk-mini-sub">Từ đơn hủy hợp lệ &amp; giải quyết khiếu nại</span>
+              </div>
+              <div class="qt-tk-mini-item">
+                <span class="qt-tk-mini-label">Số dư ví toàn hệ thống</span>
+                <span class="qt-tk-mini-val" style="color: #0f172a" id="tk-mini-sodu">—</span>
+                <span class="qt-tk-mini-sub" id="tk-mini-tamgiu">Đang tạm giữ chờ học: —</span>
+              </div>
+            </div>
+
+            <!-- BIỂU ĐỒ 1 (Full Width): Doanh thu, Phí nền tảng & Thu nhập gia sư -->
+            <div class="qt-chart-card">
+              <div class="qt-chart-head">
+                <div>
+                  <h3 class="qt-chart-title">1. Biến động Doanh thu học phí, Phí nền tảng &amp; Thu nhập gia sư</h3>
+                  <p class="qt-chart-sub">
+                    Cột xanh biểu thị tổng học phí thanh toán; đường nét liền là phí nền tảng (12%) và đường nét đứt là thu nhập gia sư thực nhận
+                  </p>
+                </div>
+                <span class="badge badge-info" id="tk-badge-don-vi">Theo ngày</span>
+              </div>
+              <div class="qt-chart-wrap tall">
+                <canvas id="canvas-tk-doanh-thu"></canvas>
+              </div>
+            </div>
+
+            <!-- BIỂU ĐỒ 2 & 3: Dòng tiền ví (Cột nhóm) + Phân bổ trạng thái đơn (Vòng tròn) -->
+            <div class="qt-chart-grid-asym">
+              <div class="qt-chart-card">
+                <div class="qt-chart-head">
+                  <div>
+                    <h3 class="qt-chart-title">2. Dòng tiền Ví điện tử (Nạp ví · Chi trả rút tiền · Hoàn tiền)</h3>
+                    <p class="qt-chart-sub">So sánh tiền nạp vào hệ thống, tiền rút chi trả cho gia sư và hoàn tiền về ví học viên</p>
+                  </div>
+                </div>
+                <div class="qt-chart-wrap">
+                  <canvas id="canvas-tk-dong-tien"></canvas>
+                </div>
+              </div>
+
+              <div class="qt-chart-card">
+                <div class="qt-chart-head">
+                  <div>
+                    <h3 class="qt-chart-title">3. Phân bổ trạng thái đơn đặt lịch</h3>
+                    <p class="qt-chart-sub">Tỷ trọng đơn hoàn thành, đang học, chờ xác nhận, hủy và tranh chấp</p>
+                  </div>
+                </div>
+                <div class="qt-chart-wrap">
+                  <canvas id="canvas-tk-trang-thai-don"></canvas>
+                </div>
+              </div>
+            </div>
+
+            <!-- BIỂU ĐỒ 4 & 5: Top môn học (Cột ngang) + Tăng trưởng người dùng & buổi học (Đường vùng) -->
+            <div class="qt-chart-grid-2">
+              <div class="qt-chart-card">
+                <div class="qt-chart-head">
+                  <div>
+                    <h3 class="qt-chart-title">4. Top môn học có doanh thu cao nhất</h3>
+                    <p class="qt-chart-sub">Xếp hạng tối đa 8 môn học nổi bật nhất theo tổng giá trị học phí trong kỳ</p>
+                  </div>
+                </div>
+                <div class="qt-chart-wrap">
+                  <canvas id="canvas-tk-mon-hoc"></canvas>
+                </div>
+              </div>
+
+              <div class="qt-chart-card">
+                <div class="qt-chart-head">
+                  <div>
+                    <h3 class="qt-chart-title">5. Tăng trưởng người dùng mới &amp; Nhịp buổi học</h3>
+                    <p class="qt-chart-sub">Biến động Học sinh mới, Gia sư mới đăng ký cùng số đơn đặt mới theo thời gian</p>
+                  </div>
+                </div>
+                <div class="qt-chart-wrap">
+                  <canvas id="canvas-tk-nguoi-dung"></canvas>
+                </div>
+              </div>
+            </div>
+
+            <!-- BIỂU ĐỒ 6A, 6B & Bảng Top 5 Gia sư -->
+            <div class="qt-chart-grid-3">
+              <div class="qt-chart-card">
+                <div class="qt-chart-head">
+                  <div>
+                    <h3 class="qt-chart-title">6. Cơ cấu hình thức học</h3>
+                    <p class="qt-chart-sub">Tỷ lệ học trực tuyến 1-1 so với học trực tiếp tại nhà</p>
+                  </div>
+                </div>
+                <div class="qt-chart-wrap sm">
+                  <canvas id="canvas-tk-hinh-thuc"></canvas>
+                </div>
+                <div id="tk-hinh-thuc-chi-tiet" style="display: flex; flex-direction: column; gap: 0.4rem; font-size: 0.78rem"></div>
+              </div>
+
+              <div class="qt-chart-card">
+                <div class="qt-chart-head">
+                  <div>
+                    <h3 class="qt-chart-title">7. Kênh thanh toán &amp; nạp tiền</h3>
+                    <p class="qt-chart-sub">Phân bổ giá trị giao dịch theo Ví nội bộ, VNPay và VietQR PayOS</p>
+                  </div>
+                </div>
+                <div class="qt-chart-wrap sm">
+                  <canvas id="canvas-tk-kenh-tt"></canvas>
+                </div>
+                <div id="tk-kenh-tt-chi-tiet" style="display: flex; flex-direction: column; gap: 0.4rem; font-size: 0.78rem"></div>
+              </div>
+
+              <div class="qt-chart-card">
+                <div class="qt-chart-head">
+                  <div>
+                    <h3 class="qt-chart-title">Top 5 Gia sư doanh thu cao nhất</h3>
+                    <p class="qt-chart-sub">Xếp hạng theo tổng học phí mang về trong kỳ đang chọn</p>
+                  </div>
+                </div>
+                <div id="tk-top-gia-su" style="display: flex; flex-direction: column; gap: 0.55rem">
+                  <div style="font-size: 0.82rem; color: #94a3b8; text-align: center; padding: 1.5rem 0">Đang tải bảng xếp hạng...</div>
                 </div>
               </div>
             </div>
@@ -532,6 +914,7 @@
 
       // Gắn icon SVG cho sidebar & KPI
       document.getElementById('qt-nav-tong-quan').innerHTML = `<span class="studio-nav-btn-left">${icons.layoutDashboard(16)} <span>Tổng quan hệ thống</span></span>`;
+      document.getElementById('qt-nav-thong-ke').innerHTML = `<span class="studio-nav-btn-left">${icons.trendingUp(16)} <span>Thống kê &amp; Doanh thu</span></span>`;
       document.getElementById('qt-nav-duyet-gia-su').innerHTML = `<span class="studio-nav-btn-left">${icons.shieldCheck(16)} <span>Duyệt hồ sơ &amp; Giấy tờ</span></span><span class="admin-nav-badge" id="badge-cho-duyet" style="display: none">0</span>`;
       document.getElementById('qt-nav-nguoi-dung').innerHTML = `<span class="studio-nav-btn-left">${icons.users(16)} <span>Quản lý người dùng</span></span>`;
       document.getElementById('qt-nav-mon-hoc').innerHTML = `<span class="studio-nav-btn-left">${icons.bookOpen(16)} <span>Danh mục môn học</span></span>`;
@@ -628,6 +1011,10 @@
       let trangNdQt = 1;
       let timerTimGsQt = null;
       let tongQuanCache = null;
+      let phamViThongKeQt = '30_ngay';
+      let thongKeChiTietCache = null;
+      let thongKeTongQuan30NgayCache = null;
+      const bieuDoQt = {};
       let dsGiaSuChoDuyetCache = [];
       let dsRutTienChoCache = [];
       let dsRutTienDayDuQt = [];
@@ -733,6 +1120,7 @@
 
       const tieuDeTheoTab = {
         'qt-tong-quan': 'Tổng quan vận hành hệ thống',
+        'qt-thong-ke': 'Thống kê doanh thu & Biến động hệ thống',
         'qt-duyet-gia-su': 'Xét duyệt hồ sơ & Giấy tờ gia sư',
         'qt-nguoi-dung': 'Quản lý tài khoản người dùng',
         'qt-mon-hoc': 'Quản lý danh mục môn học',
@@ -744,14 +1132,41 @@
       function chuyenTab(tabId) {
         hopThongBao.style.display = 'none';
         document.querySelectorAll('.admin-nav-btn').forEach((b) => b.classList.toggle('active', b.dataset.tab === tabId));
-        document.querySelectorAll('.qt-panel').forEach((p) => (p.style.display = p.id === tabId ? (tabId === 'qt-tong-quan' ? 'flex' : 'block') : 'none'));
+        document.querySelectorAll('.qt-panel').forEach((p) => {
+          const isFlex = tabId === 'qt-tong-quan' || tabId === 'qt-thong-ke';
+          p.style.display = p.id === tabId ? (isFlex ? 'flex' : 'block') : 'none';
+        });
         document.getElementById('qt-tieu-de-tab').textContent = tieuDeTheoTab[tabId] || 'Quản trị hệ thống';
+        if (tabId === 'qt-thong-ke') {
+          if (thongKeChiTietCache) {
+            requestAnimationFrame(() => renderToanBoBieuDoChiTiet(thongKeChiTietCache));
+          } else {
+            taiThongKeChiTiet(phamViThongKeQt);
+          }
+        } else if (tabId === 'qt-tong-quan' && thongKeTongQuan30NgayCache) {
+          requestAnimationFrame(() => renderBieuDoTongQuanNhanh(thongKeTongQuan30NgayCache));
+        }
       }
 
       document.querySelectorAll('.admin-nav-btn').forEach((btn) => {
         btn.addEventListener('click', () => chuyenTab(btn.dataset.tab));
       });
       document.getElementById('btn-di-toi-duyet')?.addEventListener('click', () => chuyenTab('qt-duyet-gia-su'));
+      document.getElementById('btn-mo-thong-ke-chi-tiet')?.addEventListener('click', () => chuyenTab('qt-thong-ke'));
+
+      document.querySelectorAll('.btn-pham-vi-tk').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const pv = btn.dataset.phamVi || '30_ngay';
+          if (pv === phamViThongKeQt && thongKeChiTietCache) return;
+          phamViThongKeQt = pv;
+          document.querySelectorAll('.btn-pham-vi-tk').forEach((b) => b.classList.toggle('active', b === btn));
+          taiThongKeChiTiet(pv);
+        });
+      });
+
+      document.getElementById('btn-xuat-csv-thong-ke')?.addEventListener('click', () => {
+        xuatBaoCaoThongKeCsv();
+      });
 
       const user = await dongBoNguoiDungTuApi();
       if (user) {
@@ -775,12 +1190,715 @@
       async function taiToanBoDuLieuQuanTri() {
         await Promise.all([
           taiTongQuan(),
+          taiThongKeChiTiet(phamViThongKeQt),
           taiDsGiaSu(),
           taiDsNguoiDung(),
           taiDsMonHoc(),
           taiDsRutTienQuanTri(),
           taiDsKhieuNaiQuanTri(),
         ]);
+      }
+
+      function dinhDangTienNganGon(val) {
+        const n = Number(val || 0);
+        const abs = Math.abs(n);
+        if (abs >= 1_000_000_000) return `${(n / 1_000_000_000).toFixed(1).replace(/\.0$/, '')} Tỷ`;
+        if (abs >= 1_000_000) return `${(n / 1_000_000).toFixed(1).replace(/\.0$/, '')} Tr`;
+        if (abs >= 1_000) return `${Math.round(n / 1_000)}k`;
+        return `${n}`;
+      }
+
+      function capNhatPillTangTruong(elId, phanTram) {
+        const el = document.getElementById(elId);
+        if (!el) return;
+        if (phanTram === null || phanTram === undefined) {
+          el.className = 'qt-tk-trend-pill up';
+          el.textContent = 'Kỳ mới';
+          return;
+        }
+        const so = Number(phanTram);
+        if (so > 0) {
+          el.className = 'qt-tk-trend-pill up';
+          el.textContent = `+${so}% vs kỳ trước`;
+        } else if (so < 0) {
+          el.className = 'qt-tk-trend-pill down';
+          el.textContent = `${so}% vs kỳ trước`;
+        } else {
+          el.className = 'qt-tk-trend-pill neutral';
+          el.textContent = 'Ổn định (0%)';
+        }
+      }
+
+      function huyBieuDoNeuCo(khoa) {
+        if (bieuDoQt[khoa]) {
+          try {
+            bieuDoQt[khoa].destroy();
+          } catch {
+            // Bỏ qua nếu canvas đã bị tháo khỏi DOM
+          }
+          delete bieuDoQt[khoa];
+        }
+      }
+
+      function dinhDangNgayNganVn(iso) {
+        if (!iso) return '—';
+        try {
+          return new Date(iso).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        } catch {
+          return '—';
+        }
+      }
+
+      async function taiThongKeChiTiet(phamVi = '30_ngay') {
+        try {
+          const res = await api.get(`/quan-tri/thong-ke-chi-tiet?phamVi=${encodeURIComponent(phamVi)}`);
+          const d = res?.duLieu;
+          if (!d) return;
+          thongKeChiTietCache = d;
+          if (phamVi === '30_ngay' || !thongKeTongQuan30NgayCache) {
+            thongKeTongQuan30NgayCache = d;
+          }
+
+          // Luôn cập nhật số liệu chữ trên tab Thống kê
+          capNhatSoLieuThongKe(d);
+
+          // Nếu đang mở Tab 1 (Tổng quan) -> vẽ biểu đồ xem nhanh 30 ngày
+          const panelTq = document.getElementById('qt-tong-quan');
+          if (panelTq && panelTq.style.display !== 'none') {
+            requestAnimationFrame(() => renderBieuDoTongQuanNhanh(thongKeTongQuan30NgayCache));
+          }
+
+          // Nếu đang mở Tab Thống kê -> vẽ đầy đủ 7 biểu đồ
+          const panelTk = document.getElementById('qt-thong-ke');
+          if (panelTk && panelTk.style.display !== 'none') {
+            requestAnimationFrame(() => renderToanBoBieuDoChiTiet(d));
+          }
+        } catch (err) {
+          hienThongBao(err.message || 'Không thể tải dữ liệu thống kê chi tiết.', 'danger');
+        }
+      }
+
+      function capNhatSoLieuThongKe(d) {
+        const elKhoang = document.getElementById('qt-tk-khoang-ngay');
+        if (elKhoang) {
+          elKhoang.textContent = `${d.nhanPhamVi} · Từ ${dinhDangNgayNganVn(d.tuNgay)} đến ${dinhDangNgayNganVn(d.denNgay)} (múi giờ Việt Nam UTC+7)`;
+        }
+        const badgeDv = document.getElementById('tk-badge-don-vi');
+        if (badgeDv) {
+          badgeDv.textContent = d.donViThoiGian === 'THANG' ? 'Nhóm theo tháng' : 'Nhóm theo ngày';
+        }
+
+        // KPI chính
+        document.getElementById('tk-val-doanh-thu').textContent = dinhDangTienVnd(d.tongDoanhThuTrongKy || 0);
+        document.getElementById('tk-sub-doanh-thu').textContent = `Giá trị đơn trung bình: ${dinhDangTienVnd(d.giaTriDonTrungBinh || 0)}`;
+        capNhatPillTangTruong('tk-trend-doanh-thu', d.tangTruongDoanhThuPhanTram);
+
+        document.getElementById('tk-val-phi').textContent = dinhDangTienVnd(d.tongPhiNenTangTrongKy || 0);
+        document.getElementById('tk-sub-phi').textContent = `Thu nhập gia sư: ${dinhDangTienVnd(d.tongThuNhapGiaSuTrongKy || 0)}`;
+        capNhatPillTangTruong('tk-trend-phi', d.tangTruongPhiPhanTram);
+
+        document.getElementById('tk-val-don').textContent = `${d.soDonDatTrongKy || 0} đơn`;
+        document.getElementById('tk-sub-don').textContent = `${d.soDonHoanThanhTrongKy || 0} hoàn thành (${d.tyLeHoanThanhPhanTram || 0}%)`;
+        capNhatPillTangTruong('tk-trend-don', d.tangTruongDonPhanTram);
+
+        const tongHsMoi = (d.bieuDoTheoThoiGian || []).reduce((s, x) => s + (x.hocSinhMoi || 0), 0);
+        const tongGsMoi = (d.bieuDoTheoThoiGian || []).reduce((s, x) => s + (x.giaSuMoi || 0), 0);
+        document.getElementById('tk-val-user').textContent = `${d.nguoiDungMoiTrongKy || 0} tài khoản`;
+        document.getElementById('tk-sub-user').textContent = `${tongHsMoi} Học sinh · ${tongGsMoi} Gia sư`;
+        capNhatPillTangTruong('tk-trend-user', d.tangTruongNguoiDungPhanTram);
+
+        // Mini strip dòng tiền
+        document.getElementById('tk-mini-nap').textContent = dinhDangTienVnd(d.tongNapViTrongKy || 0);
+        document.getElementById('tk-mini-rut').textContent = dinhDangTienVnd(d.tongRutTienDaChiTraTrongKy || 0);
+        document.getElementById('tk-mini-hoan').textContent = dinhDangTienVnd(d.tongHoanTienTrongKy || 0);
+        document.getElementById('tk-mini-sodu').textContent = dinhDangTienVnd(d.tongSoDuViHeThong || 0);
+        document.getElementById('tk-mini-tamgiu').textContent = `Đang tạm giữ chờ học: ${dinhDangTienVnd(d.tongTienDangTamGiu || 0)}`;
+
+        // Subheader trên Tab 1 xem nhanh
+        const pillPhiTq = document.getElementById('qt-tq-phi-pill');
+        if (pillPhiTq && thongKeTongQuan30NgayCache) {
+          pillPhiTq.textContent = `Phí nền tảng 30 ngày: ${dinhDangTienVnd(thongKeTongQuan30NgayCache.tongPhiNenTangTrongKy || 0)}`;
+        }
+        const subTq = document.getElementById('qt-tq-chart-sub');
+        if (subTq && thongKeTongQuan30NgayCache) {
+          subTq.textContent = `30 ngày qua: Doanh thu ${dinhDangTienVnd(thongKeTongQuan30NgayCache.tongDoanhThuTrongKy || 0)} · Nạp ví ${dinhDangTienVnd(thongKeTongQuan30NgayCache.tongNapViTrongKy || 0)} · ${thongKeTongQuan30NgayCache.soDonDatTrongKy || 0} đơn đặt mới`;
+        }
+
+        // Render bảng Top 5 gia sư
+        const topGsEl = document.getElementById('tk-top-gia-su');
+        if (topGsEl) {
+          const dsTop = d.topGiaSu || [];
+          if (!dsTop.length) {
+            topGsEl.innerHTML = '<div style="font-size: 0.82rem; color: #94a3b8; text-align: center; padding: 1.8rem 0.5rem">Chưa phát sinh doanh thu gia sư trong khung thời gian này.</div>';
+          } else {
+            const rankColors = [
+              { bg: '#fef3c7', fg: '#b45309' },
+              { bg: '#e2e8f0', fg: '#334155' },
+              { bg: '#ffedd5', fg: '#c2410c' },
+              { bg: '#eef2ff', fg: '#4338ca' },
+              { bg: '#f1f5f9', fg: '#475569' },
+            ];
+            topGsEl.innerHTML = dsTop
+              .map((gs, idx) => {
+                const c = rankColors[idx] || rankColors[4];
+                const saoText = gs.soLuotDanhGia > 0 ? `★ ${gs.diemDanhGiaTrungBinh} (${gs.soLuotDanhGia})` : 'Chưa có đánh giá';
+                return `
+                  <div class="qt-top-gs-row">
+                    <div style="display: flex; align-items: center; gap: 0.65rem; min-width: 0">
+                      <span class="qt-top-gs-rank" style="background: ${c.bg}; color: ${c.fg}">#${idx + 1}</span>
+                      <div style="min-width: 0">
+                        <div style="font-size: 0.84rem; font-weight: 700; color: #0f172a; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">
+                          ${escapeHtml(gs.hoTen)}
+                          ${gs.daXacMinh ? '<span style="color: #059669; font-size: 0.72rem; margin-left: 0.25rem" title="Đã xác minh bằng cấp">✓</span>' : ''}
+                        </div>
+                        <div style="font-size: 0.72rem; color: #64748b">
+                          ${gs.soBuoiHoanThanh} buổi hoàn thành · ${escapeHtml(saoText)}
+                        </div>
+                      </div>
+                    </div>
+                    <div style="text-align: right; flex-shrink: 0">
+                      <div style="font-size: 0.84rem; font-weight: 800; color: #4338ca">${dinhDangTienVnd(gs.tongDoanhThu || 0)}</div>
+                      <div style="font-size: 0.7rem; color: #059669">Thực nhận ${dinhDangTienVnd(gs.thuNhapGiaSu || 0)}</div>
+                    </div>
+                  </div>
+                `;
+              })
+              .join('');
+          }
+        }
+
+        // Chú thích chi tiết Hình thức học & Kênh thanh toán
+        const htEl = document.getElementById('tk-hinh-thuc-chi-tiet');
+        if (htEl) {
+          const dsHt = d.phanBoHinhThucHoc || [];
+          htEl.innerHTML = dsHt
+            .map(
+              (x) => `
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.35rem 0.55rem; border-radius: 8px; background: #f8fafc">
+                <span style="color: #334155; font-weight: 600">${escapeHtml(x.nhan)}</span>
+                <span style="color: #0f172a; font-weight: 700">${x.soLuong} đơn (${x.tyLePhanTram}%) · ${dinhDangTienVnd(x.giaTri || 0)}</span>
+              </div>
+            `
+            )
+            .join('');
+        }
+
+        const kenhEl = document.getElementById('tk-kenh-tt-chi-tiet');
+        if (kenhEl) {
+          const dsKenh = d.phanBoKenhThanhToan || [];
+          kenhEl.innerHTML = dsKenh.length
+            ? dsKenh
+                .map(
+                  (x) => `
+                  <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.35rem 0.55rem; border-radius: 8px; background: #f8fafc">
+                    <span style="color: #334155; font-weight: 600">${escapeHtml(x.nhan)}</span>
+                    <span style="color: #0f172a; font-weight: 700">${x.soLuong} GD (${x.tyLePhanTram}%) · ${dinhDangTienVnd(x.giaTri || 0)}</span>
+                  </div>
+                `
+                )
+                .join('')
+            : '<div style="font-size: 0.78rem; color: #94a3b8; text-align: center">Chưa có giao dịch thanh toán trong kỳ.</div>';
+        }
+      }
+
+      function renderBieuDoTongQuanNhanh(d) {
+        if (!d || typeof Chart === 'undefined') return;
+        const canvas = document.getElementById('canvas-qt-tong-quan-nhanh');
+        if (!canvas) return;
+        huyBieuDoNeuCo('tongQuanNhanh');
+
+        const series = d.bieuDoTheoThoiGian || [];
+        const labels = series.map((x) => x.nhan);
+        bieuDoQt.tongQuanNhanh = new Chart(canvas, {
+          type: 'bar',
+          data: {
+            labels,
+            datasets: [
+              {
+                type: 'bar',
+                label: 'Doanh thu học phí',
+                data: series.map((x) => x.tongDoanhThu || 0),
+                backgroundColor: 'rgba(79, 70, 229, 0.78)',
+                borderRadius: 6,
+                maxBarThickness: 22,
+                yAxisID: 'y',
+              },
+              {
+                type: 'line',
+                label: 'Phí nền tảng (12%)',
+                data: series.map((x) => x.phiNenTang || 0),
+                borderColor: '#10b981',
+                backgroundColor: 'rgba(16, 185, 129, 0.14)',
+                borderWidth: 2.2,
+                fill: true,
+                tension: 0.35,
+                pointRadius: 2,
+                yAxisID: 'y',
+              },
+              {
+                type: 'line',
+                label: 'Đơn đặt mới',
+                data: series.map((x) => x.soDonDatMoi || 0),
+                borderColor: '#f59e0b',
+                borderWidth: 2,
+                borderDash: [5, 4],
+                tension: 0.3,
+                pointRadius: 2.5,
+                yAxisID: 'y1',
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+              legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8, font: { size: 11 } } },
+              tooltip: {
+                callbacks: {
+                  label: (ctx) =>
+                    ctx.dataset.yAxisID === 'y1'
+                      ? `${ctx.dataset.label}: ${ctx.parsed.y} đơn`
+                      : `${ctx.dataset.label}: ${dinhDangTienVnd(ctx.parsed.y || 0)}`,
+                },
+              },
+            },
+            scales: {
+              x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 10, font: { size: 11 } } },
+              y: {
+                beginAtZero: true,
+                position: 'left',
+                grid: { color: 'rgba(148, 163, 184, 0.16)' },
+                ticks: { callback: (v) => dinhDangTienNganGon(v), font: { size: 11 } },
+              },
+              y1: {
+                beginAtZero: true,
+                position: 'right',
+                grid: { drawOnChartArea: false },
+                ticks: { stepSize: 1, precision: 0, font: { size: 11 } },
+              },
+            },
+          },
+        });
+      }
+
+      function renderToanBoBieuDoChiTiet(d) {
+        if (!d || typeof Chart === 'undefined') return;
+        const series = d.bieuDoTheoThoiGian || [];
+        const labels = series.map((x) => x.nhan);
+
+        // 1. Biểu đồ kết hợp Doanh thu + Phí nền tảng + Thu nhập gia sư
+        const c1 = document.getElementById('canvas-tk-doanh-thu');
+        if (c1) {
+          huyBieuDoNeuCo('doanhThu');
+          bieuDoQt.doanhThu = new Chart(c1, {
+            type: 'bar',
+            data: {
+              labels,
+              datasets: [
+                {
+                  type: 'bar',
+                  label: 'Tổng doanh thu học phí',
+                  data: series.map((x) => x.tongDoanhThu || 0),
+                  backgroundColor: 'rgba(79, 70, 229, 0.78)',
+                  hoverBackgroundColor: '#4338ca',
+                  borderRadius: 6,
+                  maxBarThickness: 28,
+                },
+                {
+                  type: 'line',
+                  label: 'Thu nhập gia sư (88%)',
+                  data: series.map((x) => x.thuNhapGiaSu || 0),
+                  borderColor: '#f59e0b',
+                  borderWidth: 2.2,
+                  borderDash: [5, 4],
+                  tension: 0.32,
+                  pointRadius: 2.5,
+                  fill: false,
+                },
+                {
+                  type: 'line',
+                  label: 'Phí nền tảng (12%)',
+                  data: series.map((x) => x.phiNenTang || 0),
+                  borderColor: '#10b981',
+                  backgroundColor: 'rgba(16, 185, 129, 0.16)',
+                  borderWidth: 2.5,
+                  tension: 0.35,
+                  pointRadius: 3,
+                  fill: true,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              interaction: { mode: 'index', intersect: false },
+              plugins: {
+                legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 9, font: { size: 12 } } },
+                tooltip: {
+                  callbacks: {
+                    label: (ctx) => `${ctx.dataset.label}: ${dinhDangTienVnd(ctx.parsed.y || 0)}`,
+                  },
+                },
+              },
+              scales: {
+                x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 12 } },
+                y: {
+                  beginAtZero: true,
+                  grid: { color: 'rgba(148, 163, 184, 0.16)' },
+                  ticks: { callback: (v) => dinhDangTienNganGon(v) },
+                },
+              },
+            },
+          });
+        }
+
+        // 2. Biểu đồ cột nhóm Dòng tiền ví (Nạp ví · Chi trả rút tiền · Hoàn tiền)
+        const c2 = document.getElementById('canvas-tk-dong-tien');
+        if (c2) {
+          huyBieuDoNeuCo('dongTien');
+          bieuDoQt.dongTien = new Chart(c2, {
+            type: 'bar',
+            data: {
+              labels,
+              datasets: [
+                {
+                  label: 'Nạp vào ví',
+                  data: series.map((x) => x.tongNapVi || 0),
+                  backgroundColor: 'rgba(14, 165, 233, 0.82)',
+                  borderRadius: 5,
+                  maxBarThickness: 18,
+                },
+                {
+                  label: 'Chi trả rút tiền',
+                  data: series.map((x) => x.tongRutTien || 0),
+                  backgroundColor: 'rgba(139, 92, 246, 0.82)',
+                  borderRadius: 5,
+                  maxBarThickness: 18,
+                },
+                {
+                  label: 'Hoàn tiền học viên',
+                  data: series.map((x) => x.tongHoanTien || 0),
+                  backgroundColor: 'rgba(244, 63, 94, 0.82)',
+                  borderRadius: 5,
+                  maxBarThickness: 18,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              interaction: { mode: 'index', intersect: false },
+              plugins: {
+                legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8, font: { size: 11 } } },
+                tooltip: {
+                  callbacks: {
+                    label: (ctx) => `${ctx.dataset.label}: ${dinhDangTienVnd(ctx.parsed.y || 0)}`,
+                  },
+                },
+              },
+              scales: {
+                x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 10 } },
+                y: {
+                  beginAtZero: true,
+                  grid: { color: 'rgba(148, 163, 184, 0.16)' },
+                  ticks: { callback: (v) => dinhDangTienNganGon(v) },
+                },
+              },
+            },
+          });
+        }
+
+        // 3. Biểu đồ Doughnut Phân bổ trạng thái đơn đặt lịch
+        const c3 = document.getElementById('canvas-tk-trang-thai-don');
+        if (c3) {
+          huyBieuDoNeuCo('trangThaiDon');
+          const dsTt = d.phanBoTrangThaiDon || [];
+          const mauTheoTt = {
+            HOAN_THANH: '#10b981',
+            DA_XAC_NHAN: '#4f46e5',
+            CHO_XAC_NHAN: '#f59e0b',
+            DA_HUY: '#94a3b8',
+            TRANH_CHAP: '#ef4444',
+            BI_TU_CHOI: '#fb7185',
+            HET_HAN: '#cbd5e1',
+          };
+          const coDuLieu = dsTt.length > 0;
+          bieuDoQt.trangThaiDon = new Chart(c3, {
+            type: 'doughnut',
+            data: {
+              labels: coDuLieu ? dsTt.map((x) => `${x.nhan} (${x.soLuong})`) : ['Chưa có đơn trong kỳ'],
+              datasets: [
+                {
+                  data: coDuLieu ? dsTt.map((x) => x.soLuong) : [1],
+                  backgroundColor: coDuLieu ? dsTt.map((x) => mauTheoTt[x.ma] || '#64748b') : ['#e2e8f0'],
+                  borderWidth: 2,
+                  borderColor: '#ffffff',
+                  hoverOffset: 6,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              cutout: '62%',
+              plugins: {
+                legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8, padding: 12, font: { size: 11 } } },
+                tooltip: {
+                  callbacks: {
+                    label: (ctx) => {
+                      if (!coDuLieu) return 'Chưa phát sinh đơn trong kỳ';
+                      const item = dsTt[ctx.dataIndex];
+                      return `${item.nhan}: ${item.soLuong} đơn (${item.tyLePhanTram}%) · ${dinhDangTienVnd(item.giaTri || 0)}`;
+                    },
+                  },
+                },
+              },
+            },
+          });
+        }
+
+        // 4. Biểu đồ cột ngang Top môn học theo doanh thu
+        const c4 = document.getElementById('canvas-tk-mon-hoc');
+        if (c4) {
+          huyBieuDoNeuCo('monHoc');
+          const dsMon = d.topMonHocTheoDoanhThu || [];
+          const bangMauMon = ['#4f46e5', '#0ea5e9', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];
+          bieuDoQt.monHoc = new Chart(c4, {
+            type: 'bar',
+            data: {
+              labels: dsMon.length ? dsMon.map((x) => x.nhan) : ['Chưa có dữ liệu'],
+              datasets: [
+                {
+                  label: 'Doanh thu học phí',
+                  data: dsMon.length ? dsMon.map((x) => x.giaTri || 0) : [0],
+                  backgroundColor: dsMon.length ? dsMon.map((_, i) => bangMauMon[i % bangMauMon.length]) : ['#e2e8f0'],
+                  borderRadius: 6,
+                  maxBarThickness: 24,
+                },
+              ],
+            },
+            options: {
+              indexAxis: 'y',
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: { display: false },
+                tooltip: {
+                  callbacks: {
+                    label: (ctx) => {
+                      const item = dsMon[ctx.dataIndex];
+                      if (!item) return '0 ₫';
+                      return `${dinhDangTienVnd(item.giaTri || 0)} · ${item.soLuong} buổi (${item.tyLePhanTram}%)`;
+                    },
+                  },
+                },
+              },
+              scales: {
+                x: {
+                  beginAtZero: true,
+                  grid: { color: 'rgba(148, 163, 184, 0.16)' },
+                  ticks: { callback: (v) => dinhDangTienNganGon(v) },
+                },
+                y: { grid: { display: false } },
+              },
+            },
+          });
+        }
+
+        // 5. Biểu đồ đường vùng Tăng trưởng người dùng mới & Nhịp đơn đặt lịch
+        const c5 = document.getElementById('canvas-tk-nguoi-dung');
+        if (c5) {
+          huyBieuDoNeuCo('nguoiDung');
+          bieuDoQt.nguoiDung = new Chart(c5, {
+            type: 'line',
+            data: {
+              labels,
+              datasets: [
+                {
+                  label: 'Học sinh mới',
+                  data: series.map((x) => x.hocSinhMoi || 0),
+                  borderColor: '#4f46e5',
+                  backgroundColor: 'rgba(79, 70, 229, 0.14)',
+                  borderWidth: 2.3,
+                  tension: 0.35,
+                  fill: true,
+                  pointRadius: 2.5,
+                },
+                {
+                  label: 'Gia sư mới',
+                  data: series.map((x) => x.giaSuMoi || 0),
+                  borderColor: '#10b981',
+                  backgroundColor: 'rgba(16, 185, 129, 0.14)',
+                  borderWidth: 2.3,
+                  tension: 0.35,
+                  fill: true,
+                  pointRadius: 2.5,
+                },
+                {
+                  label: 'Đơn đặt mới',
+                  data: series.map((x) => x.soDonDatMoi || 0),
+                  borderColor: '#f59e0b',
+                  borderWidth: 2,
+                  borderDash: [4, 4],
+                  tension: 0.3,
+                  fill: false,
+                  pointRadius: 2.5,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              interaction: { mode: 'index', intersect: false },
+              plugins: {
+                legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8, font: { size: 11 } } },
+              },
+              scales: {
+                x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 10 } },
+                y: {
+                  beginAtZero: true,
+                  grid: { color: 'rgba(148, 163, 184, 0.16)' },
+                  ticks: { stepSize: 1, precision: 0 },
+                },
+              },
+            },
+          });
+        }
+
+        // 6. Biểu đồ Doughnut Cơ cấu hình thức học
+        const c6 = document.getElementById('canvas-tk-hinh-thuc');
+        if (c6) {
+          huyBieuDoNeuCo('hinhThuc');
+          const dsHt = d.phanBoHinhThucHoc || [];
+          const tongHt = dsHt.reduce((s, x) => s + (x.soLuong || 0), 0);
+          bieuDoQt.hinhThuc = new Chart(c6, {
+            type: 'doughnut',
+            data: {
+              labels: tongHt > 0 ? dsHt.map((x) => x.nhan) : ['Chưa có buổi học'],
+              datasets: [
+                {
+                  data: tongHt > 0 ? dsHt.map((x) => x.soLuong) : [1],
+                  backgroundColor: tongHt > 0 ? ['#4f46e5', '#0ea5e9'] : ['#e2e8f0'],
+                  borderWidth: 2,
+                  borderColor: '#ffffff',
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              cutout: '60%',
+              plugins: {
+                legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8, font: { size: 11 } } },
+                tooltip: {
+                  callbacks: {
+                    label: (ctx) => {
+                      if (tongHt <= 0) return 'Chưa có buổi học';
+                      const item = dsHt[ctx.dataIndex];
+                      return `${item.nhan}: ${item.soLuong} đơn (${item.tyLePhanTram}%) · ${dinhDangTienVnd(item.giaTri || 0)}`;
+                    },
+                  },
+                },
+              },
+            },
+          });
+        }
+
+        // 7. Biểu đồ Polar Area Cơ cấu kênh thanh toán & nạp ví
+        const c7 = document.getElementById('canvas-tk-kenh-tt');
+        if (c7) {
+          huyBieuDoNeuCo('kenhTt');
+          const dsKenh = d.phanBoKenhThanhToan || [];
+          const mauKenh = {
+            VI_NOI_BO: 'rgba(79, 70, 229, 0.82)',
+            VNPAY: 'rgba(14, 165, 233, 0.82)',
+            PAYOS_VIETQR: 'rgba(16, 185, 129, 0.82)',
+            GIA_LAP: 'rgba(245, 158, 11, 0.82)',
+          };
+          const coKenh = dsKenh.length > 0;
+          bieuDoQt.kenhTt = new Chart(c7, {
+            type: 'polarArea',
+            data: {
+              labels: coKenh ? dsKenh.map((x) => x.nhan) : ['Chưa có giao dịch'],
+              datasets: [
+                {
+                  data: coKenh ? dsKenh.map((x) => x.giaTri || 0) : [1],
+                  backgroundColor: coKenh ? dsKenh.map((x) => mauKenh[x.ma] || 'rgba(100, 116, 139, 0.8)') : ['#e2e8f0'],
+                  borderWidth: 1.5,
+                  borderColor: '#ffffff',
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8, font: { size: 11 } } },
+                tooltip: {
+                  callbacks: {
+                    label: (ctx) => {
+                      if (!coKenh) return 'Chưa có giao dịch';
+                      const item = dsKenh[ctx.dataIndex];
+                      return `${item.nhan}: ${dinhDangTienVnd(item.giaTri || 0)} (${item.soLuong} GD · ${item.tyLePhanTram}%)`;
+                    },
+                  },
+                },
+              },
+              scales: {
+                r: {
+                  ticks: { display: false },
+                  grid: { color: 'rgba(148, 163, 184, 0.2)' },
+                },
+              },
+            },
+          });
+        }
+      }
+
+      function xuatBaoCaoThongKeCsv() {
+        const d = thongKeChiTietCache;
+        if (!d || !(d.bieuDoTheoThoiGian || []).length) {
+          hienThongBao('Chưa có dữ liệu thống kê để xuất báo cáo CSV.', 'warning');
+          return;
+        }
+        const headers = [
+          'ThoiGian',
+          'DoanhThuHocPhi_VND',
+          'PhiNenTang12_VND',
+          'ThuNhapGiaSu_VND',
+          'NapVi_VND',
+          'ChiTraRutTien_VND',
+          'HoanTien_VND',
+          'DonDatMoi',
+          'BuoiHoanThanh',
+          'HocSinhMoi',
+          'GiaSuMoi',
+        ];
+        const rows = d.bieuDoTheoThoiGian.map((x) => [
+          x.khoaThoiGian,
+          x.tongDoanhThu || 0,
+          x.phiNenTang || 0,
+          x.thuNhapGiaSu || 0,
+          x.tongNapVi || 0,
+          x.tongRutTien || 0,
+          x.tongHoanTien || 0,
+          x.soDonDatMoi || 0,
+          x.soBuoiHoanThanh || 0,
+          x.hocSinhMoi || 0,
+          x.giaSuMoi || 0,
+        ]);
+        const csv = '\uFEFF' + [headers.join(','), ...rows.map((r) => r.join(','))].join('\r\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `tutorhub-bao-cao-thong-ke-${d.phamVi}-${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        hienThongBao(`Đã xuất báo cáo thống kê (${d.nhanPhamVi}) dạng CSV.`, 'success');
       }
 
       async function taiTongQuan() {
@@ -1892,7 +3010,7 @@
             const phi = Math.round((conLai * feePct) / 100);
             const gsNhan = Math.max(0, conLai - phi);
             box.innerHTML = `
-              <strong>Xem trước chốt sổ (cố định trên ${dinhDangTienVnd(max)} lịch sử):</strong>
+              <strong>Xem trước phân chia học phí (cố định trên ${dinhDangTienVnd(max)} lịch sử):</strong>
               Hoàn ví học viên <strong style="color: #dc2626">${dinhDangTienVnd(hoan)}</strong> ·
               Phần gia sư trước phí <strong>${dinhDangTienVnd(conLai)}</strong> ·
               Phí nền tảng (${feePct}%) <strong>${dinhDangTienVnd(phi)}</strong> ·
