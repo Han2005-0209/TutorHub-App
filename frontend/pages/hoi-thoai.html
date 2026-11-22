@@ -53,6 +53,7 @@
         renderFooter,
         renderHeader,
       } from '/assets/js/giao-dien.js';
+      import { hienToast } from '/assets/js/thong-bao-ui.js';
 
       if (!layAccessToken()) {
         window.location.href = '/pages/dang-nhap.html';
@@ -245,7 +246,7 @@
               await moHoiThoai(id);
               await taiDanhSachHoiThoai();
             } catch (err) {
-              alert(err.message);
+              hienToast(err.message || 'Không thể gửi tin nhắn.', 'danger');
             } finally {
               inp.disabled = false;
               inp.focus();

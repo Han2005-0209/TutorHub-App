@@ -1003,6 +1003,7 @@
       import { WS_BASE_URL, WEBRTC_ICE_SERVERS } from '/assets/js/config.js';
       import { dinhDangNgayGioVn } from '/assets/js/dinh-dang.js';
       import { dongBoNguoiDungTuApi, escapeHtml, layTrangChinhTheoVaiTro } from '/assets/js/giao-dien.js';
+      import { xacNhanHanhDong } from '/assets/js/thong-bao-ui.js';
 
       const accessToken = layAccessToken();
       if (!accessToken) {
@@ -2076,9 +2077,17 @@
         capNhatSoNetBang();
         guiWs({ type: 'wb_undo' });
       });
-      document.getElementById('wb-clear')?.addEventListener('click', () => {
+      document.getElementById('wb-clear')?.addEventListener('click', async () => {
         if (!duocPhepVe()) return;
-        if (strokes.length === 0 || confirm('Xóa toàn bộ nội dung trên bảng trắng giảng bài?')) {
+        const dongY =
+          strokes.length === 0 ||
+          (await xacNhanHanhDong({
+            tieuDe: 'Xóa bảng trắng giảng bài',
+            noiDung: 'Toàn bộ nét vẽ và ghi chú hiện tại trên bảng trắng sẽ bị xóa.',
+            nutXacNhan: 'Xóa bảng',
+            nguyHiem: true,
+          }));
+        if (dongY) {
           strokes = [];
           veLaiToanBo();
           capNhatSoNetBang();

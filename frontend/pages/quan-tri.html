@@ -507,6 +507,7 @@
       import { dinhDangNgayGioVn, dinhDangTienVnd } from '/assets/js/dinh-dang.js';
       import { icons } from '/assets/js/icons.js';
       import { boDauTiengViet } from '/assets/js/mon-hoc-goi-y.js';
+      import { hienToast, nhapLyDoModal } from '/assets/js/thong-bao-ui.js';
       import {
         dangXuatHeThong,
         dongBoNguoiDungTuApi,
@@ -623,6 +624,9 @@
       let trangThaiLocGs = '';
       let trangThaiLocRut = '';
       let trangThaiLocKn = '';
+      let trangGsQt = 1;
+      let trangNdQt = 1;
+      let timerTimGsQt = null;
       let tongQuanCache = null;
       let dsGiaSuChoDuyetCache = [];
       let dsRutTienChoCache = [];
@@ -724,10 +728,7 @@
       }
 
       function hienThongBao(msg, loai = 'success') {
-        hopThongBao.style.display = 'block';
-        hopThongBao.className = `alert alert-${loai}`;
-        hopThongBao.textContent = msg;
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        hienToast(msg, loai, 5000);
       }
 
       const tieuDeTheoTab = {
@@ -839,9 +840,6 @@
           hienThongBao(err.message, 'danger');
         }
       }
-
-      let trangGsQt = 1;
-      let trangNdQt = 1;
 
       function renderThanhPhanTrangQt(containerId, meta, onChonTrang) {
         const el = document.getElementById(containerId);
@@ -1028,8 +1026,21 @@
               const pheDuyet = btn.dataset.ok === 'true';
               let lyDoTuChoi = null;
               if (!pheDuyet) {
-                lyDoTuChoi = prompt('Nhập lý do từ chối hồ sơ gia sư:');
-                if (!lyDoTuChoi || !lyDoTuChoi.trim()) return;
+                lyDoTuChoi = await nhapLyDoModal({
+                  tieuDe: 'Từ chối hồ sơ gia sư',
+                  noiDung: 'Nhập lý do từ chối để gia sư biết cần bổ sung hoặc chỉnh sửa thông tin nào.',
+                  placeholder: 'VD: Thiếu giấy tờ bằng cấp hợp lệ, cần bổ sung ảnh chụp rõ nét...',
+                  goiY: [
+                    'Thiếu giấy tờ bằng cấp hoặc chứng chỉ hợp lệ',
+                    'Ảnh giấy tờ xác minh bị mờ, cần tải lại rõ nét',
+                    'Thông tin giới thiệu bản thân chưa đủ chi tiết',
+                  ],
+                  batBuoc: true,
+                  doDaiToiThieu: 3,
+                  nutXacNhan: 'Từ chối hồ sơ',
+                  nguyHiem: true,
+                });
+                if (!lyDoTuChoi) return;
               }
               await xuLyDuyetGiaSu(btn.dataset.id, pheDuyet, lyDoTuChoi);
             });
@@ -1086,7 +1097,6 @@
         });
       });
 
-      let timerTimGsQt = null;
       document.getElementById('qt-tim-gs')?.addEventListener('input', () => {
         clearTimeout(timerTimGsQt);
         timerTimGsQt = setTimeout(() => taiDsGiaSu(1), 300);

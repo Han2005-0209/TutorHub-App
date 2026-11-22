@@ -847,6 +847,7 @@
         layThongTinBoSungMonHoc,
         timKiemMonHocThongMinh,
       } from '/assets/js/mon-hoc-goi-y.js';
+      import { hienToast } from '/assets/js/thong-bao-ui.js';
 
       // 1. Quản lý trạng thái Wizard
       let currentStep = 1;
@@ -1156,7 +1157,7 @@
       const btnGps = document.getElementById('btn-gps-current');
       btnGps?.addEventListener('click', () => {
         if (!navigator.geolocation) {
-          alert('Trình duyệt của bạn chưa hỗ trợ định vị vị trí.');
+          hienToast('Trình duyệt của bạn chưa hỗ trợ định vị vị trí.', 'warning');
           return;
         }
         btnGps.disabled = true;
@@ -1198,7 +1199,7 @@
           (err) => {
             btnGps.disabled = false;
             btnGps.innerHTML = '<span>📍</span> <span>Lấy vị trí hiện tại của tôi</span>';
-            alert('Không thể xác định vị trí: ' + (err.message || 'Quyền truy cập vị trí chưa được cấp.'));
+            hienToast('Không thể xác định vị trí: ' + (err.message || 'Quyền truy cập vị trí chưa được cấp.'), 'warning');
           },
           { timeout: 8000 }
         );

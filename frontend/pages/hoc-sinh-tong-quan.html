@@ -833,6 +833,7 @@
         layNhanTrangThaiDonDatLich,
         layNhanTrangThaiThanhToan,
       } from '/assets/js/trang-thai.js';
+      import { hienToast, nhapLyDoModal, xacNhanHanhDong } from '/assets/js/thong-bao-ui.js';
 
       if (!layAccessToken()) {
         window.location.href = '/pages/dang-nhap.html';
@@ -1314,7 +1315,7 @@
               return;
             }
             if (currUser.vaiTro !== 'HOC_SINH') {
-              alert('Chỉ tài khoản Học sinh mới có thể lưu gia sư yêu thích.');
+              hienToast('Chỉ tài khoản Học sinh mới có thể lưu gia sư yêu thích.', 'warning');
               return;
             }
             const giaSuId = btn.dataset.giaSuId;
@@ -1336,7 +1337,7 @@
                 document.getElementById('badge-sb-yeu-thich').textContent = res.duLieu.soGiaSuYeuThich || '0';
               }
             } catch (err) {
-              alert(err.message || 'Không thể cập nhật yêu thích');
+              hienToast(err.message || 'Không thể cập nhật yêu thích.', 'danger');
             }
           });
         });
@@ -1509,10 +1510,7 @@
       // DỮ LIỆU CÁC TAB TRONG BẢNG ĐIỀU KHIỂN BÊN PHẢI (KHÁM PHÁ, LỊCH HỌC, ĐÃ LƯU, TIN NHẮN, TÀI KHOẢN)
       // =========================================================================
       function hienThongBaoHs(msg, loai = 'success') {
-        if (!hopThongBao) return;
-        hopThongBao.style.display = 'block';
-        hopThongBao.className = `alert alert-${loai}`;
-        hopThongBao.textContent = msg;
+        hienToast(msg, loai, 5000);
       }
 
       async function taiKhamPhaPortal() {
@@ -2003,9 +2001,11 @@
 
         vungSuKienCal?.querySelectorAll('.btn-cal-hoan-thanh').forEach((btn) => {
           btn.addEventListener('click', async () => {
-            const ok = confirm(
-              `Xác nhận buổi học ${btn.dataset.maDon} đã hoàn thành?\n\nSau khi xác nhận, học phí sẽ được giải ngân cho gia sư.`
-            );
+            const ok = await xacNhanHanhDong({
+              tieuDe: `Xác nhận hoàn thành buổi học ${btn.dataset.maDon}`,
+              noiDung: 'Sau khi xác nhận, học phí tạm giữ sẽ được giải ngân cho gia sư.',
+              nutXacNhan: 'Xác nhận hoàn thành',
+            });
             if (!ok) return;
             btn.disabled = true;
             try {
@@ -2176,9 +2176,11 @@
 
         el.querySelectorAll('.btn-hoan-thanh-som-hs').forEach((btn) => {
           btn.addEventListener('click', async () => {
-            const ok = confirm(
-              `Xác nhận buổi học ${btn.dataset.maDon} đã hoàn thành?\n\nLưu ý: Sau khi xác nhận, học phí sẽ được giải ngân ngay cho gia sư và bạn sẽ không thể mở khiếu nại cho buổi học này.`
-            );
+            const ok = await xacNhanHanhDong({
+              tieuDe: `Xác nhận hoàn thành buổi học ${btn.dataset.maDon}`,
+              noiDung: 'Sau khi xác nhận, học phí sẽ được giải ngân ngay cho gia sư và bạn sẽ không thể mở khiếu nại cho buổi học này.',
+              nutXacNhan: 'Xác nhận hoàn thành',
+            });
             if (!ok) return;
             btn.disabled = true;
             try {
@@ -2227,13 +2229,24 @@
         el.querySelectorAll('.btn-huy-don-hs').forEach((btn) => {
           btn.addEventListener('click', async () => {
             const dangGiu = btn.dataset.dangGiu === '1';
-            const lyDo = prompt(
-              dangGiu
-                ? 'Nhập lý do hủy buổi học (học phí tạm giữ sẽ hoàn 100% về Ví học tập của bạn):'
-                : 'Nhập lý do hủy buổi học này:',
-              'Bận lịch đột xuất, xin phép đổi sang buổi khác'
-            );
-            if (!lyDo || lyDo.trim().length < 3) return;
+            const lyDo = await nhapLyDoModal({
+              tieuDe: 'Hủy buổi học',
+              noiDung: dangGiu
+                ? 'Học phí đang tạm giữ sẽ được hoàn 100% về Ví học tập của bạn ngay sau khi hủy.'
+                : 'Vui lòng cho gia sư biết lý do bạn muốn hủy buổi học này.',
+              placeholder: 'Nhập lý do hủy buổi học (tối thiểu 3 ký tự)...',
+              macDinh: 'Bận lịch đột xuất, xin phép đổi sang buổi khác',
+              goiY: [
+                'Bận lịch đột xuất, xin phép đổi sang buổi khác',
+                'Thay đổi kế hoạch học tập',
+                'Đặt nhầm khung giờ',
+              ],
+              batBuoc: true,
+              doDaiToiThieu: 3,
+              nutXacNhan: 'Xác nhận hủy lịch',
+              nguyHiem: true,
+            });
+            if (!lyDo) return;
             try {
               await api.post(`/don-dat-lich/${btn.dataset.donId}/huy`, { lyDo: lyDo.trim() });
               hienThongBaoHs(

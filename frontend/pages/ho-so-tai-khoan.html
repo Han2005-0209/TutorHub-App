@@ -106,6 +106,7 @@
         renderHeader,
       } from '/assets/js/giao-dien.js';
       import { layNhanVaiTro } from '/assets/js/trang-thai.js';
+      import { hienToast, xacNhanHanhDong } from '/assets/js/thong-bao-ui.js';
 
       if (!layAccessToken()) {
         window.location.href = '/pages/dang-nhap.html';
@@ -116,9 +117,7 @@
 
       const hopThongBao = document.getElementById('hop-thong-bao');
       function thongBao(msg, loai = 'success') {
-        hopThongBao.style.display = 'block';
-        hopThongBao.className = `alert alert-${loai}`;
-        hopThongBao.textContent = msg;
+        hienToast(msg, loai, 5000);
       }
 
       async function taiHoSo() {
@@ -208,7 +207,13 @@
       });
 
       document.getElementById('btn-vo-hieu-hoa')?.addEventListener('click', async () => {
-        if (!confirm('Bạn có chắc chắn muốn vô hiệu hóa tài khoản của mình?')) return;
+        const ok = await xacNhanHanhDong({
+          tieuDe: 'Vô hiệu hóa tài khoản',
+          noiDung: 'Bạn có chắc chắn muốn vô hiệu hóa tài khoản của mình? Bạn sẽ bị đăng xuất ngay lập tức.',
+          nutXacNhan: 'Vô hiệu hóa',
+          nguyHiem: true,
+        });
+        if (!ok) return;
         try {
           await api.delete('/nguoi-dung/toi');
           xoaPhienToken();

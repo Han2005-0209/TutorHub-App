@@ -203,6 +203,7 @@
         renderHeader,
         taoSkeletonCardGiaSu,
       } from '/assets/js/giao-dien.js';
+      import { hienToast } from '/assets/js/thong-bao-ui.js';
 
       renderHeader('#khung-header');
       renderFooter('#khung-footer');
@@ -1112,7 +1113,7 @@
               return;
             }
             if (user.vaiTro !== 'HOC_SINH') {
-              alert('Chỉ tài khoản Học sinh mới có thể lưu gia sư yêu thích.');
+              hienToast('Chỉ tài khoản Học sinh mới có thể lưu gia sư yêu thích.', 'warning');
               return;
             }
             const giaSuId = btn.dataset.giaSuId;
@@ -1128,7 +1129,7 @@
                 btn.innerHTML = icons.heart(17, true);
               }
             } catch (err) {
-              alert(err.message);
+              hienToast(err.message || 'Không thể cập nhật yêu thích.', 'danger');
             }
           });
         });

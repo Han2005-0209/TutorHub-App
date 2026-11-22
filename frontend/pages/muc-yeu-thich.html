@@ -61,6 +61,7 @@
         renderFooter,
         renderHeader,
       } from '/assets/js/giao-dien.js';
+      import { hienToast } from '/assets/js/thong-bao-ui.js';
 
       if (!layAccessToken()) {
         window.location.href = '/pages/dang-nhap.html';
@@ -110,7 +111,7 @@
                 await api.delete(`/muc-yeu-thich/${giaSuId}`);
                 await taiDsYeuThich();
               } catch (err) {
-                alert(err.message);
+                hienToast(err.message || 'Không thể xóa khỏi danh sách yêu thích.', 'danger');
               }
             });
           });

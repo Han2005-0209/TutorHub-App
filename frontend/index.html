@@ -372,6 +372,7 @@
         layTrangChinhTheoVaiTro,
       } from '/assets/js/giao-dien.js';
       import { layNhanVaiTro } from '/assets/js/trang-thai.js';
+      import { hienToast } from '/assets/js/thong-bao-ui.js';
 
       function escapeHtml(str) {
         if (!str) return '';
@@ -596,7 +597,7 @@
       btnViTriHienTai?.addEventListener('click', (e) => {
         e.stopPropagation();
         if (!navigator.geolocation) {
-          alert('Trình duyệt của bạn chưa hỗ trợ định vị GPS.');
+          hienToast('Trình duyệt của bạn chưa hỗ trợ định vị GPS.', 'warning');
           return;
         }
         if (inpDiaDiem) inpDiaDiem.value = 'Đang xác định vị trí...';
@@ -1238,7 +1239,7 @@
               return;
             }
             if (user.vaiTro !== 'HOC_SINH') {
-              alert('Chức năng lưu gia sư yêu thích chỉ dành cho tài khoản Học sinh.');
+              hienToast('Chức năng lưu gia sư yêu thích chỉ dành cho tài khoản Học sinh.', 'warning');
               return;
             }
             const giaSuId = btn.dataset.giaSuId;
@@ -1254,7 +1255,7 @@
                 btn.innerHTML = icons.heart(17, true);
               }
             } catch (err) {
-              alert(err.message);
+              hienToast(err.message || 'Không thể cập nhật yêu thích.', 'danger');
             }
           });
         });

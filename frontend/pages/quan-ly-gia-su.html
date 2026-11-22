@@ -1323,6 +1323,7 @@
         layTrangChinhTheoVaiTro,
       } from '/assets/js/giao-dien.js';
       import { kiemTraNoiDungNguoiDungNhap } from '/assets/js/kiem-tra-noi-dung-ui.js';
+      import { hienToast, nhapLyDoModal, xacNhanHanhDong } from '/assets/js/thong-bao-ui.js';
       import {
         layNhanDanhMucKhieuNai,
         layNhanLoaiGiayTo,
@@ -1945,10 +1946,7 @@
       let dangXuLyNghi = null;
 
       function hienThongBao(msg, loai = 'success') {
-        hopThongBao.style.display = 'block';
-        hopThongBao.className = `alert alert-${loai}`;
-        hopThongBao.textContent = msg;
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        hienToast(msg, loai, 5000);
       }
 
       function dongBoTrangThaiBanKinh() {
@@ -2382,8 +2380,18 @@
 
             elLich.querySelectorAll('.btn-tu-choi-don-gs').forEach((btn) => {
               btn.addEventListener('click', async () => {
-                const lyDo = prompt('Nhập lý do từ chối buổi học (tối thiểu 3 ký tự):', 'Kẹt lịch cá nhân');
-                if (!lyDo || lyDo.trim().length < 3) return;
+                const lyDo = await nhapLyDoModal({
+                  tieuDe: 'Từ chối yêu cầu đặt lịch',
+                  noiDung: 'Học phí tạm giữ (nếu có) sẽ được tự động hoàn 100% về ví học viên.',
+                  placeholder: 'Nhập lý do từ chối buổi học (tối thiểu 3 ký tự)...',
+                  macDinh: 'Kẹt lịch cá nhân',
+                  goiY: ['Kẹt lịch cá nhân', 'Trùng lịch dạy khác', 'Ngoài phạm vi di chuyển'],
+                  batBuoc: true,
+                  doDaiToiThieu: 3,
+                  nutXacNhan: 'Từ chối đơn',
+                  nguyHiem: true,
+                });
+                if (!lyDo) return;
                 btn.disabled = true;
                 try {
                   await api.post(`/don-dat-lich/${btn.dataset.donId}/tu-choi`, { lyDo: lyDo.trim() });
@@ -2783,9 +2791,14 @@
       }
 
       async function huyYeuCauRutTienGs(yeuCauId, maLenh) {
-        if (!confirm(`Bạn có chắc muốn hủy yêu cầu rút tiền ${maLenh || ''}? Số tiền tạm khóa sẽ được hoàn lại ngay vào Số dư khả dụng.`)) {
-          return;
-        }
+        const ok = await xacNhanHanhDong({
+          tieuDe: `Hủy yêu cầu rút tiền ${maLenh || ''}`,
+          noiDung: 'Số tiền đang tạm khóa sẽ được mở khóa và hoàn lại ngay vào Số dư khả dụng của bạn.',
+          nutXacNhan: 'Hủy lệnh rút',
+          nutHuy: 'Giữ nguyên',
+          nguyHiem: true,
+        });
+        if (!ok) return;
         try {
           const res = await api.post(`/vi/toi/rut-tien/${yeuCauId}/huy`, {});
           const modalPhieu = document.getElementById('modal-phieu-rut-gs');
@@ -3312,7 +3325,13 @@
 
         el.querySelectorAll('.btn-xoa-giay-to').forEach((btn) => {
           btn.addEventListener('click', async () => {
-            if (!confirm('Bạn có chắc chắn muốn xóa giấy tờ này?')) return;
+            const ok = await xacNhanHanhDong({
+              tieuDe: 'Xóa giấy tờ xác minh',
+              noiDung: 'Bạn có chắc chắn muốn xóa tệp giấy tờ này khỏi hồ sơ không?',
+              nutXacNhan: 'Xóa giấy tờ',
+              nguyHiem: true,
+            });
+            if (!ok) return;
             try {
               await api.delete(`/gia-su/toi/giay-to/${btn.dataset.id}`);
               hienThongBao('Đã xóa giấy tờ xác minh.', 'success');
@@ -3631,15 +3650,18 @@
 
         // 6. Nút Sao chép khung giờ sang các ngày khác
         grid.querySelectorAll('.btn-copy-day').forEach((btn) => {
-          btn.addEventListener('click', () => {
+          btn.addEventListener('click', async () => {
             const thu = Number(btn.dataset.thu);
             const slotsToCopy = lichTuanState[thu] || [];
             if (slotsToCopy.length === 0) return;
 
             const tenThuGoc = DANH_SACH_THU.find((d) => d.thu === thu)?.ten || 'ngày này';
-            const apDungT2T6 = confirm(
-              `Bạn có muốn sao chép toàn bộ khung giờ của ${tenThuGoc} sang tất cả các ngày trong tuần (Thứ Hai – Thứ Sáu) không?\n(Bấm OK để áp dụng T2–T6, hoặc Hủy để áp dụng cho toàn bộ tuần T2–CN)`
-            );
+            const apDungT2T6 = await xacNhanHanhDong({
+              tieuDe: `Sao chép lịch của ${tenThuGoc}`,
+              noiDung: `Chọn phạm vi muốn áp dụng toàn bộ khung giờ của ${tenThuGoc}:`,
+              nutXacNhan: 'Chỉ Thứ 2 – Thứ 6',
+              nutHuy: 'Cả tuần (Thứ 2 – CN)',
+            });
 
             const targetThus = apDungT2T6 ? [2, 3, 4, 5, 6] : [2, 3, 4, 5, 6, 7, 1];
             targetThus.forEach((t) => {
@@ -3650,14 +3672,14 @@
 
             dongBoHienThiThoiGianDem();
             renderWeeklySchedule();
-            hienThongBao(`Đã sao chép khung giờ từ ${tenThuGoc} sang các ngày khác thành công!`, 'success');
+            hienThongBao(`Đã sao chép khung giờ từ ${tenThuGoc} sang ${apDungT2T6 ? 'Thứ 2 – Thứ 6' : 'cả tuần'}!`, 'success');
           });
         });
       }
 
       // Xử lý các nút Gợi ý 1-Click (Presets) — mặc định hình thức = "Cả hai"
       document.querySelectorAll('.btn-preset-schedule').forEach((btn) => {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', async () => {
           const preset = btn.dataset.preset;
           if (preset === 'toi_trong_tuan') {
             DANH_SACH_THU.forEach((d) => {
@@ -3686,7 +3708,13 @@
             });
             hienThongBao('Đã áp dụng mẫu: Mọi buổi tối trong tuần (T2 – CN: 19:00 – 21:30, Cả hai hình thức). Bấm "Lưu thời gian biểu" để xác nhận!', 'success');
           } else if (preset === 'xoa_het') {
-            if (!confirm('Bạn có chắc chắn muốn xóa toàn bộ các khung giờ trong tuần không?')) {
+            const ok = await xacNhanHanhDong({
+              tieuDe: 'Xóa toàn bộ khung giờ trong tuần',
+              noiDung: 'Tất cả khung giờ trên bảng thời gian biểu sẽ được xóa trống (bạn vẫn cần bấm Lưu để áp dụng chính thức).',
+              nutXacNhan: 'Xóa tất cả',
+              nguyHiem: true,
+            });
+            if (!ok) {
               return;
             }
             DANH_SACH_THU.forEach((d) => {
@@ -3850,7 +3878,13 @@
 
         el.querySelectorAll('.btn-xoa-ln').forEach((btn) => {
           btn.addEventListener('click', async () => {
-            if (!confirm('Bạn có chắc chắn muốn xóa ngày nghỉ này để tiếp tục nhận lớp?')) return;
+            const ok = await xacNhanHanhDong({
+              tieuDe: 'Gỡ bỏ ngày nghỉ ngoại lệ',
+              noiDung: 'Bạn có chắc chắn muốn xóa ngày nghỉ này để tiếp tục nhận lớp không?',
+              nutXacNhan: 'Xóa ngày nghỉ',
+              nguyHiem: true,
+            });
+            if (!ok) return;
             try {
               await api.delete(`/gia-su/toi/lich-ngay-cu-the/${btn.dataset.id}`);
               hienThongBao('Đã gỡ bỏ ngày nghỉ ngoại lệ thành công.', 'success');
