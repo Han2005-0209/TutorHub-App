@@ -85,7 +85,9 @@ public sealed record GiayToQuanTriDto(
     LoaiGiayTo Loai,
     string TenTepGoc,
     TrangThaiGiayTo TrangThai,
-    DateTime? DuyetLuc);
+    DateTime? DuyetLuc,
+    string? TenNguoiDuyet = null,
+    string? EmailNguoiDuyet = null);
 
 public sealed record GiaSuQuanTriDto(
     Guid Id,
@@ -104,7 +106,9 @@ public sealed record GiaSuQuanTriDto(
     TrangThaiNguoiDung TrangThaiTaiKhoan,
     int SoMonDay,
     DateTime TaoLuc,
-    IReadOnlyList<GiayToQuanTriDto> DsGiayTo);
+    IReadOnlyList<GiayToQuanTriDto> DsGiayTo,
+    string? TenNguoiDuyet = null,
+    string? EmailNguoiDuyet = null);
 
 public sealed record DuyetHoSoGiaSuYeuCauDto(
     bool PheDuyet,

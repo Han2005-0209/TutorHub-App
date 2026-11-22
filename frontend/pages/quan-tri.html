@@ -941,12 +941,18 @@
                   : g.dsGiayTo
                       .map((gt) => {
                         const ttGt = layNhanTrangThaiGiayTo(gt.trangThai);
+                        const nguoiDuyetGtHtml = gt.tenNguoiDuyet
+                          ? `<div style="font-size: 0.73rem; color: #475569; margin-top: 0.2rem">Duyệt bởi: <strong>${escapeHtml(gt.tenNguoiDuyet)}</strong>${gt.emailNguoiDuyet ? ` (${escapeHtml(gt.emailNguoiDuyet)})` : ''}${gt.duyetLuc ? ` · ${dinhDangNgayGioVn(gt.duyetLuc)}` : ''}</div>`
+                          : '';
                         return `
                           <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; padding: 0.5rem 0.75rem; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; flex-wrap: wrap">
-                            <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap; font-size: 0.82rem">
-                              <strong>${escapeHtml(gt.tenTepGoc)}</strong>
-                              <span class="badge badge-info">${escapeHtml(layNhanLoaiGiayTo(gt.loai))}</span>
-                              <span class="badge ${ttGt.lopBadge}">${escapeHtml(ttGt.nhan)}</span>
+                            <div>
+                              <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap; font-size: 0.82rem">
+                                <strong>${escapeHtml(gt.tenTepGoc)}</strong>
+                                <span class="badge badge-info">${escapeHtml(layNhanLoaiGiayTo(gt.loai))}</span>
+                                <span class="badge ${ttGt.lopBadge}">${escapeHtml(ttGt.nhan)}</span>
+                              </div>
+                              ${nguoiDuyetGtHtml}
                             </div>
                             <div style="display: flex; gap: 0.35rem; flex-wrap: wrap">
                               <button type="button" class="btn btn-secondary btn-sm btn-xem-gt-qt" data-id="${gt.id}">Xem tệp ↗</button>
@@ -987,6 +993,11 @@
                         ${g.dayTrucTuyen ? `<span class="tag-mode online">${icons.video(12)} Trực tuyến toàn quốc</span>` : ''}
                         ${g.dayTrucTiep ? `<span class="tag-mode offline">${icons.home(12)} Tại nhà (${g.banKinhPhucVuKm} km)</span>` : ''}
                       </div>
+                      ${
+                        g.tenNguoiDuyet
+                          ? `<div style="margin-top: 0.45rem; font-size: 0.76rem; color: #475569">Hồ sơ xét duyệt bởi: <strong>${escapeHtml(g.tenNguoiDuyet)}</strong>${g.emailNguoiDuyet ? ` (${escapeHtml(g.emailNguoiDuyet)})` : ''}</div>`
+                          : ''
+                      }
                     </div>
                     <div style="display: flex; gap: 0.45rem; flex-wrap: wrap">
                       ${
@@ -1452,7 +1463,15 @@
               `
                   : `
                 <div style="padding: 0.85rem 1rem; border-radius: 12px; background: #f8fafc; border: 1px solid #e2e8f0; font-size: 0.82rem; color: #334155">
-                  <div><strong>Thời gian xử lý:</strong> ${r.xuLyLuc ? dinhDangNgayGioVn(r.xuLyLuc) : '—'}</div>
+                  <div>
+                    <strong>Thực hiện bởi:</strong>
+                    ${
+                      r.tenNguoiXuLy
+                        ? `Quản trị viên ${escapeHtml(r.tenNguoiXuLy)}${r.emailNguoiXuLy ? ` (${escapeHtml(r.emailNguoiXuLy)})` : ''}`
+                        : 'Quản trị viên hệ thống'
+                    }
+                  </div>
+                  <div style="margin-top: 0.35rem"><strong>Thời gian xử lý:</strong> ${r.xuLyLuc ? dinhDangNgayGioVn(r.xuLyLuc) : '—'}</div>
                   <div style="margin-top: 0.35rem"><strong>Ghi chú xử lý:</strong> ${escapeHtml(r.ghiChu || '—')}</div>
                 </div>
                 <div style="display: flex; justify-content: flex-end; margin-top: 0.9rem">
@@ -1611,8 +1630,9 @@
                   <th>Ngân hàng thụ hưởng</th>
                   <th style="text-align: right">Số tiền rút</th>
                   <th>Trạng thái</th>
+                  <th>Người xử lý</th>
                   <th>Ghi chú</th>
-                  <th style="text-align: right">Xử lý</th>
+                  <th style="text-align: right">Thao tác</th>
                 </tr>
               </thead>
               <tbody>
@@ -1622,6 +1642,12 @@
                     const choXuLy = r.trangThai === 'CHO_XU_LY';
                     const maLenh = r.maLenhRut || `RUT-${String(r.id || '').slice(0, 6).toUpperCase()}`;
                     const stkHienThi = r.soTaiKhoanDayDu || r.soTaiKhoanChe;
+                    const nguoiXuLyHtml = choXuLy
+                      ? '<span style="font-size: 0.77rem; color: #b45309">Chờ quản trị duyệt</span>'
+                      : r.tenNguoiXuLy
+                        ? `<div style="font-weight: 600; font-size: 0.8rem">${escapeHtml(r.tenNguoiXuLy)}</div>
+                           <div style="font-size: 0.72rem; color: var(--th-text-muted)">${escapeHtml(r.emailNguoiXuLy || '')}${r.xuLyLuc ? ` · ${dinhDangNgayGioVn(r.xuLyLuc)}` : ''}</div>`
+                        : `<span style="font-size: 0.77rem; color: var(--th-text-muted)">Quản trị viên${r.xuLyLuc ? ` · ${dinhDangNgayGioVn(r.xuLyLuc)}` : ''}</span>`;
                     return `
                       <tr>
                         <td style="font-family: monospace; font-size: 0.79rem; font-weight: 700; white-space: nowrap; color: #1e40af">${escapeHtml(maLenh)}</td>
@@ -1639,7 +1665,8 @@
                         </td>
                         <td style="text-align: right; font-weight: 800; white-space: nowrap">${dinhDangTienVnd(r.soTien)}</td>
                         <td><span class="badge ${tt.lop}">${escapeHtml(tt.nhan)}</span></td>
-                        <td style="font-size: 0.79rem; color: var(--th-text-muted); max-width: 220px">${escapeHtml(r.ghiChu || '—')}</td>
+                        <td>${nguoiXuLyHtml}</td>
+                        <td style="font-size: 0.79rem; color: var(--th-text-muted); max-width: 210px">${escapeHtml(r.ghiChu || '—')}</td>
                         <td style="text-align: right; white-space: nowrap">
                           ${
                             choXuLy
@@ -1816,13 +1843,21 @@
                         Chọn mức hoàn hoặc nhập số tiền để xem trước phân bổ dòng tiền (tính cố định trên học phí lịch sử <strong>${dinhDangTienVnd(soTienMax)}</strong>).
                       </div>
                       <div style="margin-top: 0.75rem; display: flex; justify-content: flex-end">
-                        <button type="submit" class="btn btn-primary btn-sm">Xác nhận phân xử &amp; Chốt sổ</button>
+                        <button type="submit" class="btn btn-primary btn-sm">Xác nhận giải quyết khiếu nại</button>
                       </div>
                     </form>
                   `
                       : `
-                    <div style="margin-top: 0.85rem; padding: 0.7rem 0.9rem; border-radius: 10px; background: #f8fafc; border: 1px solid #e2e8f0; font-size: 0.82rem; color: #334155">
+                    <div style="margin-top: 0.85rem; padding: 0.75rem 0.95rem; border-radius: 10px; background: #f8fafc; border: 1px solid #e2e8f0; font-size: 0.82rem; color: #334155">
                       <div><strong>Kết quả:</strong> ${escapeHtml(kqNhan)}${k.giaiQuyetLuc ? ` · ${dinhDangNgayGioVn(k.giaiQuyetLuc)}` : ''}</div>
+                      <div style="margin-top: 0.25rem">
+                        <strong>Giải quyết bởi:</strong>
+                        ${
+                          k.tenNguoiGiaiQuyet
+                            ? `Quản trị viên ${escapeHtml(k.tenNguoiGiaiQuyet)}${k.emailNguoiGiaiQuyet ? ` (${escapeHtml(k.emailNguoiGiaiQuyet)})` : ''}`
+                            : 'Quản trị viên hệ thống'
+                        }
+                      </div>
                       ${k.ghiChuGiaiQuyet ? `<div style="margin-top: 0.25rem"><strong>Kết luận quản trị:</strong> ${escapeHtml(k.ghiChuGiaiQuyet)}</div>` : ''}
                     </div>
                   `

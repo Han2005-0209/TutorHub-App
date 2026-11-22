@@ -1876,7 +1876,12 @@
         if (!dangMo && elTb) {
           elTb.style.display = 'block';
           elTb.className = 'alert alert-info';
-          elTb.textContent = `Khiếu nại đã được phân xử: ${kn.ghiChuGiaiQuyet || 'Đã đóng'} (Đã hoàn học viên: ${dinhDangTienVnd(kn.tienDaHoan || 0)}).`;
+          const nguoiGq = kn.tenNguoiGiaiQuyet
+            ? ` bởi Quản trị viên ${kn.tenNguoiGiaiQuyet}${kn.giaiQuyetLuc ? ` lúc ${dinhDangNgayGioVn(kn.giaiQuyetLuc)}` : ''}`
+            : kn.giaiQuyetLuc
+              ? ` lúc ${dinhDangNgayGioVn(kn.giaiQuyetLuc)}`
+              : '';
+          elTb.textContent = `Khiếu nại đã được giải quyết${nguoiGq}: ${kn.ghiChuGiaiQuyet || 'Đã đóng'} (Hoàn học viên: ${dinhDangTienVnd(kn.tienDaHoan || 0)}).`;
         }
 
         const m = document.getElementById('modal-phan-bien-kn-gs');
@@ -2697,10 +2702,14 @@
 
               const thamChieuHtml = g.maDon
                 ? `<button type="button" class="link-more btn-nhay-den-buoi-hoc" data-ma-don="${escapeHtml(g.maDon)}" style="background: none; border: none; padding: 0; font-family: monospace; font-size: 0.81rem; font-weight: 700; cursor: pointer">${escapeHtml(g.maDon)} ↗</button>
-                   <div style="font-size: 0.74rem; color: var(--th-text-muted)">${escapeHtml(g.tenMonHoc || '')}${g.tenHocVien ? ` · ${escapeHtml(g.tenHocVien)}` : ''}</div>`
+                   <div style="font-size: 0.74rem; color: var(--th-text-muted)">${escapeHtml(g.tenMonHoc || '')}${g.tenHocVien ? ` · ${escapeHtml(g.tenHocVien)}` : ''}</div>
+                   ${g.nguoiThucHien ? `<div style="font-size: 0.72rem; color: #475569; margin-top: 2px">Thực hiện bởi: <strong>${escapeHtml(g.nguoiThucHien)}</strong></div>` : ''}`
                 : g.tenNganHangRut
-                  ? `<span style="font-size: 0.81rem; font-weight: 600">${escapeHtml(g.tenNganHangRut)} <span style="font-family: monospace">${escapeHtml(g.soTaiKhoanRutChe || '')}</span></span>`
-                  : '<span style="color: #94a3b8">—</span>';
+                  ? `<span style="font-size: 0.81rem; font-weight: 600">${escapeHtml(g.tenNganHangRut)} <span style="font-family: monospace">${escapeHtml(g.soTaiKhoanRutChe || '')}</span></span>
+                     ${g.nguoiThucHien ? `<div style="font-size: 0.72rem; color: #475569; margin-top: 2px">Chi trả bởi: <strong>${escapeHtml(g.nguoiThucHien)}</strong></div>` : ''}`
+                  : g.nguoiThucHien
+                    ? `<span style="font-size: 0.76rem; color: #475569">${escapeHtml(g.nguoiThucHien)}</span>`
+                    : '<span style="color: #94a3b8">—</span>';
 
               return `
                 <tr class="tx-row-clickable" data-gd-id="${escapeHtml(g.id)}" tabindex="0" role="button" aria-label="Xem chi tiết giao dịch số ${g.soThuTu}">
@@ -2841,7 +2850,17 @@
           <div class="tx-detail-row"><span class="tx-detail-lbl">Ngân hàng thụ hưởng</span><span class="tx-detail-val">${escapeHtml(r.tenNganHang)} · ${escapeHtml(r.soTaiKhoanChe)}</span></div>
           <div class="tx-detail-row"><span class="tx-detail-lbl">Chủ tài khoản</span><span class="tx-detail-val">${escapeHtml(r.chuTaiKhoan)}</span></div>
           <div class="tx-detail-row"><span class="tx-detail-lbl">Thời gian gửi</span><span class="tx-detail-val">${dinhDangNgayGioVn(r.taoLuc)}</span></div>
-          <div class="tx-detail-row"><span class="tx-detail-lbl">Thời gian xử lý</span><span class="tx-detail-val">${r.xuLyLuc ? dinhDangNgayGioVn(r.xuLyLuc) : 'Đang chờ quản trị đối soát (tối đa 24h)'}</span></div>
+          <div class="tx-detail-row"><span class="tx-detail-lbl">Thời gian xử lý</span><span class="tx-detail-val">${r.xuLyLuc ? dinhDangNgayGioVn(r.xuLyLuc) : 'Đang chờ quản trị xử lý (tối đa 24h)'}</span></div>
+          <div class="tx-detail-row">
+            <span class="tx-detail-lbl">Xử lý bởi</span>
+            <span class="tx-detail-val">${
+              choXuLy
+                ? 'Chờ quản trị viên duyệt'
+                : r.tenNguoiXuLy
+                  ? `Quản trị viên ${escapeHtml(r.tenNguoiXuLy)}`
+                  : 'Quản trị viên hệ thống'
+            }</span>
+          </div>
           <div style="margin-top: 0.75rem; padding: 0.7rem 0.85rem; border-radius: 10px; background: #f8fafc; border: 1px solid #e2e8f0; font-size: 0.8rem; color: #334155">
             <strong>Ghi chú / Mã tham chiếu:</strong> ${escapeHtml(r.ghiChu || 'Chưa có ghi chú xử lý.')}
           </div>
@@ -2896,7 +2915,14 @@
                     <div style="font-size: 0.74rem; color: var(--th-text-muted)">${escapeHtml(r.chuTaiKhoan)}</div>
                   </td>
                   <td style="text-align: right; font-weight: 800; color: #0f172a; white-space: nowrap">${dinhDangTienVnd(r.soTien)}</td>
-                  <td><span class="badge ${ttInfo.lop}">${escapeHtml(ttInfo.nhan)}</span></td>
+                  <td>
+                    <span class="badge ${ttInfo.lop}">${escapeHtml(ttInfo.nhan)}</span>
+                    ${
+                      !choXuLy && r.tenNguoiXuLy
+                        ? `<div style="font-size: 0.72rem; color: #475569; margin-top: 3px">Bởi QTV ${escapeHtml(r.tenNguoiXuLy)}</div>`
+                        : ''
+                    }
+                  </td>
                   <td style="font-size: 0.79rem; color: var(--th-text-muted); max-width: 220px">${escapeHtml(r.ghiChu || '—')}</td>
                   <td style="text-align: right; white-space: nowrap">
                     <div style="display: inline-flex; gap: 0.35rem">
@@ -2960,6 +2986,10 @@
             <div class="tx-detail-row">
               <span class="tx-detail-lbl">Thời gian thực hiện</span>
               <span class="tx-detail-val">${dinhDangNgayGioVn(gd.taoLuc)}</span>
+            </div>
+            <div class="tx-detail-row">
+              <span class="tx-detail-lbl">Thực hiện bởi</span>
+              <span class="tx-detail-val">${escapeHtml(gd.nguoiThucHien || 'Hệ thống TutorHub')}${gd.emailNguoiThucHien ? ` (${escapeHtml(gd.emailNguoiThucHien)})` : ''}</span>
             </div>
             <div class="tx-detail-row">
               <span class="tx-detail-lbl">Số dư trước GD</span>
@@ -3247,7 +3277,11 @@
                     <span class="badge ${tt.lopBadge}">${escapeHtml(tt.nhan)}</span>
                   </div>
                   <div style="font-size: 0.76rem; color: var(--th-text-muted); margin-top: 0.25rem">
-                    Tệp được lưu trữ bảo mật riêng tư
+                    ${
+                      g.tenNguoiDuyet
+                        ? `Xét duyệt bởi: <strong>Quản trị viên ${escapeHtml(g.tenNguoiDuyet)}</strong>${g.duyetLuc ? ` · ${dinhDangNgayGioVn(g.duyetLuc)}` : ''} · Tệp lưu trữ riêng tư`
+                        : 'Tệp được lưu trữ bảo mật riêng tư'
+                    }
                   </div>
                 </div>
                 <div style="display: flex; gap: 0.45rem">

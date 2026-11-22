@@ -33,7 +33,9 @@ public sealed record GiaoDichViGiaSuDto(
     string? TenNganHangRut,
     string? SoTaiKhoanRutChe,
     string? GhiChu,
-    DateTime TaoLuc);
+    DateTime TaoLuc,
+    string? NguoiThucHien = null,
+    string? EmailNguoiThucHien = null);
 
 public sealed record YeuCauRutTienDto(
     Guid Id,
@@ -52,7 +54,10 @@ public sealed record YeuCauRutTienDto(
     string? NoiDungChuyenKhoan = null,
     string? MaBinNganHang = null,
     string? SoTaiKhoanDayDu = null,
-    string? VietQrUrl = null);
+    string? VietQrUrl = null,
+    Guid? NguoiXuLyId = null,
+    string? TenNguoiXuLy = null,
+    string? EmailNguoiXuLy = null);
 
 public sealed record TaoYeuCauRutTienDto(
     int SoTien,
@@ -143,7 +148,10 @@ public sealed record KhieuNaiChiTietDto(
     string? UrlXemBangChungHocSinh = null,
     string? UrlXemBangChungGiaSu = null,
     decimal TyLePhiHienHanh = 12m,
-    TomTatNhatKyPhongHocDto? NhatKyPhongHoc = null);
+    TomTatNhatKyPhongHocDto? NhatKyPhongHoc = null,
+    Guid? NguoiGiaiQuyetId = null,
+    string? TenNguoiGiaiQuyet = null,
+    string? EmailNguoiGiaiQuyet = null);
 
 public sealed record TomTatNhatKyPhongHocDto(
     string TrangThaiMoLop,
@@ -225,7 +233,10 @@ public sealed record GiaoDichViHocSinhDto(
     int SoDuSau,
     string? GhiChu,
     Guid? ThanhToanId,
-    DateTime TaoLuc);
+    DateTime TaoLuc,
+    string? NguoiThucHien = null,
+    string? EmailNguoiThucHien = null,
+    string? PhuongThuc = null);
 
 public sealed record TongQuanViHocSinhDto(
     int SoDu,

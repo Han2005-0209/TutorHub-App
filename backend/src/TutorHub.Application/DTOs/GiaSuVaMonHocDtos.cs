@@ -48,7 +48,9 @@ public sealed record GiayToGiaSuDto(
     string TenTepGoc,
     string DuongDanTep,
     TrangThaiGiayTo TrangThai,
-    DateTime? DuyetLuc);
+    DateTime? DuyetLuc,
+    string? TenNguoiDuyet = null,
+    string? EmailNguoiDuyet = null);
 
 public sealed record UrlXemGiayToDto(
     Guid GiayToId,

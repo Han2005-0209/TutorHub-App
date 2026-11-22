@@ -290,6 +290,7 @@ public sealed class GiaSuVaMonHocService : IGiaSuVaMonHocService
     {
         var ds = await _db.GiayToGiaSus
             .AsNoTracking()
+            .Include(g => g.NguoiDuyet)
             .Where(g => g.GiaSuId == giaSuId)
             .OrderByDescending(g => g.DuyetLuc)
             .ToListAsync(cancellationToken);
@@ -1538,6 +1539,7 @@ public sealed class GiaSuVaMonHocService : IGiaSuVaMonHocService
             .Include(g => g.TaiKhoanVi)
             .Include(g => g.TaiKhoanNganHang)
             .Include(g => g.DsGiayTo)
+                .ThenInclude(gt => gt.NguoiDuyet)
             .Include(g => g.DsLichRanh)
             .Include(g => g.DsMonDay)
                 .ThenInclude(m => m.MonHoc)
@@ -1679,7 +1681,7 @@ public sealed class GiaSuVaMonHocService : IGiaSuVaMonHocService
         new(m.Id, m.MonHocId, m.MonHoc?.Ten ?? "Môn học", m.GiaMoiGio);
 
     private static GiayToGiaSuDto AnhXaGiayToDto(GiayToGiaSu g) =>
-        new(g.Id, g.Loai, g.TenTepGoc, g.DuongDanTep, g.TrangThai, g.DuyetLuc);
+        new(g.Id, g.Loai, g.TenTepGoc, g.DuongDanTep, g.TrangThai, g.DuyetLuc, g.NguoiDuyet?.HoTen, g.NguoiDuyet?.Email);
 
     private static LichLapHangTuanDto AnhXaLichLapDto(LichLapHangTuan l) =>
         new(l.Id, l.ThuTrongTuan, l.GioBatDau.ToString("HH:mm"), l.GioKetThuc.ToString("HH:mm"), l.HinhThucLich);

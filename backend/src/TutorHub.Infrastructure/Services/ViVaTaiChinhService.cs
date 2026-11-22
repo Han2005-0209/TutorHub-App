@@ -152,7 +152,9 @@ public sealed class ViVaTaiChinhService : IViVaTaiChinhService
             .AsNoTracking()
             .Include(g => g.ThanhToan)!.ThenInclude(t => t!.DonDatLich)!.ThenInclude(d => d!.HocSinh)
             .Include(g => g.ThanhToan)!.ThenInclude(t => t!.DonDatLich)!.ThenInclude(d => d!.GiaSuMonHoc)!.ThenInclude(m => m!.MonHoc)
-            .Include(g => g.YeuCauRutTien)
+            .Include(g => g.ThanhToan)!.ThenInclude(t => t!.DonDatLich)!.ThenInclude(d => d!.DsKhieuNai).ThenInclude(k => k.NguoiGiaiQuyet)
+            .Include(g => g.YeuCauRutTien)!.ThenInclude(r => r!.NguoiXuLy)
+            .AsSplitQuery()
             .Where(g => g.TaiKhoanViId == viId);
 
         if (loaiLoc.HasValue)
@@ -211,7 +213,9 @@ public sealed class ViVaTaiChinhService : IViVaTaiChinhService
             .Include(g => g.TaiKhoanVi)
             .Include(g => g.ThanhToan)!.ThenInclude(t => t!.DonDatLich)!.ThenInclude(d => d!.HocSinh)
             .Include(g => g.ThanhToan)!.ThenInclude(t => t!.DonDatLich)!.ThenInclude(d => d!.GiaSuMonHoc)!.ThenInclude(m => m!.MonHoc)
-            .Include(g => g.YeuCauRutTien)
+            .Include(g => g.ThanhToan)!.ThenInclude(t => t!.DonDatLich)!.ThenInclude(d => d!.DsKhieuNai).ThenInclude(k => k.NguoiGiaiQuyet)
+            .Include(g => g.YeuCauRutTien)!.ThenInclude(r => r!.NguoiXuLy)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(g => g.Id == giaoDichId, cancellationToken)
             ?? throw new LoiUngDungException("KHONG_TIM_THAY", "Không tìm thấy bút toán sổ cái.", 404);
 
@@ -236,6 +240,7 @@ public sealed class ViVaTaiChinhService : IViVaTaiChinhService
         var query = _db.YeuCauRutTiens
             .AsNoTracking()
             .Include(r => r.GiaSu)
+            .Include(r => r.NguoiXuLy)
             .Where(r => r.GiaSuId == giaSuId);
 
         if (trangThai.HasValue)
@@ -884,11 +889,13 @@ public sealed class ViVaTaiChinhService : IViVaTaiChinhService
     {
         var query = _db.KhieuNais
             .AsNoTracking()
+            .Include(k => k.NguoiGiaiQuyet)
             .Include(k => k.DonDatLich)!.ThenInclude(d => d!.HocSinh)
             .Include(k => k.DonDatLich)!.ThenInclude(d => d!.GiaSuMonHoc)!.ThenInclude(m => m!.GiaSu)
             .Include(k => k.DonDatLich)!.ThenInclude(d => d!.GiaSuMonHoc)!.ThenInclude(m => m!.MonHoc)
             .Include(k => k.DonDatLich)!.ThenInclude(d => d!.DsThanhToan)
             .Include(k => k.DonDatLich)!.ThenInclude(d => d!.DsNhatKyPhongHoc)
+            .AsSplitQuery()
             .AsQueryable();
 
         query = vaiTro == VaiTro.GIA_SU
@@ -1392,6 +1399,7 @@ public sealed class ViVaTaiChinhService : IViVaTaiChinhService
         var query = _db.YeuCauRutTiens
             .AsNoTracking()
             .Include(r => r.GiaSu)
+            .Include(r => r.NguoiXuLy)
             .AsQueryable();
 
         if (trangThai.HasValue)
@@ -1451,6 +1459,12 @@ public sealed class ViVaTaiChinhService : IViVaTaiChinhService
         var now = DateTime.UtcNow;
         lenh.XuLyLuc = now;
         lenh.NguoiXuLyId = quanTriId;
+        var quanTri = await _db.QuanTriViens
+            .AsNoTracking()
+            .FirstOrDefaultAsync(q => q.Id == quanTriId, cancellationToken);
+        var nhanAdmin = quanTri is not null
+            ? $"Quản trị viên {quanTri.HoTen}"
+            : "Quản trị viên";
 
         if (yeuCau.Duyet)
         {
@@ -1489,7 +1503,7 @@ public sealed class ViVaTaiChinhService : IViVaTaiChinhService
                 NguoiNhanId = lenh.GiaSuId,
                 Loai = LoaiThongBao.THANH_TOAN,
                 TieuDe = $"Đã chi trả yêu cầu rút tiền {maLenh}",
-                NoiDung = $"Quản trị viên đã xác nhận chuyển khoản {lenh.SoTien:N0} ₫ về {lenh.TenNganHang} ({CheSoTaiKhoan(lenh.SoTaiKhoan)}). Ghi chú: {lenh.GhiChu}.",
+                NoiDung = $"{nhanAdmin} đã xác nhận chuyển khoản {lenh.SoTien:N0} ₫ về {lenh.TenNganHang} ({CheSoTaiKhoan(lenh.SoTaiKhoan)}). Ghi chú: {lenh.GhiChu}.",
                 TaoLuc = now
             });
         }
@@ -1507,7 +1521,7 @@ public sealed class ViVaTaiChinhService : IViVaTaiChinhService
                 NguoiNhanId = lenh.GiaSuId,
                 Loai = LoaiThongBao.THANH_TOAN,
                 TieuDe = $"Yêu cầu rút tiền {maLenh} bị từ chối",
-                NoiDung = $"Yêu cầu rút {lenh.SoTien:N0} ₫ đã được hoàn lại vào Số dư khả dụng ({vi.SoDu:N0} ₫). Lý do: {ghiChuSach}.",
+                NoiDung = $"{nhanAdmin} đã từ chối yêu cầu rút {lenh.SoTien:N0} ₫ và hoàn lại vào Số dư khả dụng ({vi.SoDu:N0} ₫). Lý do: {ghiChuSach}.",
                 TaoLuc = now
             });
         }
@@ -1515,6 +1529,7 @@ public sealed class ViVaTaiChinhService : IViVaTaiChinhService
         await _db.SaveChangesAsync(cancellationToken);
         await tx.CommitAsync(cancellationToken);
 
+        lenh.NguoiXuLy = quanTri;
         return AnhXaYeuCauRutTien(lenh, choQuanTri: true);
     }
 
@@ -1529,11 +1544,13 @@ public sealed class ViVaTaiChinhService : IViVaTaiChinhService
 
         var query = _db.KhieuNais
             .AsNoTracking()
+            .Include(k => k.NguoiGiaiQuyet)
             .Include(k => k.DonDatLich)!.ThenInclude(d => d!.HocSinh)
             .Include(k => k.DonDatLich)!.ThenInclude(d => d!.GiaSuMonHoc)!.ThenInclude(m => m!.GiaSu)
             .Include(k => k.DonDatLich)!.ThenInclude(d => d!.GiaSuMonHoc)!.ThenInclude(m => m!.MonHoc)
             .Include(k => k.DonDatLich)!.ThenInclude(d => d!.DsThanhToan)
             .Include(k => k.DonDatLich)!.ThenInclude(d => d!.DsNhatKyPhongHoc)
+            .AsSplitQuery()
             .AsQueryable();
 
         if (trangThai.HasValue)
@@ -1703,6 +1720,13 @@ public sealed class ViVaTaiChinhService : IViVaTaiChinhService
             }
         }
 
+        var quanTriGiaiQuyet = await _db.QuanTriViens
+            .AsNoTracking()
+            .FirstOrDefaultAsync(q => q.Id == quanTriId, cancellationToken);
+        var nhanAdminKn = quanTriGiaiQuyet is not null
+            ? $"Quản trị viên {quanTriGiaiQuyet.HoTen}"
+            : "Quản trị viên";
+
         // Gửi thông báo kết quả phân xử khiếu nại cho cả Học viên và Gia sư (dựa trên số tiền lịch sử thực tế)
         var ketQuaMoTa = yeuCau.SoTienHoan == tt.SoTien
             ? $"Hoàn 100% ({tt.SoTien:N0} ₫) về ví học viên."
@@ -1715,7 +1739,7 @@ public sealed class ViVaTaiChinhService : IViVaTaiChinhService
             NguoiNhanId = don.HocSinhId,
             Loai = LoaiThongBao.KHIEU_NAI,
             TieuDe = $"Kết quả xử lý khiếu nại đơn {don.MaDon}",
-            NoiDung = $"{ketQuaMoTa} Kết luận: {ghiChuSach}",
+            NoiDung = $"{nhanAdminKn} đã xử lý: {ketQuaMoTa} Kết luận: {ghiChuSach}",
             TaoLuc = now
         });
 
@@ -1727,7 +1751,7 @@ public sealed class ViVaTaiChinhService : IViVaTaiChinhService
                 NguoiNhanId = giaSuNhanTbId,
                 Loai = LoaiThongBao.KHIEU_NAI,
                 TieuDe = $"Kết quả phân xử khiếu nại đơn {don.MaDon}",
-                NoiDung = $"{ketQuaMoTa} Kết luận: {ghiChuSach}",
+                NoiDung = $"{nhanAdminKn} đã phân xử: {ketQuaMoTa} Kết luận: {ghiChuSach}",
                 TaoLuc = now
             });
         }
@@ -1735,6 +1759,7 @@ public sealed class ViVaTaiChinhService : IViVaTaiChinhService
         await _db.SaveChangesAsync(cancellationToken);
         await tx.CommitAsync(cancellationToken);
 
+        kn.NguoiGiaiQuyet = quanTriGiaiQuyet;
         return AnhXaKhieuNaiChiTiet(kn);
     }
 
@@ -2088,6 +2113,45 @@ public sealed class ViVaTaiChinhService : IViVaTaiChinhService
         string? tenNganHangRut = gd.YeuCauRutTien?.TenNganHang;
         string? soTaiKhoanRutChe = gd.YeuCauRutTien is null ? null : CheSoTaiKhoan(gd.YeuCauRutTien.SoTaiKhoan);
 
+        string? nguoiThucHien = null;
+        string? emailNguoiThucHien = null;
+        if (gd.Loai == LoaiGiaoDichVi.RUT_TIEN)
+        {
+            if (gd.YeuCauRutTien?.NguoiXuLy is not null)
+            {
+                nguoiThucHien = $"Quản trị viên {gd.YeuCauRutTien.NguoiXuLy.HoTen}";
+                emailNguoiThucHien = gd.YeuCauRutTien.NguoiXuLy.Email;
+            }
+            else
+            {
+                nguoiThucHien = "Quản trị viên duyệt chi trả";
+            }
+        }
+        else if (gd.Loai == LoaiGiaoDichVi.THU_NHAP)
+        {
+            var knDaGiaiQuyet = gd.ThanhToan?.DonDatLich?.DsKhieuNai
+                .OrderByDescending(k => k.GiaiQuyetLuc ?? k.TaoLuc)
+                .FirstOrDefault(k => k.NguoiGiaiQuyet is not null);
+            var ghiChuLower = (gd.GhiChu ?? string.Empty).ToLowerInvariant();
+            if (knDaGiaiQuyet?.NguoiGiaiQuyet is not null &&
+                (ghiChuLower.Contains("khiếu nại") || ghiChuLower.Contains("khieu nai")))
+            {
+                nguoiThucHien = $"Quản trị viên {knDaGiaiQuyet.NguoiGiaiQuyet.HoTen} (Phân xử khiếu nại)";
+                emailNguoiThucHien = knDaGiaiQuyet.NguoiGiaiQuyet.Email;
+            }
+            else if (ghiChuLower.Contains("xác nhận hoàn thành") || ghiChuLower.Contains("hoàn thành sớm"))
+            {
+                nguoiThucHien = !string.IsNullOrWhiteSpace(tenHocVien)
+                    ? $"Học viên {tenHocVien} (Xác nhận hoàn thành)"
+                    : "Học viên (Xác nhận hoàn thành)";
+                emailNguoiThucHien = gd.ThanhToan?.DonDatLich?.HocSinh?.Email;
+            }
+            else
+            {
+                nguoiThucHien = "Hệ thống tự động (Giải ngân sau buổi học)";
+            }
+        }
+
         return new GiaoDichViGiaSuDto(
             Id: gd.Id,
             SoThuTu: gd.SoThuTu,
@@ -2106,7 +2170,9 @@ public sealed class ViVaTaiChinhService : IViVaTaiChinhService
             TenNganHangRut: tenNganHangRut,
             SoTaiKhoanRutChe: soTaiKhoanRutChe,
             GhiChu: gd.GhiChu,
-            TaoLuc: gd.TaoLuc);
+            TaoLuc: gd.TaoLuc,
+            NguoiThucHien: nguoiThucHien,
+            EmailNguoiThucHien: emailNguoiThucHien);
     }
 
     private static string TaoMaLenhRut(YeuCauRutTien r)
@@ -2214,7 +2280,10 @@ public sealed class ViVaTaiChinhService : IViVaTaiChinhService
             NoiDungChuyenKhoan: noiDungCk,
             MaBinNganHang: maBin,
             SoTaiKhoanDayDu: choQuanTri ? r.SoTaiKhoan : null,
-            VietQrUrl: vietQrUrl);
+            VietQrUrl: vietQrUrl,
+            NguoiXuLyId: r.NguoiXuLyId,
+            TenNguoiXuLy: r.NguoiXuLy?.HoTen,
+            EmailNguoiXuLy: r.NguoiXuLy?.Email);
     }
 
     private KhieuNaiChiTietDto AnhXaKhieuNaiChiTiet(KhieuNai k)
@@ -2267,7 +2336,10 @@ public sealed class ViVaTaiChinhService : IViVaTaiChinhService
             TyLePhiHienHanh: _policy.DefaultPlatformFeePercent,
             NhatKyPhongHoc: don is not null && don.HinhThuc == HinhThucBuoiHoc.TRUC_TUYEN
                 ? TinhTomTatNhatKyPhongHoc(don, don.DsNhatKyPhongHoc.ToList(), DateTime.UtcNow)
-                : null);
+                : null,
+            NguoiGiaiQuyetId: k.NguoiGiaiQuyetId,
+            TenNguoiGiaiQuyet: k.NguoiGiaiQuyet?.HoTen,
+            EmailNguoiGiaiQuyet: k.NguoiGiaiQuyet?.Email);
     }
 
     private DonDatLichChiTietDto AnhXaDonDatLichChiTiet(DonDatLich d)
@@ -2362,6 +2434,10 @@ public sealed class ViVaTaiChinhService : IViVaTaiChinhService
 
         var query = _db.GiaoDichVis
             .AsNoTracking()
+            .Include(g => g.ThanhToan)!.ThenInclude(t => t!.DonDatLich)!.ThenInclude(d => d!.HocSinh)
+            .Include(g => g.ThanhToan)!.ThenInclude(t => t!.DonDatLich)!.ThenInclude(d => d!.GiaSuMonHoc)!.ThenInclude(m => m!.GiaSu)
+            .Include(g => g.ThanhToan)!.ThenInclude(t => t!.DonDatLich)!.ThenInclude(d => d!.DsKhieuNai).ThenInclude(k => k.NguoiGiaiQuyet)
+            .AsSplitQuery()
             .Where(g => g.TaiKhoanViId == vi.Id);
 
         var tong = await query.CountAsync(cancellationToken);
@@ -2371,19 +2447,84 @@ public sealed class ViVaTaiChinhService : IViVaTaiChinhService
             .Take(kichThuocTrang)
             .ToListAsync(cancellationToken);
 
-        var ketQua = ds.Select(g => new GiaoDichViHocSinhDto(
-            Id: g.Id,
-            SoThuTu: g.SoThuTu,
-            Loai: g.Loai,
-            SoTien: g.SoTien,
-            SoDuTruoc: g.SoDuSau - g.SoTien,
-            SoDuSau: g.SoDuSau,
-            GhiChu: g.GhiChu,
-            ThanhToanId: g.ThanhToanId,
-            TaoLuc: g.TaoLuc)).ToList();
+        var ketQua = ds.Select(g =>
+        {
+            var (nguoiThucHien, emailNguoiThucHien, phuongThuc) = XacDinhNguoiThucHienGdHocSinh(g);
+            return new GiaoDichViHocSinhDto(
+                Id: g.Id,
+                SoThuTu: g.SoThuTu,
+                Loai: g.Loai,
+                SoTien: g.SoTien,
+                SoDuTruoc: g.SoDuSau - g.SoTien,
+                SoDuSau: g.SoDuSau,
+                GhiChu: g.GhiChu,
+                ThanhToanId: g.ThanhToanId,
+                TaoLuc: g.TaoLuc,
+                NguoiThucHien: nguoiThucHien,
+                EmailNguoiThucHien: emailNguoiThucHien,
+                PhuongThuc: phuongThuc);
+        }).ToList();
 
         var tongTrang = tong == 0 ? 0 : (int)Math.Ceiling(tong / (double)kichThuocTrang);
         return new KetQuaPhanTrangDto<GiaoDichViHocSinhDto>(ketQua, trang, kichThuocTrang, tong, tongTrang);
+    }
+
+    private static (string NguoiThucHien, string? EmailNguoiThucHien, string? PhuongThuc) XacDinhNguoiThucHienGdHocSinh(GiaoDichVi g)
+    {
+        var ghiChuLower = (g.GhiChu ?? string.Empty).ToLowerInvariant();
+        if (g.Loai == LoaiGiaoDichVi.NAP_TIEN)
+        {
+            return ghiChuLower.Contains("payos") || ghiChuLower.Contains("vietqr")
+                ? ("Học viên (Tự nạp qua PayOS VietQR)", null, "PAYOS_VIETQR")
+                : ("Học viên (Nạp vào Ví học tập)", null, "VI_NOI_BO");
+        }
+
+        if (g.Loai == LoaiGiaoDichVi.THANH_TOAN)
+        {
+            var hs = g.ThanhToan?.DonDatLich?.HocSinh;
+            var pt = g.ThanhToan?.PhuongThuc.ToString() ?? "VI_NOI_BO";
+            var nhanPt = pt switch
+            {
+                "VI_NOI_BO" => "Ví nội bộ",
+                "VNPAY" => "VNPay",
+                _ => "Thanh toán trực tuyến"
+            };
+            var ten = hs is not null ? $"Học viên {hs.HoTen} ({nhanPt})" : $"Học viên ({nhanPt})";
+            return (ten, hs?.Email, pt);
+        }
+
+        if (g.Loai == LoaiGiaoDichVi.HOAN_TIEN)
+        {
+            var knDaGiaiQuyet = g.ThanhToan?.DonDatLich?.DsKhieuNai
+                .OrderByDescending(k => k.GiaiQuyetLuc ?? k.TaoLuc)
+                .FirstOrDefault(k => k.NguoiGiaiQuyet is not null);
+            if (knDaGiaiQuyet?.NguoiGiaiQuyet is not null &&
+                (ghiChuLower.Contains("khiếu nại") || ghiChuLower.Contains("khieu nai")))
+            {
+                return (
+                    $"Quản trị viên {knDaGiaiQuyet.NguoiGiaiQuyet.HoTen} (Phân xử khiếu nại)",
+                    knDaGiaiQuyet.NguoiGiaiQuyet.Email,
+                    "VI_NOI_BO");
+            }
+
+            if (ghiChuLower.Contains("từ chối") || ghiChuLower.Contains("tu choi"))
+            {
+                var gs = g.ThanhToan?.DonDatLich?.GiaSuMonHoc?.GiaSu;
+                return (
+                    gs is not null ? $"Gia sư {gs.HoTen} từ chối lịch (Hoàn tự động)" : "Gia sư từ chối lịch (Hoàn tự động)",
+                    gs?.Email,
+                    "VI_NOI_BO");
+            }
+
+            if (ghiChuLower.Contains("hết hạn") || ghiChuLower.Contains("het han"))
+            {
+                return ("Hệ thống tự động (Đơn hết hạn phản hồi)", null, "VI_NOI_BO");
+            }
+
+            return ("Hệ thống hoàn tiền về Ví", null, "VI_NOI_BO");
+        }
+
+        return ("Hệ thống TutorHub", null, null);
     }
 
     public async Task<YeuCauNapTienDto> TaoYeuCauNapTienVietQrAsync(

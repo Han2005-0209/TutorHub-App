@@ -222,7 +222,8 @@ public sealed class BangDieuKhienService : IBangDieuKhienService
         var tongTrang = tong == 0 ? 0 : (int)Math.Ceiling(tong / (double)kichThuocChuan);
 
         var ds = await truyVan
-            .Include(g => g.DsGiayTo)
+            .Include(g => g.NguoiDuyet)
+            .Include(g => g.DsGiayTo).ThenInclude(gt => gt.NguoiDuyet)
             .Include(g => g.DsMonDay)
             .AsSplitQuery()
             .OrderBy(g => g.TrangThaiHoSo == TrangThaiHoSoGiaSu.CHO_DUYET ? 0 : 1)
@@ -246,7 +247,7 @@ public sealed class BangDieuKhienService : IBangDieuKhienService
         CancellationToken cancellationToken = default)
     {
         var giaSu = await _db.GiaSus
-            .Include(g => g.DsGiayTo)
+            .Include(g => g.DsGiayTo).ThenInclude(gt => gt.NguoiDuyet)
             .Include(g => g.DsMonDay)
             .FirstOrDefaultAsync(g => g.Id == giaSuId, cancellationToken)
             ?? throw new LoiUngDungException("KHONG_TIM_THAY", "Không tìm thấy hồ sơ gia sư cần xét duyệt.", 404);
@@ -272,6 +273,7 @@ public sealed class BangDieuKhienService : IBangDieuKhienService
         giaSu.NguoiDuyetId = quanTriId;
         await _db.SaveChangesAsync(cancellationToken);
 
+        giaSu.NguoiDuyet = await _db.QuanTriViens.AsNoTracking().FirstOrDefaultAsync(q => q.Id == quanTriId, cancellationToken);
         return AnhXaGiaSuQuanTri(giaSu);
     }
 
@@ -291,12 +293,15 @@ public sealed class BangDieuKhienService : IBangDieuKhienService
 
         await _db.SaveChangesAsync(cancellationToken);
 
+        var quanTri = await _db.QuanTriViens.AsNoTracking().FirstOrDefaultAsync(q => q.Id == quanTriId, cancellationToken);
         return new GiayToQuanTriDto(
             giayTo.Id,
             giayTo.Loai,
             giayTo.TenTepGoc,
             giayTo.TrangThai,
-            giayTo.DuyetLuc);
+            giayTo.DuyetLuc,
+            quanTri?.HoTen,
+            quanTri?.Email);
     }
 
     public async Task<KetQuaPhanTrangDto<NguoiDungQuanTriDto>> LayDsNguoiDungQuanTriAsync(
@@ -577,6 +582,15 @@ public sealed class BangDieuKhienService : IBangDieuKhienService
             TaoLuc: g.TaoLuc,
             DsGiayTo: g.DsGiayTo
                 .OrderByDescending(x => x.DuyetLuc)
-                .Select(x => new GiayToQuanTriDto(x.Id, x.Loai, x.TenTepGoc, x.TrangThai, x.DuyetLuc))
-                .ToList());
+                .Select(x => new GiayToQuanTriDto(
+                    x.Id,
+                    x.Loai,
+                    x.TenTepGoc,
+                    x.TrangThai,
+                    x.DuyetLuc,
+                    x.NguoiDuyet?.HoTen,
+                    x.NguoiDuyet?.Email))
+                .ToList(),
+            TenNguoiDuyet: g.NguoiDuyet?.HoTen,
+            EmailNguoiDuyet: g.NguoiDuyet?.Email);
 }

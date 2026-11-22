@@ -2111,7 +2111,7 @@
                       ? `<div style="margin-top: 0.45rem; padding: 0.5rem 0.7rem; border-radius: 9px; background: #fffbeb; border: 1px solid #fde68a; font-size: 0.78rem; color: #78350f">
                            <strong>Khiếu nại của bạn:</strong> ${escapeHtml(knDon.moTa)}
                            ${knDon.phanHoiGiaSu ? `<div style="margin-top: 0.25rem; color: #1e40af"><strong>Phản biện của gia sư:</strong> ${escapeHtml(knDon.phanHoiGiaSu)}</div>` : '<div style="margin-top: 0.2rem; color: #92400e">Đang chờ gia sư gửi phản biện / quản trị viên phân xử.</div>'}
-                           ${knDon.ghiChuGiaiQuyet ? `<div style="margin-top: 0.25rem; color: #15803d"><strong>Kết luận quản trị:</strong> ${escapeHtml(knDon.ghiChuGiaiQuyet)} (Hoàn: ${dinhDangTienVnd(knDon.tienDaHoan || 0)})</div>` : ''}
+                           ${knDon.ghiChuGiaiQuyet ? `<div style="margin-top: 0.25rem; color: #15803d"><strong>Kết luận quản trị:</strong> ${escapeHtml(knDon.ghiChuGiaiQuyet)} (Hoàn: ${dinhDangTienVnd(knDon.tienDaHoan || 0)})${knDon.tenNguoiGiaiQuyet ? `<div style="font-size: 0.73rem; color: #475569; margin-top: 2px">Giải quyết bởi: <strong>Quản trị viên ${escapeHtml(knDon.tenNguoiGiaiQuyet)}</strong>${knDon.giaiQuyetLuc ? ` · ${dinhDangNgayGioVn(knDon.giaiQuyetLuc)}` : ''}</div>` : ''}</div>` : ''}
                          </div>`
                       : ''
                   }
@@ -2614,6 +2614,7 @@
                       <span style="font-size: 0.74rem; color: #64748b">${dinhDangNgayGioVn(g.taoLuc)}</span>
                     </div>
                     <div style="margin-top: 0.25rem; font-size: 0.83rem; color: #1e293b; font-weight: 600">${escapeHtml(g.ghiChu || info.text)}</div>
+                    ${g.nguoiThucHien ? `<div style="margin-top: 0.18rem; font-size: 0.74rem; color: #475569">Thực hiện bởi: <strong>${escapeHtml(g.nguoiThucHien)}</strong></div>` : ''}
                   </div>
                   <div style="text-align: right; flex-shrink: 0">
                     <div style="font-size: 0.95rem; font-weight: 800; color: ${laCong ? '#15803d' : '#dc2626'}">${laCong ? '+' : ''}${dinhDangTienVnd(g.soTien)}</div>
